@@ -1,0 +1,17 @@
+.student-layout {
+  display: flex;
+  min-height: calc(100vh - var(--navbar-height));
+  background: var(--color-bg);
+}
+
+.student-layout-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.student-layout-content {
+  flex: 1;
+  padding: 1.5rem;
+}

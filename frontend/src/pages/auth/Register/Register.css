@@ -1,0 +1,24 @@
+.register-form-card { width: min(100%, 560px); margin: 0 auto; }
+.register-form-card h2 { margin: 0; color: var(--color-text); font-size: clamp(1.9rem, 4vw, 2.6rem); }
+.register-description { margin: 0.65rem 0 1.5rem; color: var(--color-text-muted); line-height: 1.65; }
+.register-field { margin-bottom: 0.95rem; }
+.register-field label, .role-field legend { display: block; margin-bottom: 0.4rem; color: var(--color-text); font-size: 0.8rem; font-weight: 700; }
+.register-field label span, .role-field legend span { color: var(--color-accent); }
+.register-field input { display: block; width: 100%; min-height: 44px; border: 1px solid var(--color-input-border); border-radius: var(--radius-sm); padding: 0.7rem 0.8rem; background: var(--color-input-bg); color: var(--color-text); font: inherit; font-size: 0.84rem; outline: 0; }
+.register-field input::placeholder { color: var(--color-text-muted); }
+.register-field input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent); }
+.register-field input[aria-invalid="true"] { border-color: #ef4444; }
+.register-error { display: block; margin-top: 0.3rem; color: #dc2626; font-size: 0.72rem; line-height: 1.4; }
+.role-field { margin: 1.1rem 0; border: 0; padding: 0; }
+.role-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+.role-options label { border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 0.75rem; background: var(--color-card-bg); color: var(--color-text-secondary); cursor: pointer; font-size: 0.82rem; font-weight: 700; }
+.role-options label.is-selected { border-color: var(--color-primary); color: var(--color-primary); }
+.role-options input { margin-right: 0.45rem; accent-color: var(--color-primary); }
+.role-field small { display: block; margin-top: 0.4rem; color: var(--color-text-muted); font-size: 0.7rem; line-height: 1.45; }
+.password-guidance { margin: 0.4rem 0 1.1rem; color: var(--color-text-muted); font-size: 0.72rem; line-height: 1.45; }
+.register-submit { width: 100%; min-height: 46px; margin-top: 0.75rem; }
+.register-submit:disabled { cursor: not-allowed; opacity: 0.55; }
+.register-switch { margin: 1.25rem 0 0; color: var(--color-text-muted); font-size: 0.84rem; }
+.register-switch a { color: var(--color-primary); font-weight: 700; }
+.register-notice, .register-status { margin-bottom: 1rem; border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border)); border-radius: var(--radius-sm); padding: 0.75rem; color: var(--color-text-secondary); font-size: 0.8rem; line-height: 1.5; }
+.register-status-error { border-color: #f87171; color: #b91c1c; }

@@ -1,0 +1,6 @@
+.theme-toggle { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-text); cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition), transform var(--transition); }
+.theme-toggle:hover { border-color: var(--color-border-hover); color: var(--color-primary); transform: translateY(-1px); }
+.theme-toggle svg { animation: theme-icon-in 220ms ease both; }
+@keyframes theme-icon-in { from { opacity: 0; transform: rotate(-35deg) scale(0.7); } to { opacity: 1; transform: rotate(0) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) { .theme-toggle svg { animation: none; } }

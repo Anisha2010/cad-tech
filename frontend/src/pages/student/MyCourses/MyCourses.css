@@ -1,0 +1,1 @@
+.my-courses-content { display: flex; flex: 1; flex-direction: column; gap: 1.5rem; padding: 2rem clamp(1rem, 3vw, 2.5rem); }.my-courses-content h1 { margin: 0; color: var(--color-text); }.my-courses-content header p:last-child { color: var(--color-text-muted); }.enrollment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; }

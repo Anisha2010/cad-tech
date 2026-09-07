@@ -1,0 +1,27 @@
+.dashboard-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-row {
+  min-height: 130px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.24), rgba(148, 163, 184, 0.14));
+  background-size: 200% 100%;
+  animation: dashboard-skeleton 1.2s ease-in-out infinite;
+}
+
+.skeleton-summary {
+  min-height: 120px;
+}
+
+.skeleton-section {
+  min-height: 220px;
+}
+
+@keyframes dashboard-skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

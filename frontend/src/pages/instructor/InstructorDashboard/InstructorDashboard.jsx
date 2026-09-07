@@ -1,0 +1,2 @@
+function InstructorDashboard() { return <main className="dashboard-placeholder page-placeholder"><h1>Instructor Dashboard</h1><p>Course management and instructor tools will appear here.</p></main> }
+export default InstructorDashboard

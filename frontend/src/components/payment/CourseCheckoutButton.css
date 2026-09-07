@@ -1,0 +1,1 @@
+.checkout-wrap { display: flex; flex-direction: column; gap: .6rem; align-items: flex-start; }.checkout-button { min-width: 190px; }.checkout-unavailable, .checkout-message { margin: 0; color: var(--color-text-muted); font-weight: 700; }.checkout-message { color: var(--color-primary); }@media (max-width: 767px) { .checkout-wrap, .checkout-button { width: 100%; } }

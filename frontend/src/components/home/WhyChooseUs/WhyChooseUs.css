@@ -1,0 +1,35 @@
+.why-choose-section { overflow: hidden; padding: 0 0 var(--section-spacing); background: var(--color-bg); }
+.why-choose-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr); align-items: center; gap: clamp(2.5rem, 7vw, 7rem); }
+.why-choose-content .section-heading { max-width: 690px; }
+.why-choose-content .section-description { max-width: 650px; margin: 0.85rem 0 1.7rem; }
+.features-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.feature-item { display: flex; align-items: flex-start; gap: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 1rem; background: var(--color-card-bg); transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition); }
+.feature-item:hover { border-color: var(--color-primary); box-shadow: var(--shadow-card); transform: translateY(-2px); }
+.feature-icon { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--color-primary) 13%, transparent); color: var(--color-primary); }
+.feature-item:nth-child(even) .feature-icon { background: color-mix(in srgb, var(--color-accent) 13%, transparent); color: var(--color-accent); }
+.feature-item h3 { margin: 0; color: var(--color-text); font-size: 0.92rem; font-weight: 800; line-height: 1.3; }
+.feature-item p { margin: 0.35rem 0 0; color: var(--color-text-muted); font-size: 0.78rem; line-height: 1.5; }
+.why-choose-action { margin-top: 1.6rem; min-height: 46px; }
+.engineering-visual { position: relative; min-height: 470px; }
+.visual-grid { position: absolute; inset: 8% -10% 8% 2%; background: url('/images/hero/blueprint-grid.svg') repeat; mask-image: linear-gradient(90deg, transparent, black 18%, black 85%, transparent); opacity: 0.9; }
+.visual-frame { position: absolute; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.visual-frame-back { inset: 16% 5% 12% 12%; background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg)); transform: rotate(5deg); }
+.visual-frame-front { inset: 10% 11% 18% 5%; z-index: 1; overflow: hidden; background: var(--color-surface); box-shadow: var(--shadow-card); }
+.visual-header, .visual-ruler { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; }
+.visual-header { border-bottom: 1px solid var(--color-border); padding: 1rem 1.1rem; }
+.cad-orbit { position: absolute; top: 50%; left: 50%; display: grid; width: 220px; height: 220px; place-items: center; border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent); border-radius: 50%; transform: translate(-50%, -48%) rotate(-18deg); }
+.cad-orbit::before, .cad-orbit::after { position: absolute; inset: 15%; border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent); border-radius: 50%; content: ''; transform: rotate(55deg) scaleX(1.6); }
+.cad-orbit::after { inset: 28%; transform: rotate(-35deg) scaleX(1.45); }
+.cad-box { color: var(--color-primary); transform: rotate(18deg); }
+.orbit-dot { position: absolute; z-index: 2; color: var(--color-accent); }
+.orbit-dot-one { top: 16px; right: 26px; }
+.orbit-dot-two { bottom: 35px; left: 19px; }
+.visual-ruler { position: absolute; right: 1.1rem; bottom: 1rem; left: 1.1rem; justify-content: flex-start; gap: 0.45rem; border-top: 1px solid var(--color-border); padding-top: 0.8rem; }
+.visual-label { position: absolute; z-index: 2; border: 1px solid var(--color-border); border-radius: 6px; padding: 0.55rem 0.7rem; background: var(--color-surface-elevated); color: var(--color-text-secondary); font-size: 0.7rem; font-weight: 800; box-shadow: var(--shadow-card); }
+.visual-label svg { vertical-align: -3px; margin-right: 0.25rem; color: var(--color-primary); }
+.label-modeling { top: 13%; right: 0; }
+.label-training { bottom: 15%; left: 0; color: var(--color-accent); }
+.label-design { right: 3%; bottom: 3%; }
+@media (max-width: 1000px) { .why-choose-grid { gap: 3rem; } }
+@media (max-width: 767px) { .why-choose-grid { grid-template-columns: 1fr; gap: 2rem; } .features-grid { grid-template-columns: 1fr; } .engineering-visual { min-height: 390px; } .visual-frame-front { inset: 8% 8% 15% 4%; } }
+@media (prefers-reduced-motion: reduce) { .feature-item { transition: none; } }
