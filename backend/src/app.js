@@ -19,7 +19,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 app.disable('x-powered-by')
 
 if (isProduction) {
-	app.set('trust proxy', 1)
+  app.set('trust proxy', 1)
 }
 
 // CORS middleware
@@ -31,7 +31,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.get('/health', (req, res) => {
-	res.status(200).json({ status: 'ok', service: 'CadTech API' })
+  res.status(200).json({ status: 'ok', service: 'CadTech API' })
 })
 
 // Session middleware
