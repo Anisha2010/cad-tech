@@ -19,7 +19,7 @@ const startServer = async () => {
 
     // Start HTTP server
     const server = app.listen(PORT, () => {
-      console.log(`✓ CadTech auth server running on http://localhost:${PORT}`)
+      console.log(`✓ CadTech auth server listening on port ${PORT}`)
       console.log(`✓ Environment: ${NODE_ENV}`)
     })
 

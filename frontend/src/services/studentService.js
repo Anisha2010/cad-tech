@@ -1,6 +1,7 @@
 import axios from 'axios'
+import apiBaseUrl from '../config/api.js'
 
-const getBaseUrl = () => import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '')
+const getBaseUrl = () => apiBaseUrl
 
 export async function fetchStudentDashboard() {
   const baseUrl = getBaseUrl()

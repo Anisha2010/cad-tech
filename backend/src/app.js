@@ -13,9 +13,14 @@ import { notFoundMiddleware } from './middleware/notFound.js'
 import { errorHandlerMiddleware } from './middleware/errorHandler.js'
 
 const app = express()
+const isProduction = process.env.NODE_ENV === 'production'
 
 // Disable x-powered-by header for security
 app.disable('x-powered-by')
+
+if (isProduction) {
+	app.set('trust proxy', 1)
+}
 
 // CORS middleware
 app.use(cors(corsConfig))
@@ -24,6 +29,10 @@ app.use(cors(corsConfig))
 app.use('/payments/webhook', express.raw({ type: 'application/json' }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+app.get('/health', (req, res) => {
+	res.status(200).json({ status: 'ok', service: 'CadTech API' })
+})
 
 // Session middleware
 app.use(createSessionMiddleware())

@@ -1,6 +1,6 @@
-# CAD Tech Solution - Monorepo Structure
+# CAD Tech Solution
 
-This is a monorepo project with separate `frontend` and `backend` workspaces.
+This project has independently managed `frontend` and `backend` applications.
 
 ## 📁 Project Structure
 
@@ -30,7 +30,6 @@ cadtech-solution/
 │   ├── .env                 # Environment variables (local)
 │   └── .env.example         # Environment template
 │
-├── package.json             # Root monorepo configuration
 ├── README.md                # This file
 ├── OAUTH_SETUP.md          # OAuth setup guide
 └── IMPLEMENTATION_MANIFEST.md # Implementation details
@@ -45,35 +44,38 @@ cadtech-solution/
 ### Installation
 
 ```bash
-# Install dependencies for both frontend and backend
-npm install
+# Install frontend dependencies
+cd frontend && npm install
+
+# In another terminal, install backend dependencies
+cd backend && npm install
 ```
 
 ### Running Development Servers
 
-**Option 1: Run both simultaneously**
+Run each application from its own folder in a separate terminal.
 ```bash
+# Terminal 1 - Frontend (http://localhost:5173)
+cd frontend
 npm run dev
 ```
 
-**Option 2: Run individually**
 ```bash
-# Terminal 1 - Frontend (http://localhost:5173)
-npm run dev:frontend
-
 # Terminal 2 - Backend (http://localhost:5000)
-npm run dev:backend
+cd backend
+npm run dev
 ```
 
 ### Building for Production
 
 ```bash
-# Build both frontend and backend
+# Frontend
+cd frontend
 npm run build
 
-# Or build individually
-npm run build:frontend
-npm run build:backend
+# Backend
+cd backend
+npm run build
 ```
 
 ## 📦 Workspaces
@@ -139,33 +141,21 @@ GITHUB_CALLBACK_URL=http://localhost:5000/auth/github/callback
 
 See [OAUTH_SETUP.md](OAUTH_SETUP.md) for detailed OAuth configuration.
 
-## 📚 Available Scripts
-
-### Root Scripts
-```bash
-npm run dev              # Run both frontend and backend
-npm run dev:frontend    # Run only frontend
-npm run dev:backend     # Run only backend
-npm run build           # Build both workspaces
-npm run build:frontend  # Build only frontend
-npm run build:backend   # Build only backend
-npm run preview         # Preview frontend build
-npm run lint            # Lint frontend code
-```
-
-## 🔍 Workspace Commands
-
-You can run workspace-specific commands:
+## 📚 Application Commands
 
 ```bash
-# Install dependencies for frontend only
-npm install --workspace=frontend
+# From the frontend folder
+cd frontend
+npm run dev
+npm run build
+npm run lint
+npm run preview
 
-# Run frontend development server
-npm run dev --workspace=frontend
-
-# Build frontend
-npm run build --workspace=frontend
+# From the backend folder
+cd backend
+npm run dev
+npm run start
+npm run build
 ```
 
 ## 🛠️ Development Workflow

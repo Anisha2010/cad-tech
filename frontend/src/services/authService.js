@@ -1,6 +1,7 @@
 import axios from 'axios'
+import apiBaseUrl from '../config/api.js'
 
-const getBaseUrl = () => import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/$/, '')
+const getBaseUrl = () => apiBaseUrl
 
 async function request(method, path, data) {
   const baseUrl = getBaseUrl()

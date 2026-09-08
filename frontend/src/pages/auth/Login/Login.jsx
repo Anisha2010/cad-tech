@@ -4,6 +4,7 @@ import AuthLayout from '../../../components/auth/AuthLayout/AuthLayout.jsx'
 import PasswordField from '../../../components/auth/PasswordField/PasswordField.jsx'
 import SocialLoginButtons from '../../../components/auth/SocialLoginButtons/SocialLoginButtons.jsx'
 import useAuth from '../../../context/useAuth.jsx'
+import { isApiConfigured } from '../../../config/api.js'
 import './Login.css'
 
 function validateField(field, value) {
@@ -32,7 +33,7 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const emailRef = useRef(null)
   const passwordRef = useRef(null)
-  const isConfigured = Boolean(import.meta.env.VITE_API_BASE_URL?.trim())
+  const isConfigured = isApiConfigured
 
   const update = (field, value) => { setForm((current) => ({ ...current, [field]: value })); const error = validateField(field, value); setErrors((current) => ({ ...current, [field]: error || undefined })); setStatus('') }
   const validate = () => Object.fromEntries(Object.entries(form).map(([field, value]) => [field, validateField(field, value)]).filter(([, error]) => error))

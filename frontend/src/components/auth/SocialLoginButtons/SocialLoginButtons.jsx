@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Github } from 'lucide-react'
 import { startGitHubAuthentication, startGoogleAuthentication } from '../../../services/authService.js'
+import { isApiConfigured } from '../../../config/api.js'
 import './SocialLoginButtons.css'
 
 function SocialLoginButtons() {
   const [status, setStatus] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const isConfigured = Boolean(import.meta.env.VITE_API_BASE_URL?.trim())
+  const isConfigured = isApiConfigured
 
   const handleProviderAuth = (provider) => {
     if (!isConfigured) {

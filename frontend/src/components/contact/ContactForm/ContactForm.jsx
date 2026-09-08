@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import courses from '../../../data/courses.js'
 import services from '../../../data/services.js'
 import submitContactInquiry from '../../../services/contactService.js'
+import { isApiConfigured } from '../../../config/api.js'
 import './ContactForm.css'
 
 const emptyErrors = {}
@@ -13,7 +14,7 @@ function ContactForm({ initialSelection }) {
   const [status, setStatus] = useState('idle')
   const [statusMessage, setStatusMessage] = useState('')
   const firstInvalidRef = useRef(null)
-  const isConfigured = Boolean(import.meta.env.VITE_API_BASE_URL?.trim())
+  const isConfigured = isApiConfigured
 
   useEffect(() => { if (Object.keys(errors).length > 0) firstInvalidRef.current?.focus() }, [errors])
 

@@ -1,7 +1,8 @@
 import axios from 'axios'
+import apiBaseUrl from '../config/api.js'
 
 async function submitContactInquiry(formData) {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+  const baseUrl = apiBaseUrl
   if (!baseUrl) return { configured: false }
 
   const payload = {
@@ -15,7 +16,7 @@ async function submitContactInquiry(formData) {
     message: formData.message.trim(),
   }
 
-  await axios.post(`${baseUrl.replace(/\/$/, '')}/contact`, payload, { timeout: 10000 })
+  await axios.post(`${baseUrl}/contact`, payload, { withCredentials: true, timeout: 10000 })
   return { configured: true }
 }
 

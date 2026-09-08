@@ -5,6 +5,7 @@ import PasswordField from '../../../components/auth/PasswordField/PasswordField.
 import SocialLoginButtons from '../../../components/auth/SocialLoginButtons/SocialLoginButtons.jsx'
 import useAuth from '../../../context/useAuth.jsx'
 import { getAuthErrorDetails } from '../../../services/authService.js'
+import { isApiConfigured } from '../../../config/api.js'
 import './Register.css'
 
 function validateField(field, value, form) {
@@ -19,7 +20,7 @@ function validateField(field, value, form) {
 
 function Register() {
   const { register } = useAuth(); const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'student', password: '', confirmPassword: '' }); const [errors, setErrors] = useState({}); const [status, setStatus] = useState(''); const [isSubmitting, setIsSubmitting] = useState(false); const isConfigured = Boolean(import.meta.env.VITE_API_BASE_URL?.trim())
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'student', password: '', confirmPassword: '' }); const [errors, setErrors] = useState({}); const [status, setStatus] = useState(''); const [isSubmitting, setIsSubmitting] = useState(false); const isConfigured = isApiConfigured
   const nameRef = useRef(null); const emailRef = useRef(null); const phoneRef = useRef(null); const passwordRef = useRef(null); const confirmPasswordRef = useRef(null)
   const update = (field, value) => { const nextForm = { ...form, [field]: value }; setForm(nextForm); const nextErrors = { ...errors, [field]: validateField(field, value, nextForm) || undefined }; if (field === 'password' && form.confirmPassword) nextErrors.confirmPassword = validateField('confirmPassword', form.confirmPassword, nextForm) || undefined; setErrors(nextErrors); setStatus('') }
   const validate = () => Object.fromEntries(Object.keys(form).map((field) => [field, validateField(field, form[field], form)]).filter(([, error]) => error))
