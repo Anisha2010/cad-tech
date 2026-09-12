@@ -3,30 +3,25 @@
  * Catches all errors and returns consistent JSON responses
  * Never exposes sensitive information in production
  */
+
 import { AppError } from '../utils/AppError.js'
 
 export const errorHandlerMiddleware = (err, req, res, next) => {
-  // Determine status code
-  const statusCode = err.statusCode || 500
+  const isApplicationError = err instanceof AppError
+  const isDuplicateKeyError = err?.code === 11000
+  const statusCode = isDuplicateKeyError ? 409 : (isApplicationError ? err.statusCode : 500)
+  const message = isDuplicateKeyError
+    ? (err?.keyPattern?.providerOrderId || err?.keyPattern?.providerPaymentId) ? 'This payment has already been recorded.' : 'An account with this email already exists.'
+    : isApplicationError
+      ? err.message
+      : 'An internal server error occurred.'
 
-  // Log error (but never log sensitive data)
-  console.error(`[Error] ${err.message}`)
+  console.error(`[Error] ${isApplicationError ? err.message : 'Internal server error'}`)
 
-  // In production, never expose stack trace or internal details
-  const isDevelopment = process.env.NODE_ENV !== 'production'
-
-  // Return error response
-  const response = {
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'An error occurred.'
-  }
-
-  // In development, include stack trace for debugging
-  if (isDevelopment && err.stack) {
-    response.stack = err.stack
-  }
-
-  res.status(statusCode).json(response)
+    message
+  })
 }
 
 export default errorHandlerMiddleware

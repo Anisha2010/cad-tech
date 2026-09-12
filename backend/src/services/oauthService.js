@@ -5,7 +5,7 @@
  */
 import crypto from 'node:crypto'
 import config from '../config/environment.js'
-import * as db from '../config/database.js'
+import * as db from '../repositories/userRepository.js'
 import * as User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 
@@ -54,14 +54,14 @@ export const validateOAuthState = (req, provider, incomingState) => {
  */
 export const findOrCreateOAuthUser = async ({ provider, providerUserId, email, name }) => {
   // Check if user already linked with this provider
-  const linkedUser = db.getUserByProvider(provider, providerUserId)
+  const linkedUser = await db.getUserByProvider(provider, providerUserId)
   if (linkedUser) {
     return linkedUser
   }
 
   // Check if email already exists
   if (email) {
-    const existingUser = db.getUserByEmail(email)
+    const existingUser = await db.getUserByEmail(email)
     if (existingUser) {
       throw new AppError('An account with this email already exists.', 409)
     }
@@ -80,8 +80,12 @@ export const findOrCreateOAuthUser = async ({ provider, providerUserId, email, n
     updatedAt: new Date()
   }
 
-  db.createUser(newUser)
-  return newUser
+  try {
+    return await db.createUser(newUser)
+  } catch (error) {
+    if (error?.code === 11000) throw new AppError('An account with this email already exists.', 409)
+    throw error
+  }
 }
 
 /**
@@ -117,8 +121,6 @@ export const createOAuthSession = async (req, user) => {
       }
 
       req.session.userId = user.id
-      req.session.role = user.role
-
       req.session.save((saveError) => {
         if (saveError) {
           reject(new AppError('Unable to create session.', 500))

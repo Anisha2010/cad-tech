@@ -18,6 +18,9 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import StudentDashboard from './pages/student/StudentDashboard/StudentDashboard.jsx'
 import InstructorDashboard from './pages/instructor/InstructorDashboard/InstructorDashboard.jsx'
 import MyCourses from './pages/student/MyCourses/MyCourses.jsx'
+import LearningPlayer from './pages/student/LearningPlayer/LearningPlayer.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
+import AdminCourses from './pages/admin/AdminCourses.jsx'
 
 function AppLayout() {
   const location = useLocation()
@@ -42,7 +45,10 @@ function AppLayout() {
         <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/my-courses" element={<ProtectedRoute allowedRoles={['student']}><MyCourses /></ProtectedRoute>} />
+        <Route path="/student/learn/:courseSlug" element={<ProtectedRoute allowedRoles={['student']}><LearningPlayer /></ProtectedRoute>} />
         <Route path="/instructor/dashboard" element={<ProtectedRoute allowedRoles={['instructor']}><InstructorDashboard /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/courses" element={<ProtectedRoute allowedRoles={['admin']}><AdminCourses /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!isStudentRoute && <Footer />}

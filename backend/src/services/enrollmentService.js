@@ -1,34 +1,19 @@
-import { getCourseBySlug } from '../config/courses.js'
-import { createEnrollment, findActiveEnrollment, listActiveEnrollments } from '../repositories/enrollmentRepository.js'
+import mongoose from 'mongoose'
+import { AppError } from '../utils/AppError.js'
+import { getCourseBySlug } from '../repositories/courseRepository.js'
+import { createVerifiedEnrollment as createMongoEnrollment, findActiveEnrollment } from '../repositories/enrollmentRepository.js'
 
-export const getActiveEnrollment = (userId, courseSlug) => findActiveEnrollment(userId, courseSlug)
+export const getActiveEnrollment = async (userId, courseSlug, options = {}) => {
+  const course = await getCourseBySlug(courseSlug)
+  return course ? findActiveEnrollment(userId, course.id, options) : null
+}
 
-export const activateEnrollment = ({ userId, courseSlug, paymentId }) => createEnrollment({
-  userId,
-  courseSlug,
-  paymentId,
-  status: 'active',
-  progressPercentage: 0,
-  completedLessons: [],
-  enrolledAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-})
+export const createVerifiedEnrollment = async ({ userId, courseSlug, paymentId }) => {
+  const course = await getCourseBySlug(courseSlug)
+  if (!course || !mongoose.isValidObjectId(userId)) throw new AppError('Course enrollment could not be created.', 400)
+  return createMongoEnrollment({ userId, courseId: course.id, paymentId })
+}
 
-export const getStudentEnrollments = (userId) => listActiveEnrollments(userId)
-  .map((enrollment) => {
-    const course = getCourseBySlug(enrollment.courseSlug)
-    if (!course) return null
-    return {
-      id: enrollment.id,
-      courseSlug: course.slug,
-      courseTitle: course.title,
-      software: course.software,
-      level: course.level,
-      duration: course.duration,
-      lessons: course.lessons,
-      image: course.image,
-      progressPercentage: enrollment.progressPercentage,
-      enrolledAt: enrollment.enrolledAt
-    }
-  })
-  .filter(Boolean)
+export const activateEnrollment = createVerifiedEnrollment
+
+export { getStudentEnrollments, getStudentEnrollmentSummary, getContinueLearningCourses, getRecentEnrollments } from '../repositories/enrollmentRepository.js'

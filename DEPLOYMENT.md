@@ -5,7 +5,18 @@ This repository contains two independently managed applications:
 - Frontend: `frontend/` (React + Vite)
 - Backend: `backend/` (Node.js + Express)
 
-The backend currently uses JSON files and Express's default `MemoryStore` for sessions. This is suitable only for development or demo deployment. JSON data can be lost or replaced during redeploys, concurrent writes can conflict, and local JSON files are not appropriate for real payments. Production should later migrate users, payments, and enrollments to MongoDB, and sessions to MongoDB or Redis. Do not treat this deployment as safe for real customer payments.
+Users, courses, enrollments and runtime payments use MongoDB through Mongoose; sessions use MongoDB through `connect-mongo`. The original users and payments JSON files are retained as migration backups and are never changed by runtime code.
+
+## MongoDB Setup
+
+1. Create or select a MongoDB Atlas cluster and create a dedicated database user with a strong unique password.
+2. Configure Atlas network access for the actual local or Render hosting environment. Do not weaken network access rules automatically.
+3. Obtain the application connection string and use database name `cadtech`.
+4. Store the connection string only in local `backend/.env` or the Render environment variable `MONGODB_URI`. Never add it to frontend or Vercel variables.
+5. Run the dry run locally, review its safe totals, then execute the migration if appropriate.
+6. Redeploy Render after adding `MONGODB_URI`, then test registration, login, `/auth/me`, logout and protected routes.
+
+Existing in-memory sessions do not survive this migration. Users may need to log in again.
 
 ## Vercel Frontend Settings
 
@@ -41,6 +52,7 @@ Add these Render environment variables:
 NODE_ENV=production
 FRONTEND_URL=https://your-project.vercel.app
 SESSION_SECRET=generate_a_long_random_secret
+MONGODB_URI=mongodb+srv://username:password@cluster.example.mongodb.net/cadtech?retryWrites=true&w=majority
 ```
 
 Do not manually set `PORT` on Render. Render supplies it to the service. If payment functionality is enabled, add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` only on Render/backend. Never put Razorpay secrets in frontend code.
@@ -65,8 +77,7 @@ Copy `frontend/.env.example` to a local `frontend/.env` and `backend/.env.exampl
 
 ## Deployment Order
 
-1. Push the prepared project to GitHub.
-2. Deploy the backend on Render.
+1. Deploy the backend on Render.
 3. Copy the Render backend URL.
 4. Import the GitHub repository into Vercel.
 5. Select `frontend` as the Vercel Root Directory.
@@ -86,7 +97,43 @@ The backend exposes:
 GET /health
 ```
 
-It returns HTTP 200 with `{ "status": "ok", "service": "CadTech API" }` and does not require authentication.
+It returns HTTP 200 with `{ "status": "ok", "service": "CadTech API", "database": "connected" }` when MongoDB is connected, and HTTP 503 otherwise. It does not require authentication.
+
+## User Migration
+
+Run from `backend/` after `MONGODB_URI` is configured:
+
+```bash
+npm run migrate:users:check
+npm run migrate:users
+```
+
+The first command is dry-run only. The second is the explicit write operation and is idempotent by normalized email. The source `backend/data/users.json` is not deleted or modified.
+
+## Payment Storage and Razorpay
+
+Runtime payments are stored in the `payments` collection. The model stores provider order/payment identifiers, trusted course pricing in paise, status, verification/failure/refund timestamps, and review flags. It never stores signatures, keys, card data, CVV, UPI PINs, or bank credentials.
+
+Indexes include unique `providerOrderId`, unique sparse `providerPaymentId`, `{ userId, createdAt }`, `{ userId, courseId }`, and `{ status, updatedAt }`. Webhook delivery claims are stored in `webhookevents` with a unique `{ provider, eventId }` index and no raw payload.
+
+Payment endpoints:
+
+- `POST /payments/orders`
+- `POST /payments/verify`
+- `POST /payments/webhook`
+- `GET /student/payments?page=1&limit=12`
+
+Use Razorpay Test Mode keys for local verification. Configure the webhook URL as `https://<render-service>/payments/webhook`; the endpoint verifies the exact raw request body with `RAZORPAY_WEBHOOK_SECRET` and does not require a browser session. Supported success events are `payment.captured` and `order.paid`; failed events are recorded without creating enrollment. Duplicate verification and webhook delivery are idempotent.
+
+The legacy file remains at `backend/data/payments.json` as a backup. It is read only by the migration script:
+
+```bash
+cd backend
+npm run migrate:payments:check
+npm run migrate:payments
+```
+
+The first command is dry-run only. The second is an explicit write operation, is idempotent by provider order ID, does not create enrollments, and flags legacy paid records for review. Do not run it until MongoDB course and user records are available. Real customer payments require compliant Razorpay account activation, production webhook verification, and manual production testing.
 
 ## Environment Variable Names
 
@@ -100,6 +147,7 @@ Backend:
 - `PORT`
 - `FRONTEND_URL`
 - `SESSION_SECRET`
+- `MONGODB_URI`
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `RAZORPAY_WEBHOOK_SECRET`
@@ -109,3 +157,23 @@ Backend:
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
 - `GITHUB_CALLBACK_URL`
+
+## Student Dashboard Data
+
+Course records are seeded explicitly from the trusted catalog with:
+
+```bash
+cd backend
+npm run seed:courses
+```
+
+The seed is idempotent and upserts by course slug. It does not run during server startup or deployment. MongoDB uses `courses` and `enrollments` collections. Enrollment records have a unique `{ userId, courseId }` index and a `{ userId, enrolledAt }` index; course slugs are unique. Only `published` courses are returned by student enrollment queries.
+
+Student endpoints:
+
+- `GET /student/dashboard`
+- `GET /student/enrollments?status=all&search=&page=1&limit=12`
+
+Both endpoints require an authenticated student session. To test manually, seed courses, register or log in as a student, open `/student/dashboard`, confirm the empty state uses zero MongoDB counts, then verify `/student/my-courses` search, status filters, pagination, refresh, logout, and instructor/unauthenticated access behavior.
+
+Course-player progress is not implemented yet. New enrollments therefore remain at 0% with no last-accessed or completion date. Do not add real credentials or personal data to the repository.

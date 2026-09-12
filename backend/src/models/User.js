@@ -1,10 +1,5 @@
-/**
- * User Model
- * Defines the user data structure and associated methods
- * Currently stored in JSON, but structure is compatible with MongoDB migration
- */
-import crypto from 'node:crypto'
 import bcrypt from 'bcryptjs'
+import mongoose from 'mongoose'
 
 /**
  * User schema structure
@@ -24,29 +19,6 @@ import bcrypt from 'bcryptjs'
 /**
  * Create a new user object
  */
-export const createUserObject = ({
-  name,
-  email,
-  phone = null,
-  role = 'student',
-  password = null,
-  authProviders = []
-}) => {
-  const user = {
-    id: crypto.randomUUID(),
-    name: String(name || '').trim(),
-    email: normalizeEmail(email),
-    phone: phone ? String(phone).trim() : null,
-    role: validateRole(role) ? role : 'student',
-    passwordHash: password ? null : null, // Will be hashed if password exists
-    authProviders,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-
-  return user
-}
-
 /**
  * Normalize email (lowercase and trim)
  */
@@ -57,8 +29,10 @@ export const normalizeEmail = (email) => {
 /**
  * Validate user role
  */
-export const validateRole = (role) => {
-  return ['student', 'instructor'].includes(String(role).toLowerCase())
+export const validateRole = (role, { allowAdmin = false } = {}) => {
+  const normalized = String(role || '').toLowerCase()
+  const allowedRoles = allowAdmin ? ['student', 'instructor', 'admin'] : ['student', 'instructor']
+  return allowedRoles.includes(normalized)
 }
 
 /**
@@ -80,21 +54,35 @@ export const verifyPassword = async (password, hash) => {
  * Removes sensitive fields
  */
 export const serializeUser = (user) => {
+  const plainUser = typeof user.toObject === 'function' ? user.toObject() : user
   return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    role: user.role,
-    avatarUrl: user.avatarUrl ?? null
+    id: String(plainUser.id || plainUser._id),
+    name: plainUser.name,
+    email: plainUser.email,
+    phone: plainUser.phone ?? null,
+    role: plainUser.role,
+    avatarUrl: plainUser.avatarUrl ?? null
   }
 }
 
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  phone: { type: String, default: null },
+  role: { type: String, enum: ['student', 'instructor', 'admin'], default: 'student' },
+  passwordHash: { type: String, default: null, select: false },
+  avatarUrl: { type: String, default: null },
+  authProviders: [{ provider: String, providerUserId: String }],
+  legacyId: { type: String, select: false }
+}, { timestamps: true, versionKey: false, toJSON: { transform: (_, ret) => { ret.id = String(ret._id); delete ret._id; return ret } } })
+
+export const User = mongoose.models.User || mongoose.model('User', userSchema)
+
 export default {
-  createUserObject,
   normalizeEmail,
   validateRole,
   hashPassword,
   verifyPassword,
-  serializeUser
+  serializeUser,
+  User
 }

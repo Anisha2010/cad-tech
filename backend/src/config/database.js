@@ -1,137 +1,40 @@
-/**
- * Database configuration and initialization
- * Currently uses JSON file storage
- * Can be migrated to MongoDB by replacing these functions
- */
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import mongoose from 'mongoose'
+import config from './environment.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+let connectionListenersRegistered = false
 
-const DATA_DIR = path.join(__dirname, '../../data')
-const USERS_FILE = path.join(DATA_DIR, 'users.json')
-
-let usersCache = null
-
-/**
- * Initialize database (create data directory if needed)
- */
-export const initializeDatabase = async () => {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true })
-    // Load users into cache on startup
-    usersCache = readUsersFromFile()
-    return true
-  } catch (error) {
-    throw new Error('Failed to initialize database')
+export const connectDatabase = async () => {
+  if (!config.mongodb_uri) {
+    throw new Error('MONGODB_URI environment variable is required')
   }
-}
 
-/**
- * Read users from JSON file
- */
-function readUsersFromFile() {
+  if (mongoose.connection.readyState === 1) return mongoose.connection
+
+  if (!connectionListenersRegistered) {
+    mongoose.connection.on('error', () => console.error('MongoDB connection failed'))
+    mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'))
+    connectionListenersRegistered = true
+  }
+
   try {
-    const raw = fs.readFileSync(USERS_FILE, 'utf8')
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    await mongoose.connect(config.mongodb_uri)
+    console.log('MongoDB connected')
+    return mongoose.connection
   } catch {
-    return []
+    console.error('MongoDB connection failed')
+    throw new Error('Failed to connect to MongoDB')
   }
 }
 
-/**
- * Write users to JSON file
- */
-function writeUsersToFile(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8')
+export const disconnectDatabase = async () => {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect()
+  }
 }
 
-/**
- * Get all users
- */
-export const getAllUsers = () => {
-  return usersCache || []
+export const getDatabaseStatus = () => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting']
+  return states[mongoose.connection.readyState] || 'disconnected'
 }
 
-/**
- * Get user by ID
- */
-export const getUserById = (userId) => {
-  const users = getAllUsers()
-  return users.find((user) => user.id === userId) || null
-}
-
-/**
- * Get user by email (case-insensitive)
- */
-export const getUserByEmail = (email) => {
-  const normalizedEmail = String(email || '').trim().toLowerCase()
-  const users = getAllUsers()
-  return users.find((user) => String(user.email || '').trim().toLowerCase() === normalizedEmail) || null
-}
-
-/**
- * Get user by OAuth provider and provider ID
- */
-export const getUserByProvider = (provider, providerUserId) => {
-  const users = getAllUsers()
-  return users.find((user) =>
-    (user.authProviders || []).some(
-      (entry) => entry.provider === provider && String(entry.providerUserId) === String(providerUserId)
-    )
-  ) || null
-}
-
-/**
- * Create new user
- */
-export const createUser = (userData) => {
-  const users = getAllUsers()
-  users.push(userData)
-  usersCache = users
-  writeUsersToFile(users)
-  return userData
-}
-
-/**
- * Update user
- */
-export const updateUser = (userId, updates) => {
-  const users = getAllUsers()
-  const index = users.findIndex((user) => user.id === userId)
-  if (index === -1) return null
-
-  const updatedUser = { ...users[index], ...updates }
-  users[index] = updatedUser
-  usersCache = users
-  writeUsersToFile(users)
-  return updatedUser
-}
-
-/**
- * Delete user
- */
-export const deleteUser = (userId) => {
-  const users = getAllUsers()
-  const index = users.findIndex((user) => user.id === userId)
-  if (index === -1) return false
-
-  users.splice(index, 1)
-  usersCache = users
-  writeUsersToFile(users)
-  return true
-}
-
-export default {
-  initializeDatabase,
-  getAllUsers,
-  getUserById,
-  getUserByEmail,
-  getUserByProvider,
-  createUser,
-  updateUser,
-  deleteUser
-}
+export default { connectDatabase, disconnectDatabase, getDatabaseStatus }

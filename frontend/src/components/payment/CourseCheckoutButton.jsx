@@ -20,7 +20,7 @@ function CourseCheckoutButton({ course }) {
   const [message, setMessage] = useState('')
   const [isEnrolled, setIsEnrolled] = useState(false)
   const unavailable = !Number.isInteger(course.priceInPaise) || course.priceInPaise <= 0 || !course.enrollmentOpen
-  useEffect(() => { if (isAuthenticated) fetchMyCourses().then((enrollments) => setIsEnrolled(enrollments.some((enrollment) => enrollment.courseSlug === course.slug))).catch(() => {}) }, [course.slug, isAuthenticated])
+  useEffect(() => { if (isAuthenticated) fetchMyCourses().then((enrollments) => setIsEnrolled(enrollments.some((enrollment) => enrollment.courseSlug === course.slug))).catch(() => { }) }, [course.slug, isAuthenticated])
   const startCheckout = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: location } }); return }
     setState('creating'); setMessage('')

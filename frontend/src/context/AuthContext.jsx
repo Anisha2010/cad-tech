@@ -5,7 +5,7 @@ const AuthContext = createContext(null)
 
 function responseUser(response) {
   const user = response?.data?.data?.user ?? response?.data?.user ?? response?.user ?? response?.data ?? null
-  if (!user || !['student', 'instructor'].includes(user.role)) return null
+  if (!user || !['student', 'instructor', 'admin'].includes(user.role)) return null
   return user
 }
 

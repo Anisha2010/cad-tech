@@ -1,1 +1,9 @@
-.my-courses-content { display: flex; flex: 1; flex-direction: column; gap: 1.5rem; padding: 2rem clamp(1rem, 3vw, 2.5rem); }.my-courses-content h1 { margin: 0; color: var(--color-text); }.my-courses-content header p:last-child { color: var(--color-text-muted); }.enrollment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; }
+.my-courses-content { display: flex; flex: 1; flex-direction: column; gap: 1.5rem; padding: 2rem clamp(1rem, 3vw, 2.5rem); }.my-courses-content h1 { margin: 0; color: var(--color-text); }.my-courses-content header p:last-child { color: var(--color-text-muted); }.enrollment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+.course-filters { display: flex; flex-wrap: wrap; gap: 1rem; }
+.course-filters label { display: grid; gap: 0.4rem; min-width: min(100%, 260px); color: var(--color-text-secondary); font-size: 0.85rem; font-weight: 700; }
+.course-filters label > svg { display: inline; margin-right: 0.35rem; vertical-align: middle; color: var(--color-primary); }
+.course-filters input, .course-filters select { min-height: 44px; border: 1px solid var(--color-input-border); border-radius: var(--radius-sm); background: var(--color-input-bg); color: var(--color-text); padding: 0.65rem 0.75rem; font: inherit; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; color: var(--color-text-secondary); }
+.pagination button { min-height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); padding: 0.5rem 0.8rem; cursor: pointer; }
+.pagination button:disabled { cursor: not-allowed; opacity: 0.5; }
+@media (max-width: 480px) { .my-courses-content { padding: 1.25rem 0.85rem; } .course-filters, .course-filters label { width: 100%; } .enrollment-grid { grid-template-columns: minmax(0, 1fr); } }

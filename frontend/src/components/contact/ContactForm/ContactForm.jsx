@@ -1,6 +1,5 @@
 import { Send } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import courses from '../../../data/courses.js'
 import services from '../../../data/services.js'
 import submitContactInquiry from '../../../services/contactService.js'
 import { isApiConfigured } from '../../../config/api.js'

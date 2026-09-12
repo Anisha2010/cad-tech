@@ -17,6 +17,7 @@ const config = {
   port: Number(process.env.PORT || 5000),
   frontend_url: process.env.FRONTEND_URL || 'http://localhost:5173',
   session_secret: process.env.SESSION_SECRET || '',
+  mongodb_uri: process.env.MONGODB_URI || '',
   session_lifetime_ms: 1000 * 60 * 60 * 8,
   razorpay_key_id: process.env.RAZORPAY_KEY_ID || '',
   razorpay_key_secret: process.env.RAZORPAY_KEY_SECRET || '',
@@ -40,6 +41,10 @@ if (!config.session_secret || config.session_secret === 'cadtech-dev-secret') {
   }
 
   config.session_secret = config.session_secret || 'cadtech-dev-secret'
+}
+
+if (!config.mongodb_uri && config.node_env === 'production') {
+  throw new Error('MONGODB_URI environment variable is required in production')
 }
 
 export default config

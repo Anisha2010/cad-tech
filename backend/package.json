@@ -5,16 +5,27 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
-    "build": "node --check server.js"
+    "dev": "nodemon server.js",
+    "build": "node --check server.js",
+    "seed:courses": "node scripts/seedCourses.js",
+    "migrate:users:check": "node scripts/migrateUsersFromJson.js",
+    "migrate:users": "node scripts/migrateUsersFromJson.js --execute",
+    "migrate:payments:check": "node scripts/migratePaymentsFromJson.js",
+    "migrate:payments": "node scripts/migratePaymentsFromJson.js --execute"
   },
   "dependencies": {
     "bcryptjs": "^3.0.0",
+    "connect-mongo": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "express-session": "^1.5.0",
+    "mongodb": "^7.6.0",
+    "mongoose": "^9.9.5",
     "openid-client": "^6.4.0",
     "razorpay": "^2.9.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

@@ -68,7 +68,7 @@ function ContinueLearning({ courses }) {
                 >
                   <span style={{ width: `${progressPercentage}%` }} />
                 </div>
-                <Link className="button button-outline card-button" to={`/courses/${course.courseSlug}`}>
+                <Link className="button button-outline card-button" to={`/student/learn/${course.courseSlug}`}>
                   Continue Course <ArrowRight size={16} />
                 </Link>
               </div>

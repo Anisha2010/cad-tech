@@ -64,7 +64,7 @@ function EnrolledCourses({ courses }) {
               >
                 <span style={{ width: `${course.progressPercentage || 0}%` }} />
               </div>
-              <Link className="button button-outline card-button" to={`/courses/${course.courseSlug}`}>
+              <Link className="button button-outline card-button" to={`/student/learn/${course.courseSlug}`}>
                 View Course <ArrowRight size={16} />
               </Link>
             </div>

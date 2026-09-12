@@ -4,8 +4,7 @@
  * Keeps business logic minimal
  */
 import 'dotenv/config'
-import app from './src/app.js'
-import { initializeDatabase } from './src/config/database.js'
+import { connectDatabase, disconnectDatabase } from './src/config/database.js'
 import config from './src/config/environment.js'
 
 const PORT = config.port
@@ -14,8 +13,9 @@ const NODE_ENV = config.node_env
 const startServer = async () => {
   try {
     // Initialize database
-    await initializeDatabase()
-    console.log('✓ Database initialized')
+    await connectDatabase()
+
+    const { default: app } = await import('./src/app.js')
 
     // Start HTTP server
     const server = app.listen(PORT, () => {
@@ -24,10 +24,14 @@ const startServer = async () => {
     })
 
     // Handle graceful shutdown
-    const shutdown = (signal) => {
+    let shuttingDown = false
+    const shutdown = async (signal) => {
+      if (shuttingDown) return
+      shuttingDown = true
       console.log(`\n✓ ${signal} received. Closing server gracefully...`)
 
-      server.close(() => {
+      server.close(async () => {
+        await disconnectDatabase()
         console.log('✓ Server closed')
         process.exit(0)
       })
@@ -39,8 +43,8 @@ const startServer = async () => {
       }, 10000)
     }
 
-    process.on('SIGTERM', () => shutdown('SIGTERM'))
-    process.on('SIGINT', () => shutdown('SIGINT'))
+    process.once('SIGTERM', () => shutdown('SIGTERM'))
+    process.once('SIGINT', () => shutdown('SIGINT'))
   } catch (error) {
     console.error('✗ Server startup failed:', error.message)
     process.exit(1)

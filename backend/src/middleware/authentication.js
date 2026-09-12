@@ -2,35 +2,29 @@
  * Authentication middleware
  * Verifies that user is authenticated and has valid session
  */
-import { getUserById } from '../config/database.js'
+import { getUserById } from '../repositories/userRepository.js'
+import * as User from '../models/User.js'
 import { sendError } from '../utils/response.js'
 
 /**
  * Middleware: Require authentication
  * Attaches authenticated user to req.user
  */
-export const requireAuthentication = (req, res, next) => {
+export const requireAuthentication = async (req, res, next) => {
   const userId = req.session?.userId
 
   if (!userId) {
     return sendError(res, 'Authentication required.', 401)
   }
 
-  const user = getUserById(userId)
+  const user = await getUserById(userId)
 
   if (!user) {
     req.session.destroy(() => { })
     return sendError(res, 'Authentication required.', 401)
   }
 
-  req.user = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone ?? null,
-    role: user.role,
-    avatarUrl: user.avatarUrl ?? null
-  }
+  req.user = User.serializeUser(user)
 
   next()
 }

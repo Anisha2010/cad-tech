@@ -11,6 +11,7 @@ import studentRoutes from './routes/studentRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
 import { notFoundMiddleware } from './middleware/notFound.js'
 import { errorHandlerMiddleware } from './middleware/errorHandler.js'
+import { getDatabaseStatus } from './config/database.js'
 
 const app = express()
 const isProduction = process.env.NODE_ENV === 'production'
@@ -27,11 +28,16 @@ app.use(cors(corsConfig))
 
 // Body parsing middleware
 app.use('/payments/webhook', express.raw({ type: 'application/json' }))
-app.use(express.json())
+app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: true }))
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'CadTech API' })
+  const database = getDatabaseStatus()
+  res.status(database === 'connected' ? 200 : 503).json({
+    status: database === 'connected' ? 'ok' : 'unavailable',
+    service: 'CadTech API',
+    database
+  })
 })
 
 // Session middleware

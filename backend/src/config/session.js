@@ -3,11 +3,22 @@
  * Configures express-session with secure cookie settings
  */
 import session from 'express-session'
+import MongoStore from 'connect-mongo'
 import config from './environment.js'
+
+const sessionStore = MongoStore.create({
+  mongoUrl: config.mongodb_uri || (() => { throw new Error('MONGODB_URI environment variable is required for sessions') })(),
+  collectionName: 'sessions',
+  ttl: 24 * 60 * 60,
+  touchAfter: 24 * 60 * 60
+})
+
+sessionStore.on('error', () => console.error('Session store error'))
 
 const sessionConfig = {
   name: 'cadtech.sid',
   secret: config.session_secret,
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {

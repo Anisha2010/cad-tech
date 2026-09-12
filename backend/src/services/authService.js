@@ -4,7 +4,7 @@
  * Handles user registration, login, and session management
  */
 import crypto from 'node:crypto'
-import * as db from '../config/database.js'
+import * as db from '../repositories/userRepository.js'
 import * as User from '../models/User.js'
 import { AppError } from '../utils/AppError.js'
 
@@ -15,7 +15,7 @@ export const registerUser = async (userData) => {
   const { name, email, phone, role, password } = userData
 
   // Check if user already exists
-  const existingUser = db.getUserByEmail(email)
+  const existingUser = await db.getUserByEmail(email)
   if (existingUser) {
     throw new AppError('An account with this email already exists.', 409)
   }
@@ -24,12 +24,13 @@ export const registerUser = async (userData) => {
   const passwordHash = await User.hashPassword(password)
 
   // Create user object
+  const safeRole = String(role || '').toLowerCase()
   const newUser = {
     id: crypto.randomUUID(),
     name: String(name).trim(),
     email: User.normalizeEmail(email),
     phone: phone ? String(phone).trim() : null,
-    role: User.validateRole(role) ? role : 'student',
+    role: safeRole === 'admin' ? 'student' : (User.validateRole(safeRole) ? safeRole : 'student'),
     passwordHash,
     authProviders: [{ provider: 'local', providerUserId: `local:${crypto.randomUUID()}` }],
     createdAt: new Date(),
@@ -37,16 +38,19 @@ export const registerUser = async (userData) => {
   }
 
   // Save to database
-  db.createUser(newUser)
-
-  return newUser
+  try {
+    return await db.createUser(newUser)
+  } catch (error) {
+    if (error?.code === 11000) throw new AppError('An account with this email already exists.', 409)
+    throw error
+  }
 }
 
 /**
  * Login user with email and password
  */
 export const loginUser = async (email, password) => {
-  const user = db.getUserByEmail(email)
+  const user = await db.getUserByEmail(email, { includePassword: true })
 
   // Return generic message to prevent user enumeration
   if (!user || !user.passwordHash) {
@@ -72,8 +76,6 @@ export const createAuthenticatedSession = async (req, user) => {
       if (error) return reject(new AppError('Unable to create session.', 500))
 
       req.session.userId = user.id
-      req.session.role = user.role
-
       req.session.save((saveError) => {
         if (saveError) return reject(new AppError('Unable to create session.', 500))
         resolve()
@@ -100,14 +102,14 @@ export const destroySession = async (req) => {
 /**
  * Get current user from session
  */
-export const getCurrentUser = (req) => {
+export const getCurrentUser = async (req) => {
   const userId = req.session?.userId
 
   if (!userId) {
     return null
   }
 
-  const user = db.getUserById(userId)
+  const user = await db.getUserById(userId)
 
   if (!user) {
     return null

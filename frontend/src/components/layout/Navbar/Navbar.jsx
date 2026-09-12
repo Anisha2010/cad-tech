@@ -47,7 +47,7 @@ function Navbar() {
     <header className={`site-navbar ${isScrolled ? 'is-scrolled' : ''}`}>
       <div className="site-container navbar-inner">
         <NavLink className="brand" to="/" onClick={() => setIsOpen(false)} aria-label="CadTech Solution home">
-          <span className="brand-mark" aria-hidden="true">C</span>
+          <span className="brand-mark" aria-hidden="true"><img src="/favicon.png" alt="" /></span>
           <span>CadTech <strong>Solution</strong></span>
         </NavLink>
 
