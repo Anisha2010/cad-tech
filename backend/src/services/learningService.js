@@ -38,7 +38,7 @@ const countTotalLessons = (curriculum = null) => {
 }
 
 export const getStudentLearningView = async ({ userId, courseSlug }) => {
-  const course = await getCourseBySlug(courseSlug)
+  const course = await getCourseBySlug(courseSlug, { includeArchived: true })
   if (!course) return null
 
   const enrollment = await findActiveEnrollment(userId, course.id)
@@ -104,7 +104,7 @@ export const getStudentLearningView = async ({ userId, courseSlug }) => {
 }
 
 export const updateLessonProgress = async ({ userId, courseSlug, lessonId, payload = {} }) => {
-  const course = await getCourseBySlug(courseSlug)
+  const course = await getCourseBySlug(courseSlug, { includeArchived: true })
   if (!course) return null
 
   const enrollment = await findActiveEnrollment(userId, course.id)
@@ -163,7 +163,7 @@ export const updateLessonProgress = async ({ userId, courseSlug, lessonId, paylo
 }
 
 export const updateLessonPosition = async ({ userId, courseSlug, lessonId, payload = {} }) => {
-  const course = await getCourseBySlug(courseSlug)
+  const course = await getCourseBySlug(courseSlug, { includeArchived: true })
   if (!course) return null
 
   const enrollment = await findActiveEnrollment(userId, course.id)

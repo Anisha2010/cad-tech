@@ -10,6 +10,22 @@ import { validateRegistration, validateLogin } from '../validators/authValidator
 import { requireAuthentication } from '../middleware/authentication.js'
 
 const router = express.Router()
+const loginAttempts = new Map()
+const limitLoginAttempts = (req, res, next) => {
+  const key = req.ip || 'unknown'
+  const now = Date.now()
+  const recent = (loginAttempts.get(key) || []).filter((time) => now - time < 60000)
+  if (recent.length >= 10) return res.status(429).json({ success: false, message: 'Too many login attempts. Please try again later.' })
+  recent.push(now)
+  loginAttempts.set(key, recent)
+  next()
+}
+const rejectPublicAdminRegistration = (req, res, next) => {
+  if (typeof req.body?.role === 'string' && req.body.role.toLowerCase() === 'admin') {
+    return res.status(400).json({ success: false, message: 'This account type cannot be created through public registration.' })
+  }
+  next()
+}
 
 // Health check
 router.get('/health', (req, res) => {
@@ -19,6 +35,7 @@ router.get('/health', (req, res) => {
 // Registration
 router.post(
   '/register',
+  rejectPublicAdminRegistration,
   validateRequest(validateRegistration),
   handleValidationResult,
   authController.register
@@ -27,6 +44,7 @@ router.post(
 // Login
 router.post(
   '/login',
+  limitLoginAttempts,
   validateRequest(validateLogin),
   handleValidationResult,
   authController.login

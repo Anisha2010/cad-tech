@@ -1,0 +1,184 @@
+.curriculum-page { display: grid; gap: 2rem; }
+
+.curriculum-header-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-curriculum-card {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
+}
+
+.admin-curriculum-card h2,
+.admin-curriculum-card h3,
+.admin-curriculum-card h4 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.curriculum-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.1fr 1.9fr;
+}
+
+.curriculum-form-grid.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.curriculum-form-grid label,
+.lesson-form label,
+.lesson-edit-panel input,
+.lesson-edit-panel textarea,
+.lesson-edit-panel select,
+.curriculum-inline-edit input,
+.curriculum-inline-edit textarea {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.curriculum-form-grid input,
+.curriculum-form-grid textarea,
+.lesson-form input,
+.lesson-form textarea,
+.lesson-form select,
+.lesson-edit-panel input,
+.lesson-edit-panel textarea,
+.lesson-edit-panel select,
+.curriculum-inline-edit input,
+.curriculum-inline-edit textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+}
+
+.curriculum-list {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.section-actions,
+.lesson-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.lesson-form {
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  display: grid;
+  gap: 1rem;
+}
+
+.lesson-list {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lesson-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.lesson-meta {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lesson-meta p {
+  margin: 0;
+  color: #64748b;
+}
+
+.lesson-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lesson-edit-panel {
+  display: grid;
+  gap: 0.6rem;
+  min-width: min(340px, 100%);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.button:hover { opacity: 0.96; }
+.button:disabled { opacity: 0.6; cursor: not-allowed; }
+.button-primary { background: #2563eb; color: white; }
+.button-outline { background: #fff; color: #1e293b; border-color: #cbd5e1; }
+.button-danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+@media (max-width: 820px) {
+  .curriculum-form-grid,
+  .curriculum-form-grid.compact,
+  .lesson-item,
+  .section-header {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .curriculum-header-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

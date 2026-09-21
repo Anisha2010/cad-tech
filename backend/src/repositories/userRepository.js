@@ -5,8 +5,17 @@ import { normalizeEmail } from '../models/User.js'
 const toPlainUser = (user) => user ? user.toObject({ versionKey: false }) : null
 
 export const getUserById = async (userId, { includePassword = false } = {}) => {
-  if (!mongoose.isValidObjectId(userId)) return null
-  const query = User.findById(userId)
+  const normalizedUserId = String(userId || '').trim()
+  if (!normalizedUserId) return null
+
+  let query = null
+  if (mongoose.isValidObjectId(normalizedUserId)) {
+    query = User.findById(normalizedUserId)
+  } else {
+    query = User.findOne({ id: normalizedUserId })
+  }
+
+  if (!query) return null
   if (includePassword) query.select('+passwordHash')
   return toPlainUser(await query.exec())
 }

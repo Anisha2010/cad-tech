@@ -2,6 +2,7 @@ import { BookOpen, CheckCircle2, PlayCircle, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getStudentLearning, updateStudentLessonPosition, updateStudentLessonProgress } from '../../../services/studentLearningService.js'
+import { getQuizHistory } from '../../../services/studentQuizService.js'
 
 function LearningPlayer() {
   const { courseSlug } = useParams()
@@ -10,13 +11,18 @@ function LearningPlayer() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updating, setUpdating] = useState(false)
+  const [quizHistory, setQuizHistory] = useState([])
 
   const loadLearning = () => {
     setLoading(true)
     setError('')
-    getStudentLearning(courseSlug)
-      .then((result) => {
+    Promise.all([
+      getStudentLearning(courseSlug),
+      getQuizHistory()
+    ])
+      .then(([result, history]) => {
         setLearning(result)
+        setQuizHistory(Array.isArray(history) ? history : [])
         const firstLesson = result?.curriculum?.sections?.flatMap((section) => section.lessons)?.[0]
         setSelectedLessonId(firstLesson?.id || '')
       })
@@ -30,6 +36,15 @@ function LearningPlayer() {
 
   const allLessons = useMemo(() => learning?.curriculum?.sections?.flatMap((section) => section.lessons) ?? [], [learning])
   const currentLesson = allLessons.find((lesson) => lesson.id === selectedLessonId) || allLessons[0] || null
+
+  const quizStatusMap = useMemo(() => {
+    const map = new Map()
+    for (const item of quizHistory) {
+      if (!item?.quizId) continue
+      map.set(item.quizId, item)
+    }
+    return map
+  }, [quizHistory])
 
   useEffect(() => {
     if (currentLesson && selectedLessonId && !selectedLessonId) {
@@ -141,7 +156,25 @@ function LearningPlayer() {
               {currentLesson.lessonType === 'quiz' && (
                 <div>
                   <CheckCircle2 size={36} />
-                  <p>Quiz content is ready to be configured by the course author.</p>
+                  <p>Published quiz available for this lesson.</p>
+                  {currentLesson.quizId ? (
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      {(() => {
+                        const currentAttempt = quizStatusMap.get(currentLesson.quizId)
+                        const hasResult = Boolean(currentAttempt && currentAttempt.passed !== null)
+                        const canRetry = currentAttempt?.remainingAttempts > 0 || (!currentAttempt && currentLesson.maximumAttempts > 0)
+                        const buttonLabel = currentAttempt ? (hasResult ? 'View Result' : 'Resume Quiz') : 'Start Quiz'
+                        const target = currentAttempt ? `/student/quizzes/${currentLesson.quizId}/results/${currentAttempt.id}` : `/student/quizzes/${currentLesson.quizId}/attempt/new`
+                        return (
+                          <Link className="button button-primary" to={target}>
+                            {buttonLabel}
+                          </Link>
+                        )
+                      })()}
+                    </div>
+                  ) : (
+                    <p>No quiz is attached to this lesson yet.</p>
+                  )}
                 </div>
               )}
             </div>

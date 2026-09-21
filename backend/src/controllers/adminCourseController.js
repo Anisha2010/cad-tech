@@ -1,11 +1,13 @@
 import asyncHandler from '../utils/asyncHandler.js'
 import { sendError, sendSuccess } from '../utils/response.js'
 import * as courseService from '../services/courseService.js'
+import { approveCourseReview, assignInstructorToCourse, getAssignableInstructors, requestCourseChanges } from '../services/instructorService.js'
 
 export const listAdminCourses = asyncHandler(async (req, res) => {
   const filters = {
     search: typeof req.query.search === 'string' ? req.query.search : '',
     status: typeof req.query.status === 'string' ? req.query.status : 'all',
+    software: typeof req.query.software === 'string' ? req.query.software : '',
     page: Number(req.query.page || 1),
     limit: Number(req.query.limit || 12)
   }
@@ -51,11 +53,37 @@ export const deleteAdminCourse = asyncHandler(async (req, res) => {
   return sendSuccess(res, { archived: true }, 'Course was archived and preserved for enrollment history.')
 })
 
+export const listAdminInstructors = asyncHandler(async (req, res) => {
+  const instructors = await getAssignableInstructors()
+  return sendSuccess(res, { instructors }, 'Instructor options retrieved successfully.')
+})
+
+export const assignAdminCourseInstructor = asyncHandler(async (req, res) => {
+  const course = await assignInstructorToCourse({ courseId: req.params.courseId, instructorId: req.body?.instructorId ?? null, actorId: req.user.id })
+  if (!course) return sendError(res, 'Course not found.', 404)
+  return sendSuccess(res, { course }, 'Instructor assignment updated successfully.')
+})
+
+export const approveReview = asyncHandler(async (req, res) => {
+  const course = await approveCourseReview({ courseId: req.params.courseId, adminId: req.user.id })
+  if (!course) return sendError(res, 'Course not found.', 404)
+  return sendSuccess(res, { course }, 'Course review approved.')
+})
+
+export const requestReviewChanges = asyncHandler(async (req, res) => {
+  const course = await requestCourseChanges({ courseId: req.params.courseId, adminId: req.user.id, feedback: req.body?.feedback })
+  if (!course) return sendError(res, 'Course not found.', 404)
+  return sendSuccess(res, { course }, 'Changes requested from the assigned instructor.')
+})
+
 export default {
   listAdminCourses,
   createAdminCourse,
   getAdminCourse,
   updateAdminCourse,
   updateAdminCourseStatus,
-  deleteAdminCourse
+  deleteAdminCourse,
+  assignAdminCourseInstructor,
+  approveReview,
+  requestReviewChanges
 }

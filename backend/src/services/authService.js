@@ -13,6 +13,15 @@ import { AppError } from '../utils/AppError.js'
  */
 export const registerUser = async (userData) => {
   const { name, email, phone, role, password } = userData
+  const safeRole = String(role || '').toLowerCase()
+
+  if (safeRole === 'admin') {
+    throw new AppError('This account type cannot be created through public registration.', 400)
+  }
+
+  if (!User.validateRole(safeRole)) {
+    throw new AppError('Role must be either student or instructor.', 400)
+  }
 
   // Check if user already exists
   const existingUser = await db.getUserByEmail(email)
@@ -23,14 +32,12 @@ export const registerUser = async (userData) => {
   // Hash password
   const passwordHash = await User.hashPassword(password)
 
-  // Create user object
-  const safeRole = String(role || '').toLowerCase()
+  // Create user object. Do not set an artificial `id` because MongoDB manages `_id` as the canonical identifier.
   const newUser = {
-    id: crypto.randomUUID(),
     name: String(name).trim(),
     email: User.normalizeEmail(email),
     phone: phone ? String(phone).trim() : null,
-    role: safeRole === 'admin' ? 'student' : (User.validateRole(safeRole) ? safeRole : 'student'),
+    role: safeRole,
     passwordHash,
     authProviders: [{ provider: 'local', providerUserId: `local:${crypto.randomUUID()}` }],
     createdAt: new Date(),
@@ -75,7 +82,12 @@ export const createAuthenticatedSession = async (req, user) => {
     req.session.regenerate((error) => {
       if (error) return reject(new AppError('Unable to create session.', 500))
 
-      req.session.userId = user.id
+      const userId = String(user?._id ?? user?.id ?? '')
+      if (!userId) {
+        return reject(new AppError('Unable to create session for the authenticated user.', 500))
+      }
+
+      req.session.userId = userId
       req.session.save((saveError) => {
         if (saveError) return reject(new AppError('Unable to create session.', 500))
         resolve()

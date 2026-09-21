@@ -1,18 +1,23 @@
 import mongoose from 'mongoose'
 import { Course, serializeCourse } from '../models/Course.js'
+import { CourseCurriculum } from '../models/CourseCurriculum.js'
+import { Enrollment } from '../models/Enrollment.js'
+import { Payment } from '../models/Payment.js'
 
 const normalizeSlug = (value) => typeof value === 'string' ? value.trim().toLowerCase() : ''
+const escapeRegex = (value) => String(value).trim().slice(0, 80).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export const getPublishedCourses = async ({ search = '', software = '', level = '', category = '', page = 1, limit = 12 } = {}) => {
   const filter = { status: 'published' }
-  if (software) filter.software = software
-  if (level) filter.level = level
-  if (category) filter.category = category
+  if (software) filter.software = { $in: String(software).split(',').map((value) => value.trim()).filter(Boolean) }
+  if (level) filter.level = { $in: String(level).split(',').map((value) => value.trim()).filter(Boolean) }
+  if (category) filter.category = { $in: String(category).split(',').map((value) => value.trim()).filter(Boolean) }
   if (search) {
+    const safeSearch = escapeRegex(search)
     filter.$or = [
-      { title: { $regex: String(search).trim(), $options: 'i' } },
-      { slug: { $regex: String(search).trim(), $options: 'i' } },
-      { software: { $regex: String(search).trim(), $options: 'i' } }
+      { title: { $regex: safeSearch, $options: 'i' } },
+      { slug: { $regex: safeSearch, $options: 'i' } },
+      { software: { $regex: safeSearch, $options: 'i' } }
     ]
   }
 
@@ -29,8 +34,9 @@ export const getCourseBySlug = async (slug, { includeArchived = false, includeDr
   const normalized = normalizeSlug(slug)
   if (!normalized || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) return null
   const filter = { slug: normalized }
-  if (!includeArchived && !includeDraft) filter.status = 'published'
   if (includeArchived && includeDraft) delete filter.status
+  else if (includeArchived) filter.status = { $in: ['published', 'archived'] }
+  else if (!includeDraft) filter.status = 'published'
   const course = await Course.findOne(filter).lean()
   return course ? serializeCourse(course) : null
 }
@@ -38,7 +44,9 @@ export const getCourseBySlug = async (slug, { includeArchived = false, includeDr
 export const getCourseById = async (id, { includeArchived = false, includeDraft = false } = {}) => {
   if (!mongoose.isValidObjectId(id)) return null
   const filter = { _id: id }
-  if (!includeArchived && !includeDraft) filter.status = 'published'
+  if (includeArchived && includeDraft) delete filter.status
+  else if (includeArchived) filter.status = { $in: ['published', 'archived'] }
+  else if (!includeDraft) filter.status = 'published'
   const course = await Course.findOne(filter).lean()
   return course ? serializeCourse(course) : null
 }
@@ -49,14 +57,16 @@ export const getCoursesByIds = async (ids) => {
   return courses.map(serializeCourse)
 }
 
-export const getAdminCourses = async ({ search = '', status = 'all', page = 1, limit = 12 } = {}) => {
+export const getAdminCourses = async ({ search = '', status = 'all', software = '', page = 1, limit = 12 } = {}) => {
   const filter = {}
   if (status && status !== 'all') filter.status = status
+  if (software) filter.software = software
   if (search) {
+    const safeSearch = escapeRegex(search)
     filter.$or = [
-      { title: { $regex: String(search).trim(), $options: 'i' } },
-      { slug: { $regex: String(search).trim(), $options: 'i' } },
-      { software: { $regex: String(search).trim(), $options: 'i' } }
+      { title: { $regex: safeSearch, $options: 'i' } },
+      { slug: { $regex: safeSearch, $options: 'i' } },
+      { software: { $regex: safeSearch, $options: 'i' } }
     ]
   }
 
@@ -113,4 +123,13 @@ export const ensureUniqueSlug = async (slug, excludeId = null) => {
 
 export const courseSlugExists = async (slug, excludeId = null) => {
   return !(await ensureUniqueSlug(slug, excludeId))
+}
+
+export const hasRelatedCourseData = async (courseId, slug) => {
+  const [payment, enrollment, curriculum] = await Promise.all([
+    Payment.exists({ courseId }),
+    Enrollment.exists({ courseId }),
+    CourseCurriculum.exists({ courseSlug: slug })
+  ])
+  return Boolean(payment || enrollment || curriculum)
 }

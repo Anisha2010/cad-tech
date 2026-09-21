@@ -39,7 +39,9 @@ export const validateRegistration = (data) => {
   // Role validation
   if (!data.role || typeof data.role !== 'string') {
     errors.role = 'Role is required.'
-  } else if (!['student', 'instructor'].includes(data.role)) {
+  } else if (data.role.toLowerCase() === 'admin') {
+    errors.role = 'This account type cannot be created through public registration.'
+  } else if (!['student', 'instructor'].includes(data.role.toLowerCase())) {
     errors.role = 'Role must be either student or instructor.'
   }
 
@@ -55,6 +57,8 @@ export const validateRegistration = (data) => {
     errors
   }
 }
+
+export const isValidPassword = (password) => typeof password === 'string' && password.length >= 8
 
 /**
  * Validate login input

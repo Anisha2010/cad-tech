@@ -61,14 +61,24 @@ function AuthProvider({ children }) {
   }
 
   const refreshUser = async () => {
-    const response = await getCurrentUser()
-    if (response.configured) {
-      const confirmedUser = responseUser(response)
-      setUser(confirmedUser)
-      return { ...response, user: confirmedUser }
+    setIsLoading(true)
+
+    try {
+      const response = await getCurrentUser()
+      if (response.configured) {
+        const confirmedUser = responseUser(response)
+        setUser(confirmedUser)
+        return { ...response, user: confirmedUser }
+      }
+
+      setUser(null)
+      return { ...response, user: null }
+    } catch (error) {
+      setUser(null)
+      return { configured: false, user: null, error }
+    } finally {
+      setIsLoading(false)
     }
-    setUser(null)
-    return { ...response, user: null }
   }
 
   return <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), isLoading, login, register, logout, refreshUser }}>{children}</AuthContext.Provider>

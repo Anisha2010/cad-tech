@@ -41,7 +41,7 @@ function Navbar() {
     setLogoutError('')
     try { await logout(); setIsOpen(false); navigate('/login', { replace: true }) } catch { setLogoutError('Unable to log out. Please try again.') }
   }
-  const dashboardPath = user?.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard'
+  const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard'
 
   return (
     <header className={`site-navbar ${isScrolled ? 'is-scrolled' : ''}`}>

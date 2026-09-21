@@ -15,11 +15,13 @@ async function request(method, path, payload = null, params = {}) {
   return response.data?.data ?? response.data
 }
 
-export const fetchAdminCourses = ({ search = '', status = 'all', page = 1, limit = 12 } = {}) => request('get', '/admin/courses', null, { search, status, page, limit })
+export const fetchAdminCourses = ({ search = '', software = '', status = 'all', page = 1, limit = 12 } = {}) => request('get', '/admin/courses', null, { search, software, status, page, limit })
+export const getInstructors = () => request('get', '/admin/instructors')
 export const createAdminCourse = (payload) => request('post', '/admin/courses', payload)
 export const fetchAdminCourseById = (courseId) => request('get', `/admin/courses/${courseId}`)
 export const updateAdminCourse = (courseId, payload) => request('patch', `/admin/courses/${courseId}`, payload)
+export const assignInstructor = (courseId, instructorId) => request('patch', `/admin/courses/${courseId}/instructor`, { instructorId })
 export const updateAdminCourseStatus = (courseId, status) => request('patch', `/admin/courses/${courseId}/status`, { status })
 export const archiveAdminCourse = (courseId) => request('delete', `/admin/courses/${courseId}`)
 
-export default { fetchAdminCourses, createAdminCourse, fetchAdminCourseById, updateAdminCourse, updateAdminCourseStatus, archiveAdminCourse }
+export default { fetchAdminCourses, getInstructors, createAdminCourse, fetchAdminCourseById, updateAdminCourse, assignInstructor, updateAdminCourseStatus, archiveAdminCourse }

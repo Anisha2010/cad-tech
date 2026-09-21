@@ -36,8 +36,8 @@ export const serializeEnrollment = (enrollment) => {
     category: course?.category,
     level: course?.level,
     duration: course?.duration,
-    lessonsCount: course?.lessonsCount,
-    image: course?.image,
+    lessonCount: course?.lessonCount ?? null,
+    thumbnailUrl: course?.thumbnailUrl ?? null,
     status: value.status,
     progressPercentage: value.progressPercentage,
     lessonProgress: Array.isArray(value.lessonProgress) ? value.lessonProgress.map((lesson) => ({

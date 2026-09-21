@@ -37,7 +37,7 @@ export const createOrder = async (userId, courseSlug) => {
   if (!mongoose.isValidObjectId(userId) || typeof courseSlug !== 'string' || !courseSlug.trim()) throw new AppError('A valid course is required.', 400)
   const course = await getCourseBySlug(courseSlug.trim())
   if (!course) throw new AppError('Course not found.', 404)
-  if (!course.enrollmentOpen || !validPrice(course.priceInPaise) || course.currency !== 'INR') throw new AppError('Enrollment is currently unavailable.', 503)
+  if (!course.enrollmentOpen || !validPrice(course.priceInPaise) || course.currency !== 'INR') throw new AppError('Enrollment is currently unavailable for this course.', 503)
   if (await getActiveEnrollment(userId, course.slug)) throw new AppError('You are already enrolled in this course.', 409)
   const pending = await getReusablePendingPayment(userId, course.id)
   if (pending) return { keyId: razorpayKeyId, providerOrderId: pending.providerOrderId, amount: pending.amountInPaise, currency: pending.currency, courseSlug: course.slug, courseTitle: course.title }
@@ -69,7 +69,7 @@ export const verifyPayment = async ({ userId, orderId, paymentId, signature }) =
   requireRazorpay()
   const payment = await getPaymentByProviderOrderId(orderId)
   if (!payment || !sameId(payment.userId, userId) || typeof paymentId !== 'string' || !signature) throw new AppError('Payment could not be verified.', 400)
-  const course = await getCourseById(payment.courseId)
+  const course = await getCourseById(payment.courseId, { includeArchived: true })
   if (!course || payment.amountInPaise !== course.priceInPaise || payment.currency !== course.currency || !verifySignature({ orderId, paymentId, signature })) {
     await markPaymentFailed(payment._id, { code: 'verification_failed', description: 'Payment signature verification failed.' })
     throw new AppError('Payment could not be verified.', 400)

@@ -1,0 +1,21 @@
+.admin-page { min-height: 100vh; padding: 48px clamp(20px, 5vw, 72px); background: var(--color-background, #f8fafc); color: var(--color-text, #1e293b); }
+.admin-page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; max-width: 1280px; margin: 0 auto 32px; }
+.admin-page-header h1 { margin: 4px 0 8px; color: #0f172a; }
+.admin-page-header p { margin: 0; color: #64748b; }
+.admin-kicker { font-size: .75rem; font-weight: 800; letter-spacing: .12em; color: #2563eb !important; }
+.admin-filters { display: flex; flex-wrap: wrap; gap: 16px; max-width: 1280px; margin: 0 auto 24px; padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.admin-filters label, .admin-course-form label { display: grid; gap: 7px; color: #475569; font-size: .85rem; font-weight: 700; }
+.admin-filters label { min-width: 180px; flex: 1; }
+.admin-filters input, .admin-filters select, .admin-course-form input, .admin-course-form select, .admin-course-form textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b; font: inherit; }
+.admin-table-wrap { max-width: 1280px; margin: auto; overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+.admin-table th, .admin-table td { padding: 15px 16px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
+.admin-table th { color: #64748b; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+.admin-table td:first-child { white-space: normal; min-width: 220px; }
+.admin-table small { display: block; margin-top: 4px; color: #64748b; font-size: .75rem; }
+.admin-actions { display: flex; gap: 8px; }
+.admin-actions a, .admin-actions button { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #2563eb; cursor: pointer; }
+.admin-state, .admin-error { max-width: 1280px; margin: 32px auto; }
+.admin-error { padding: 12px 16px; border-left: 4px solid #dc2626; background: #fef2f2; color: #991b1b; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+@media (max-width: 700px) { .admin-page-header { align-items: flex-start; flex-direction: column; } .admin-filters { display: grid; } }

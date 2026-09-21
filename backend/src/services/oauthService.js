@@ -67,9 +67,8 @@ export const findOrCreateOAuthUser = async ({ provider, providerUserId, email, n
     }
   }
 
-  // Create new user
+  // Create new user. MongoDB owns `_id`; avoid saving a random custom `id` field.
   const newUser = {
-    id: crypto.randomUUID(),
     name: String(name || 'User').trim() || 'User',
     email: email ? User.normalizeEmail(email) : `${provider}-${providerUserId}@placeholder.local`,
     phone: null,
@@ -120,7 +119,13 @@ export const createOAuthSession = async (req, user) => {
         return
       }
 
-      req.session.userId = user.id
+      const userId = String(user?._id ?? user?.id ?? '')
+      if (!userId) {
+        reject(new AppError('Unable to create session for the authenticated user.', 500))
+        return
+      }
+
+      req.session.userId = userId
       req.session.save((saveError) => {
         if (saveError) {
           reject(new AppError('Unable to create session.', 500))

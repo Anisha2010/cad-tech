@@ -19,7 +19,7 @@ function validateField(field, value) {
 function isSafeInternalRoute(target) {
   if (!target || typeof target !== 'string' || !target.startsWith('/')) return false
   const cleanTarget = target.split('?')[0].split('#')[0]
-  const allowed = ['/student/dashboard', '/instructor/dashboard', '/about', '/cad-models', '/courses', '/services', '/contact']
+  const allowed = ['/student/dashboard', '/instructor/dashboard', '/admin/dashboard', '/about', '/cad-models', '/courses', '/services', '/contact']
   return allowed.some((route) => cleanTarget === route || cleanTarget.startsWith(`${route}/`))
 }
 
@@ -54,11 +54,11 @@ function Login() {
     setStatus('')
     try {
       const result = await login(form)
-      const destination = result.user.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard'
+      const destination = result.user.role === 'admin' ? '/admin/dashboard' : result.user.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard'
       const requested = location.state?.from
       const requestedPath = requested ? `${requested.pathname}${requested.search ?? ''}` : ''
       const safeRequested = isSafeInternalRoute(requestedPath) ? requestedPath : ''
-      const requestedRole = requested?.pathname?.startsWith('/instructor/') ? 'instructor' : requested?.pathname?.startsWith('/student/') ? 'student' : null
+      const requestedRole = requested?.pathname?.startsWith('/admin/') ? 'admin' : requested?.pathname?.startsWith('/instructor/') ? 'instructor' : requested?.pathname?.startsWith('/student/') ? 'student' : null
       navigate(requestedRole === result.user.role && safeRequested ? safeRequested : destination, { replace: true })
     } catch (error) {
       const serverErrors = error.authDetails?.fieldErrors ?? {}

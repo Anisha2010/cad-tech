@@ -1,73 +1,81 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import 'dotenv/config'
+import courses from '../src/config/courses.js'
 import { connectDatabase, disconnectDatabase } from '../src/config/database.js'
 import { Course } from '../src/models/Course.js'
+import { User } from '../src/models/User.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const staticCoursePath = path.resolve(__dirname, '../src/config/courses.js')
+const dryRun = process.argv.includes('--dry-run')
 
-const toSlug = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const normalizeCourseRecord = (source, adminId) => ({
+  title: source.title,
+  shortDescription: source.shortDescription,
+  description: source.description || source.shortDescription,
+  category: source.category,
+  software: source.software,
+  level: source.level,
+  duration: source.duration || null,
+  lessonCount: Number.isInteger(source.lessons) ? source.lessons : null,
+  thumbnailUrl: source.thumbnailUrl || source.image || null,
+  priceInPaise: Number.isInteger(source.priceInPaise) && source.priceInPaise > 0 ? source.priceInPaise : null,
+  currency: 'INR',
+  enrollmentOpen: Boolean(source.enrollmentOpen) && Number.isInteger(source.priceInPaise) && source.priceInPaise > 0,
+  status: ['draft', 'published', 'archived'].includes(source.status) ? source.status : 'draft',
+  createdBy: adminId,
+  updatedBy: adminId
+})
 
 const migrate = async () => {
   await connectDatabase()
 
-  const fileContents = await fs.readFile(staticCoursePath, 'utf8')
-  const exportMatch = fileContents.match(/export default\s*\[(.*)\]\s*;?\s*$/s)
-  if (!exportMatch) {
-    throw new Error('Static course catalog export not found.')
+  const admin = await User.findOne({ role: 'admin' }).select('_id').lean()
+  if (!admin) throw new Error('Create an admin user before migrating courses.')
+
+  const adminId = String(admin._id)
+  let created = 0
+  let updated = 0
+  let unchanged = 0
+
+  for (const source of courses) {
+    const nextRecord = normalizeCourseRecord(source, adminId)
+    const existing = await Course.findOne({ slug: source.slug }).lean()
+
+    if (!existing) {
+      if (dryRun) {
+        created += 1
+        continue
+      }
+      await Course.create(nextRecord)
+      created += 1
+      continue
+    }
+
+    const hasChanges = Object.entries(nextRecord).some(([key, value]) => {
+      const currentValue = existing[key]
+      return JSON.stringify(currentValue) !== JSON.stringify(value)
+    })
+
+    if (!hasChanges) {
+      unchanged += 1
+      continue
+    }
+
+    if (dryRun) {
+      updated += 1
+      continue
+    }
+
+    await Course.updateOne({ _id: existing._id }, { $set: nextRecord })
+    updated += 1
   }
 
-  const source = exportMatch[1]
-  const courses = []
-  const safeSource = source.replace(/\bconst courses =\s*\[/, '[')
-  // eslint-disable-next-line no-eval
-  const staticCourses = eval(`(${safeSource})`)
+  const summary = dryRun
+    ? `Dry run complete: ${created} would be created, ${updated} would be updated, ${unchanged} unchanged.`
+    : `Course migration complete: ${created} created, ${updated} updated, ${unchanged} unchanged.`
 
-  for (const course of staticCourses) {
-    const slug = toSlug(course.slug || course.title)
-    if (!slug) continue
-
-    await Course.updateOne(
-      { slug },
-      {
-        $set: {
-          title: course.title,
-          shortDescription: course.shortDescription || course.description || '',
-          description: course.description || course.shortDescription || '',
-          category: course.category || 'General',
-          software: course.software || 'General CAD',
-          level: ['Beginner', 'Intermediate', 'Advanced'].includes(course.level) ? course.level : 'Beginner',
-          duration: course.duration || null,
-          lessonCount: Number.isInteger(course.lessons) ? course.lessons : 0,
-          thumbnailUrl: course.image || null,
-          priceInPaise: course.priceInPaise ?? null,
-          currency: 'INR',
-          enrollmentOpen: Boolean(course.enrollmentOpen) && Number.isInteger(course.priceInPaise) && course.priceInPaise > 0,
-          status: course.status === 'draft' || course.status === 'archived' ? course.status : 'published',
-          updatedAt: new Date()
-        },
-        $setOnInsert: {
-          slug,
-          createdAt: new Date(),
-          createdBy: null,
-          updatedBy: null
-        }
-      },
-      { upsert: true }
-    )
-
-    courses.push({ slug, status: course.status === 'draft' || course.status === 'archived' ? course.status : 'published' })
-  }
-
-  console.log(`Migration complete. Updated ${courses.length} course records.`)
-  console.log('Migration summary: safe static course catalog migrated to MongoDB without assigning new prices.')
+  console.log(summary)
 }
 
 migrate().catch((error) => {
-  console.error('Course migration failed:', error.message)
+  console.error(`Course migration failed: ${error.message}`)
   process.exitCode = 1
-}).finally(() => {
-  disconnectDatabase().catch(() => { })
-})
+}).finally(() => disconnectDatabase().catch(() => { }))

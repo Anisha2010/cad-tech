@@ -4,7 +4,7 @@ import { getCourseBySlug } from '../repositories/courseRepository.js'
 import { createVerifiedEnrollment as createMongoEnrollment, findActiveEnrollment } from '../repositories/enrollmentRepository.js'
 
 export const getActiveEnrollment = async (userId, courseSlug, options = {}) => {
-  const course = await getCourseBySlug(courseSlug)
+  const course = await getCourseBySlug(courseSlug, { includeArchived: true })
   return course ? findActiveEnrollment(userId, course.id, options) : null
 }
 

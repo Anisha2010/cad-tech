@@ -19,7 +19,7 @@ function CourseCheckoutButton({ course }) {
   const [state, setState] = useState('idle')
   const [message, setMessage] = useState('')
   const [isEnrolled, setIsEnrolled] = useState(false)
-  const unavailable = !Number.isInteger(course.priceInPaise) || course.priceInPaise <= 0 || !course.enrollmentOpen
+  const unavailable = !Number.isInteger(course?.priceInPaise) || course.priceInPaise <= 0 || !course.enrollmentOpen || course.status !== 'published'
   useEffect(() => { if (isAuthenticated) fetchMyCourses().then((enrollments) => setIsEnrolled(enrollments.some((enrollment) => enrollment.courseSlug === course.slug))).catch(() => { }) }, [course.slug, isAuthenticated])
   const startCheckout = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: location } }); return }
@@ -36,8 +36,8 @@ function CourseCheckoutButton({ course }) {
       navigate('/student/my-courses', { replace: true })
     } catch (error) { setMessage(error.message === 'dismissed' ? 'Payment was not completed.' : 'Payment could not be verified. Please contact support if an amount was deducted.') } finally { setState('idle') }
   }
-  if (isEnrolled) return <button className="button button-primary checkout-button" type="button" onClick={() => navigate('/student/my-courses')}>Go to My Courses</button>
+  if (isEnrolled) return <button className="button button-primary checkout-button" type="button" onClick={() => navigate(`/student/learn/${course.slug}`)}>Continue Learning</button>
   if (unavailable) return <p className="checkout-unavailable" role="status">Enrollment currently unavailable.</p>
-  return <div className="checkout-wrap"><button className="button button-primary checkout-button" type="button" disabled={state !== 'idle'} onClick={startCheckout}>{state === 'creating' ? 'Preparing Checkout...' : state === 'verifying' ? 'Verifying Payment...' : 'Buy Course'}</button>{message && <p className="checkout-message" role="status" aria-live="polite">{message}</p>}</div>
+  return <div className="checkout-wrap"><button className="button button-primary checkout-button" type="button" disabled={state !== 'idle'} onClick={startCheckout}>{state === 'creating' ? 'Preparing Checkout...' : state === 'verifying' ? 'Verifying Payment...' : `Buy Course - ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(course.priceInPaise / 100)}`}</button>{message && <p className="checkout-message" role="status" aria-live="polite">{message}</p>}</div>
 }
 export default CourseCheckoutButton

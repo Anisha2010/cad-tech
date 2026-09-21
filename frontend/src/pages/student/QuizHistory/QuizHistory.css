@@ -1,0 +1,132 @@
+.student-history-page {
+  display: grid;
+  gap: 1.25rem;
+  padding: 2rem;
+}
+
+.student-history-header {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.4rem 1.5rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.student-history-header h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2vw, 2.3rem);
+}
+
+.student-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.student-history-empty,
+.student-history-state {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 220px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.student-history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.student-history-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+  padding: 1.2rem 1.3rem;
+}
+
+.student-history-course {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.student-history-card h3 {
+  margin: 0.2rem 0 0.7rem;
+  font-size: 1.3rem;
+}
+
+.student-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.student-history-result {
+  display: grid;
+  align-items: center;
+  justify-items: end;
+  gap: 0.5rem;
+}
+
+.student-history-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.student-history-score strong {
+  font-size: 1.5rem;
+}
+
+.student-history-badge {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.student-history-badge.passed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.student-history-badge.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.student-history-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .student-history-page {
+    padding: 1rem;
+  }
+
+  .student-history-card {
+    display: grid;
+  }
+
+  .student-history-result {
+    justify-items: start;
+  }
+}

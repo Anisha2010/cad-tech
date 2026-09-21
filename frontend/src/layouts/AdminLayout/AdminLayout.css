@@ -1,0 +1,1 @@
+.admin-shell { min-height: 100vh; display: flex; background: var(--color-bg); color: var(--color-text); }.admin-main { min-width: 0; flex: 1; }.admin-content { width: min(1280px, calc(100% - 3rem)); margin: 0 auto; padding: 2rem 0 3rem; }@media (max-width: 767px) { .admin-content { width: min(100% - 2rem, 1280px); padding-top: 1.25rem; } }
