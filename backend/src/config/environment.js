@@ -22,6 +22,10 @@ const config = {
   razorpay_key_id: process.env.RAZORPAY_KEY_ID || '',
   razorpay_key_secret: process.env.RAZORPAY_KEY_SECRET || '',
   razorpay_webhook_secret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
+  cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+  cloudinary_api_key: process.env.CLOUDINARY_API_KEY || '',
+  cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET || '',
+  assignment_upload_max_bytes: Number(process.env.ASSIGNMENT_UPLOAD_MAX_BYTES || 10485760),
 
   // Google OAuth
   google_client_id: process.env.GOOGLE_CLIENT_ID || '',

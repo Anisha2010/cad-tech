@@ -7,7 +7,7 @@ import './AssignmentBuilder.css'
 function AssignmentBuilder() {
   const { courseId, assignmentId } = useParams()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ title: '', description: '', instructions: '', maximumMarks: 100, dueDate: '', allowedSubmissionTypes: ['pdf'], resources: [{ title: '', url: '' }] })
+  const [form, setForm] = useState({ title: '', description: '', instructions: '', maximumMarks: 100, dueDate: '', allowLateSubmissions: true, allowedSubmissionTypes: ['pdf'], resources: [{ title: '', url: '' }] })
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
@@ -21,6 +21,7 @@ function AssignmentBuilder() {
         setForm({
           ...response.assessment,
           dueDate: response.assessment?.dueDate ? new Date(response.assessment.dueDate).toISOString().slice(0, 10) : '',
+          allowLateSubmissions: response.assessment?.allowLateSubmissions !== false,
           allowedSubmissionTypes: response.assessment?.allowedSubmissionTypes?.length ? response.assessment.allowedSubmissionTypes : ['pdf'],
           resources: response.assessment?.resources?.length ? response.assessment.resources : [{ title: '', url: '' }]
         })
@@ -104,6 +105,12 @@ function AssignmentBuilder() {
           <label className="assessment-full-width">
             Instructions
             <textarea value={form.instructions || ''} rows={5} onChange={(event) => setForm((current) => ({ ...current, instructions: event.target.value }))} />
+          </label>
+          <label className="assessment-full-width">
+            <span className="checkbox-row">
+              <input type="checkbox" checked={Boolean(form.allowLateSubmissions)} onChange={(event) => setForm((current) => ({ ...current, allowLateSubmissions: event.target.checked }))} />
+              Allow late submissions
+            </span>
           </label>
           <label>
             Allowed submission types

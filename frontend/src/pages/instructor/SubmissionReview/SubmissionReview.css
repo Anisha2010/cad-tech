@@ -1,0 +1,9 @@
+.review-page { display: grid; gap: 1.5rem; }
+.review-detail-panel { padding: 1.5rem; display: grid; gap: 1.5rem; }
+.review-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; }
+.review-meta-grid div { background: #f8fafc; border-radius: 12px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.review-text-block, .resubmission-box { display: grid; gap: 0.8rem; }
+.grade-form-grid { display: grid; gap: 1rem; }
+.grade-form-grid label, .resubmission-box label { display: flex; flex-direction: column; gap: 0.5rem; }
+.grade-form-grid input, .grade-form-grid textarea, .resubmission-box textarea { border: 1px solid #dbe2f0; border-radius: 12px; padding: 0.8rem 0.9rem; }
+.review-actions { display: flex; justify-content: flex-start; }

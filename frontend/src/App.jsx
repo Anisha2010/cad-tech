@@ -29,6 +29,11 @@ import LearningPlayer from './pages/student/LearningPlayer/LearningPlayer.jsx'
 import QuizAttempt from './pages/student/QuizAttempt/QuizAttempt.jsx'
 import QuizResult from './pages/student/QuizResult/QuizResult.jsx'
 import QuizHistory from './pages/student/QuizHistory/QuizHistory.jsx'
+import AssignmentDetails from './pages/student/AssignmentDetails/AssignmentDetails.jsx'
+import MySubmissions from './pages/student/MySubmissions/MySubmissions.jsx'
+import SubmissionDetails from './pages/student/SubmissionDetails/SubmissionDetails.jsx'
+import CourseSubmissions from './pages/instructor/CourseSubmissions/CourseSubmissions.jsx'
+import SubmissionReview from './pages/instructor/SubmissionReview/SubmissionReview.jsx'
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminCourses from './pages/admin/AdminCourses.jsx'
 import AdminCourseForm from './pages/admin/AdminCourseForm.jsx'
@@ -65,6 +70,9 @@ function AppLayout() {
         <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/my-courses" element={<ProtectedRoute allowedRoles={['student']}><MyCourses /></ProtectedRoute>} />
         <Route path="/student/learn/:courseSlug" element={<ProtectedRoute allowedRoles={['student']}><LearningPlayer /></ProtectedRoute>} />
+        <Route path="/student/assignments/:assignmentId" element={<ProtectedRoute allowedRoles={['student']}><AssignmentDetails /></ProtectedRoute>} />
+        <Route path="/student/submissions" element={<ProtectedRoute allowedRoles={['student']}><MySubmissions /></ProtectedRoute>} />
+        <Route path="/student/submissions/:submissionId" element={<ProtectedRoute allowedRoles={['student']}><SubmissionDetails /></ProtectedRoute>} />
         <Route path="/student/quizzes/:quizId/attempt/:attemptId" element={<ProtectedRoute allowedRoles={['student']}><QuizAttempt /></ProtectedRoute>} />
         <Route path="/student/quizzes/:quizId/results/:attemptId" element={<ProtectedRoute allowedRoles={['student']}><QuizResult /></ProtectedRoute>} />
         <Route path="/student/quiz-history" element={<ProtectedRoute allowedRoles={['student']}><QuizHistory /></ProtectedRoute>} />
@@ -79,6 +87,8 @@ function AppLayout() {
           <Route path="courses/:courseId/quizzes/:quizId/edit" element={<QuizBuilder />} />
           <Route path="courses/:courseId/assignments/new" element={<AssignmentBuilder />} />
           <Route path="courses/:courseId/assignments/:assignmentId/edit" element={<AssignmentBuilder />} />
+          <Route path="courses/:courseId/submissions" element={<CourseSubmissions />} />
+          <Route path="submissions/:submissionId/review" element={<SubmissionReview />} />
         </Route>
         <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="dashboard" replace />} />

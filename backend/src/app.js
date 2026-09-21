@@ -12,8 +12,10 @@ import paymentRoutes from './routes/paymentRoutes.js'
 import { notFoundMiddleware } from './middleware/notFound.js'
 import { errorHandlerMiddleware } from './middleware/errorHandler.js'
 import { getDatabaseStatus } from './config/database.js'
+import { configureCloudinary } from './config/storage.js'
 
 const app = express()
+configureCloudinary()
 const isProduction = process.env.NODE_ENV === 'production'
 
 // Disable x-powered-by header for security

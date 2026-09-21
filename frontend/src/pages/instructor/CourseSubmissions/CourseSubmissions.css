@@ -1,0 +1,8 @@
+.submissions-page { display: grid; gap: 1.5rem; }
+.submissions-filter-panel { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; padding: 1.25rem; }
+.student-search-wrap { display: flex; align-items: center; gap: 0.5rem; border: 1px solid #dfe7f5; border-radius: 12px; padding: 0.7rem 0.9rem; flex: 1; min-width: 200px; }
+.student-search-wrap input, .submissions-filter-panel select { border: 1px solid #dfe7f5; border-radius: 12px; padding: 0.7rem 0.8rem; }
+.submissions-table-panel { padding: 1rem; }
+.submission-table-header, .submission-table-row { display: grid; grid-template-columns: 1.2fr 1.3fr 0.5fr 1fr 1fr 0.7fr 0.8fr; gap: 0.8rem; align-items: center; padding: 0.85rem 0.5rem; }
+.submission-table-header { font-size: 0.8rem; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+.submission-table-row { border-bottom: 1px solid #f1f5f9; }

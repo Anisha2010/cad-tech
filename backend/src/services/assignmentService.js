@@ -45,6 +45,7 @@ export const createAssignment = async ({ courseId, instructorId, payload = {} })
     instructions: assignmentInput.instructions,
     maximumMarks: assignmentInput.maximumMarks,
     dueDate: assignmentInput.dueDate,
+    allowLateSubmissions: assignmentInput.allowLateSubmissions,
     allowedSubmissionTypes: assignmentInput.allowedSubmissionTypes,
     resources: assignmentInput.resources,
     createdBy: new mongoose.Types.ObjectId(instructorId),
@@ -80,6 +81,7 @@ export const updateAssignment = async ({ courseId, instructorId, assignmentId, p
       instructions: sanitized.instructions,
       maximumMarks: sanitized.maximumMarks,
       dueDate: sanitized.dueDate,
+      allowLateSubmissions: sanitized.allowLateSubmissions,
       allowedSubmissionTypes: sanitized.allowedSubmissionTypes,
       resources: sanitized.resources,
       updatedBy: new mongoose.Types.ObjectId(instructorId)
@@ -105,6 +107,7 @@ export const submitAssignmentForReview = async ({ courseId, instructorId, assign
       instructions: sanitized.instructions,
       maximumMarks: sanitized.maximumMarks,
       dueDate: sanitized.dueDate,
+      allowLateSubmissions: sanitized.allowLateSubmissions,
       allowedSubmissionTypes: sanitized.allowedSubmissionTypes,
       resources: sanitized.resources,
       reviewStatus: 'pending',

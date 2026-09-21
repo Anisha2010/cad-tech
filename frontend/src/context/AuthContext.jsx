@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useRef, useState } from 'react'
 import { getCurrentUser, login as loginRequest, logout as logoutRequest, register as registerRequest } from '../services/authService.js'
 
 const AuthContext = createContext(null)
@@ -12,13 +12,15 @@ function responseUser(response) {
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const authRequestRef = useRef(0)
 
   useEffect(() => {
     let active = true
+    const requestId = ++authRequestRef.current
 
     getCurrentUser()
       .then((response) => {
-        if (!active) return
+        if (!active || requestId !== authRequestRef.current) return
         if (!response.configured) {
           setUser(null)
           return
@@ -26,13 +28,15 @@ function AuthProvider({ children }) {
         setUser(responseUser(response))
       })
       .catch(() => {
-        if (active) setUser(null)
+        if (active && requestId === authRequestRef.current) setUser(null)
       })
       .finally(() => {
-        if (active) setIsLoading(false)
+        if (active && requestId === authRequestRef.current) setIsLoading(false)
       })
 
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   const login = async (credentials) => {
@@ -40,7 +44,9 @@ function AuthProvider({ children }) {
     if (!response.configured) return response
     const confirmedUser = responseUser(response)
     if (!confirmedUser) throw new Error('unsupported-role')
+    authRequestRef.current += 1
     setUser(confirmedUser)
+    setIsLoading(false)
     return { ...response, user: confirmedUser }
   }
 
@@ -62,9 +68,11 @@ function AuthProvider({ children }) {
 
   const refreshUser = async () => {
     setIsLoading(true)
+    const requestId = ++authRequestRef.current
 
     try {
       const response = await getCurrentUser()
+      if (requestId !== authRequestRef.current) return { ...response, user: user }
       if (response.configured) {
         const confirmedUser = responseUser(response)
         setUser(confirmedUser)
@@ -74,10 +82,10 @@ function AuthProvider({ children }) {
       setUser(null)
       return { ...response, user: null }
     } catch (error) {
-      setUser(null)
+      if (requestId === authRequestRef.current) setUser(null)
       return { configured: false, user: null, error }
     } finally {
-      setIsLoading(false)
+      if (requestId === authRequestRef.current) setIsLoading(false)
     }
   }
 

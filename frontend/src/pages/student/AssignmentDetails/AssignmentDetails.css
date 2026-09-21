@@ -1,0 +1,14 @@
+.assignment-details-page { display: grid; gap: 1.5rem; }
+.page-header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.assignment-summary-panel, .assignment-editor-panel { padding: 1.5rem; }
+.assignment-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.assignment-meta-grid div { background: #f8fafc; border-radius: 12px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.assignment-editor-panel { display: grid; gap: 1rem; }
+.assignment-field { display: flex; flex-direction: column; gap: 0.6rem; }
+.assignment-field textarea, .assignment-field input[type='file'] { width: 100%; border: 1px solid #dbe2f0; border-radius: 12px; padding: 0.8rem 0.9rem; }
+.upload-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; }
+.assignment-files-list { display: grid; gap: 0.75rem; }
+.assignment-file-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #f8fafc; border-radius: 12px; padding: 0.9rem 1rem; }
+.assignment-file-item a { color: #1d4ed8; text-decoration: none; }
+.assignment-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; }
+.submission-status-pill { display: inline-flex; border-radius: 999px; background: #e0f2fe; color: #0f172a; padding: 0.5rem 0.8rem; font-size: 0.9rem; }

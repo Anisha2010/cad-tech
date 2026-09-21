@@ -19,6 +19,12 @@ import {
   deleteLesson,
   reorderLessonsByIds
 } from '../controllers/instructorController.js'
+import {
+  listCourseSubmissions,
+  getInstructorSubmission,
+  gradeSubmission,
+  requestSubmissionResubmission
+} from '../controllers/instructorSubmissionController.js'
 
 const router = express.Router()
 
@@ -40,5 +46,9 @@ router.post('/courses/:courseId/curriculum/sections/:sectionId/lessons', require
 router.patch('/courses/:courseId/curriculum/sections/:sectionId/lessons/:lessonId', requireAssignedInstructor, updateLessonById)
 router.delete('/courses/:courseId/curriculum/sections/:sectionId/lessons/:lessonId', requireAssignedInstructor, deleteLesson)
 router.patch('/courses/:courseId/curriculum/sections/:sectionId/lessons/reorder', requireAssignedInstructor, reorderLessonsByIds)
+router.get('/courses/:courseId/submissions', requireAssignedInstructor, listCourseSubmissions)
+router.get('/submissions/:submissionId', requireAssignedInstructor, getInstructorSubmission)
+router.post('/submissions/:submissionId/grade', requireAssignedInstructor, gradeSubmission)
+router.post('/submissions/:submissionId/request-resubmission', requireAssignedInstructor, requestSubmissionResubmission)
 
 export default router

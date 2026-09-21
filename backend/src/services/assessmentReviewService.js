@@ -205,6 +205,8 @@ export const validateAssignmentPayload = (payload = {}) => {
   const dueDateValue = payload.dueDate === null || payload.dueDate === undefined || payload.dueDate === '' ? null : new Date(payload.dueDate)
   if (dueDateValue && Number.isNaN(dueDateValue.getTime())) throw new AppError('Due date is invalid.', 422)
 
+  const allowLateSubmissions = typeof payload.allowLateSubmissions === 'boolean' ? payload.allowLateSubmissions : true
+
   const allowedTypes = Array.isArray(payload.allowedSubmissionTypes) ? payload.allowedSubmissionTypes : []
   const normalizedTypes = allowedTypes.filter((value) => typeof value === 'string').map((value) => value.trim().toLowerCase())
   const invalidType = normalizedTypes.find((value) => !['pdf', 'document', 'image', 'text'].includes(value))
@@ -226,6 +228,7 @@ export const validateAssignmentPayload = (payload = {}) => {
     instructions,
     maximumMarks,
     dueDate: dueDateValue,
+    allowLateSubmissions,
     allowedSubmissionTypes: Array.from(new Set(normalizedTypes)),
     resources: normalizedResources,
     lessonId: payload.lessonId && mongoose.isValidObjectId(payload.lessonId) ? new mongoose.Types.ObjectId(String(payload.lessonId)) : null

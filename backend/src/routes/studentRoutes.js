@@ -6,6 +6,16 @@ import { listEnrollments } from '../controllers/enrollmentController.js'
 import { listStudentPayments } from '../controllers/paymentController.js'
 import { getStudentLearningView, updateStudentLessonProgress, updateStudentLessonPosition } from '../controllers/learningController.js'
 import { startQuizAttempt, getQuizAttempt, saveQuizAnswer, submitQuizAttempt, getQuizResult, getQuizHistory } from '../controllers/studentQuizController.js'
+import {
+  getStudentAssignment,
+  createStudentSubmissionDraft,
+  updateStudentSubmission,
+  uploadStudentSubmissionAttachment,
+  removeStudentSubmissionAttachment,
+  submitStudentSubmission,
+  listStudentSubmissions,
+  getStudentSubmissionDetail
+} from '../controllers/assignmentSubmissionController.js'
 
 const router = express.Router()
 
@@ -21,5 +31,13 @@ router.patch('/quiz-attempts/:attemptId/answers', requireAuthentication, allowRo
 router.post('/quiz-attempts/:attemptId/submit', requireAuthentication, allowRoles('student'), submitQuizAttempt)
 router.get('/quizzes/:quizId/results/:attemptId', requireAuthentication, allowRoles('student'), getQuizResult)
 router.get('/quiz-history', requireAuthentication, allowRoles('student'), getQuizHistory)
+router.get('/assignments/:assignmentId', requireAuthentication, allowRoles('student'), getStudentAssignment)
+router.post('/assignments/:assignmentId/submissions', requireAuthentication, allowRoles('student'), createStudentSubmissionDraft)
+router.patch('/submissions/:submissionId', requireAuthentication, allowRoles('student'), updateStudentSubmission)
+router.post('/submissions/:submissionId/attachments', requireAuthentication, allowRoles('student'), uploadStudentSubmissionAttachment)
+router.delete('/submissions/:submissionId/attachments/:attachmentId', requireAuthentication, allowRoles('student'), removeStudentSubmissionAttachment)
+router.post('/submissions/:submissionId/submit', requireAuthentication, allowRoles('student'), submitStudentSubmission)
+router.get('/submissions', requireAuthentication, allowRoles('student'), listStudentSubmissions)
+router.get('/submissions/:submissionId', requireAuthentication, allowRoles('student'), getStudentSubmissionDetail)
 
 export default router

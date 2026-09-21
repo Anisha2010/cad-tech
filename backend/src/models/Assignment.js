@@ -14,6 +14,7 @@ const assignmentSchema = new mongoose.Schema({
   instructions: { type: String, required: true, trim: true },
   maximumMarks: { type: Number, required: true, min: 1 },
   dueDate: { type: Date, default: null },
+  allowLateSubmissions: { type: Boolean, default: true },
   allowedSubmissionTypes: { type: [String], default: ['pdf'], enum: ['pdf', 'document', 'image', 'text'] },
   resources: { type: [resourceSchema], default: [] },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -44,6 +45,7 @@ export const serializeAssignment = (value) => {
     instructions: doc.instructions || '',
     maximumMarks: Number(doc.maximumMarks ?? 0),
     dueDate: doc.dueDate ? new Date(doc.dueDate).toISOString() : null,
+    allowLateSubmissions: Boolean(doc.allowLateSubmissions !== false),
     allowedSubmissionTypes: Array.isArray(doc.allowedSubmissionTypes) ? doc.allowedSubmissionTypes : [],
     resources: Array.isArray(doc.resources) ? doc.resources.map((resource) => ({
       id: String(resource._id || resource.id),
