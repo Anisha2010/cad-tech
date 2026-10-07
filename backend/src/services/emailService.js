@@ -1,8 +1,23 @@
+import dns from 'node:dns'
+import net from 'node:net'
 import nodemailer from 'nodemailer'
 import config from '../config/environment.js'
 
 let transporter
 let transporterVerificationStarted = false
+
+const createIpv4Socket = (host, port, callback) => {
+  dns.resolve4(host, (error, addresses) => {
+    if (error) return callback(error)
+    if (!addresses.length) return callback(new Error(`No IPv4 addresses found for ${host}`))
+
+    const socket = net.connect({ host: addresses[0], port, family: 4 }, () => callback(null, { connection: socket }))
+    socket.once('error', (socketError) => {
+      if (!socket.destroyed) socket.destroy()
+      callback(socketError)
+    })
+  })
+}
 
 const getSafeSmtpErrorDetails = (error) => Object.fromEntries(
   ['name', 'code', 'command', 'responseCode', 'response', 'message']
@@ -51,15 +66,15 @@ function getTransporter() {
       host: config.smtp_host,
       port: Number(config.smtp_port),
       secure: String(config.smtp_secure).toLowerCase() === 'true',
-      family: 4,
-      auth: { user: config.smtp_user, pass: config.smtp_password }
+      auth: { user: config.smtp_user, pass: config.smtp_password },
+      getSocket: (options, callback) => createIpv4Socket(options.host, options.port, callback)
     })
   }
 
   if (!transporterVerificationStarted) {
     transporterVerificationStarted = true
     void transporter.verify()
-      .then(() => console.info('[Email] SMTP connection verified'))
+      .then(() => console.info('[Email] SMTP connection verified successfully'))
       .catch((error) => {
         console.error('[Email] SMTP connection verification failed', getSafeSmtpErrorDetails(error))
       })
