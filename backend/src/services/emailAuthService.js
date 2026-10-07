@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 import * as db from '../repositories/userRepository.js'
 import config from '../config/environment.js'
-import { sendLoginOtpEmail, sendVerificationEmail } from './emailService.js'
+import { getSafeSmtpErrorDetails, sendLoginOtpEmail, sendVerificationEmail } from './emailService.js'
 import { AppError } from '../utils/AppError.js'
 
 const OTP_LENGTH = 6
@@ -99,7 +99,7 @@ export const createEmailAuthService = ({
       return sent
     } catch (error) {
       await repository.clearEmailVerification(userId, tokenHash)
-      logger.error('[Auth] Email verification delivery failed.', { code: typeof error?.code === 'string' ? error.code : 'UNKNOWN' })
+      logger.error('[Auth] Email verification delivery failed.', getSafeSmtpErrorDetails(error))
       return false
     }
   }

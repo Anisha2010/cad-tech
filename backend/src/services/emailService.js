@@ -19,11 +19,34 @@ const createIpv4Socket = (host, port, callback) => {
   })
 }
 
-const getSafeSmtpErrorDetails = (error) => Object.fromEntries(
-  ['name', 'code', 'command', 'responseCode', 'response', 'message']
-    .filter((field) => error?.[field] !== undefined)
-    .map((field) => [field, error[field]])
-)
+export const getSmtpFailureCategory = (error) => {
+  const code = String(error?.code || '').toUpperCase()
+  const message = String(error?.message || '').toLowerCase()
+  if (['EDNS', 'EAI_AGAIN', 'ENOTFOUND'].includes(code)) return 'DNS failure'
+  if (['ECONNREFUSED', 'ENETUNREACH', 'ETIMEDOUT', 'ESOCKET'].includes(code)) return 'TCP connection failure'
+  if (code === 'ETLS') return 'TLS/STARTTLS failure'
+  if (['EAUTH', '535', '534'].includes(code) || message.includes('authentication')) return 'SMTP authentication failure'
+  if (code === 'EENVELOPE' || message.includes('sender')) return 'sender rejection'
+  if (code === 'EENVELOPE' || message.includes('recipient')) return 'recipient rejection'
+  return 'application-side failure'
+}
+
+export const getSafeSmtpErrorDetails = (error) => {
+  const fields = Object.fromEntries(
+    ['name', 'code', 'command', 'responseCode', 'response', 'message']
+      .filter((field) => error?.[field] !== undefined)
+      .map((field) => [field, error[field]])
+  )
+  return { category: getSmtpFailureCategory(error), ...fields }
+}
+
+const getSafeSmtpSuccessDetails = (info) => ({
+  messageId: info?.messageId,
+  accepted: Array.isArray(info?.accepted) ? info.accepted.length : 0,
+  rejected: Array.isArray(info?.rejected) ? info.rejected.length : 0,
+  response: info?.response,
+  status: info?.envelope?.to ? 'accepted' : undefined
+})
 
 export const getPasswordResetEmailStatus = () => {
   const missing = []
@@ -136,14 +159,15 @@ export const sendVerificationEmail = async (email, verificationUrl) => {
       console.error(`[Email] Email verification delivery is unavailable. Configure: ${missing.join(', ')}.`)
       return false
     }
-    await mailer.sendMail({
+    const info = await mailer.sendMail({
       from: config.smtp_from,
       to: email,
       subject: 'Verify your CadTech Solution email',
       text: `Verify your CadTech Solution email address using this link within ${config.email_verification_ttl_hours} hours:\n\n${verificationUrl}\n\nIf you did not create this account, you can ignore this email.`,
       html: `<div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.6"><h1 style="font-size:22px">Verify your email</h1><p>Confirm your email address to finish creating your CadTech Solution account.</p><p><a href="${verificationUrl}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px">Verify email</a></p><p>This link expires in ${config.email_verification_ttl_hours} hours and can only be used once.</p></div>`
     })
-    return true
+    console.info('[Email] Gmail accepted verification email', getSafeSmtpSuccessDetails(info))
+    return info
   } catch (error) {
     console.error('[Email] Email verification delivery failed.', getSafeSmtpErrorDetails(error))
     return false

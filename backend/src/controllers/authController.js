@@ -29,7 +29,9 @@ export const register = asyncHandler(async (req, res) => {
 
   void emailAuthService.sendVerificationForUser(user, { ignoreCooldown: true }).catch((error) => {
     console.error('[Auth] Verification email scheduling failed.', {
-      code: typeof error?.code === 'string' ? error.code : 'UNKNOWN'
+      name: error?.name,
+      code: typeof error?.code === 'string' ? error.code : 'UNKNOWN',
+      message: error?.message
     })
   })
   sendSuccess(res, { email: user.email, resendAfterSeconds: config.auth_email_resend_cooldown_seconds }, 'Account created. Check your email to verify your account.', 201)
