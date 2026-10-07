@@ -10,7 +10,7 @@ const paymentSchema = new mongoose.Schema({
   receipt: { type: String, required: true, trim: true },
   amountInPaise: { type: Number, required: true, min: 1, validate: Number.isInteger },
   currency: { type: String, required: true, uppercase: true, trim: true },
-  status: { type: String, enum: ['created', 'pending', 'paid', 'failed', 'refunded'], default: 'created' },
+  status: { type: String, enum: ['creating', 'created', 'pending', 'paid', 'failed', 'refunded'], default: 'created' },
   verifiedAt: { type: Date, default: null },
   failedAt: { type: Date, default: null },
   refundedAt: { type: Date, default: null },
@@ -21,8 +21,8 @@ const paymentSchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false })
 
 paymentSchema.index({ providerPaymentId: 1 }, { unique: true, sparse: true })
+paymentSchema.index({ userId: 1, courseId: 1 }, { unique: true, partialFilterExpression: { status: 'creating' } })
 paymentSchema.index({ userId: 1, createdAt: -1 })
-paymentSchema.index({ userId: 1, courseId: 1 })
 paymentSchema.index({ status: 1, updatedAt: -1 })
 
 export const serializePayment = (payment) => {

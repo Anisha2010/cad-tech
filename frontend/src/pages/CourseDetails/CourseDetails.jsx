@@ -89,7 +89,7 @@ function CourseDetails() {
               <span><BookOpen size={18} /> {Number(course.lessonCount ?? 0)} lessons</span>
             </div>
             <div className="course-detail-actions">
-              <CourseCheckoutButton course={course} />
+              <CourseCheckoutButton key={course.slug} course={course} courseSlug={course.slug} />
               <Link className="button button-outline" to={`/contact?course=${course.slug}`}>Ask About This Course <ArrowRight size={17} /></Link>
               <Link className="button button-outline" to="/courses"><ArrowLeft size={17} /> Browse All Courses</Link>
             </div>

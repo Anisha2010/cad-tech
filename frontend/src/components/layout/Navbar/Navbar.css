@@ -35,7 +35,7 @@
   .nav-link { font-size: 0.82rem; }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 840px) {
   .navbar-inner { justify-content: space-between; }
   .desktop-nav, .navbar-actions { display: none; }
   .mobile-controls { display: flex; align-items: center; gap: 0.55rem; }

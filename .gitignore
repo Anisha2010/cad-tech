@@ -13,22 +13,20 @@ dist-ssr
 *.local
 
 .env
-.env.local
-.env.development
-.env.production
-.env.e2e
-.env.e2e.*
+.env.*
+!.env.example
 backend/.env
 frontend/.env
 frontend/.env.e2e
 frontend/.env.e2e.*
 playwright-report/
-test-results/
+test-results*/
 *.log
 !/.env.example
 !/backend/.env.example
 !/frontend/.env.example
 !/frontend/.env.e2e.example
+!/backend/.env.e2e.example
 
 # Editor directories and files
 .vscode/*

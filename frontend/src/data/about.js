@@ -25,4 +25,17 @@ const coreValues = [
   { id: 4, title: 'Continuous Improvement', description: 'Encourage ongoing learning and better technical workflows.', icon: TrendingUp },
 ]
 
-export { missionVision, supportAreas, approachSteps, coreValues }
+const founder = {
+  name: 'Arvind Nagpure',
+  designation: 'Founder, CAD Tech Solution',
+  sectionLabel: 'THE FOUNDER',
+  heading: 'Practical engineering, designed for production',
+  paragraphs: [
+    'CAD Tech Solution was established in 2020 by Arvind Nagpure, whose background is in Mechanical Engineering.',
+    'His specialized expertise is in SPM and robotics, with a focus on production-ready engineering and Design for Manufacturability (DFM).',
+    'Designs are optimized for CNC machining, molding, and 3D printing, guided by a philosophy of precision, manufacturability, and practical engineering.'
+  ],
+  portraitLabel: 'Founder portrait'
+}
+
+export { missionVision, supportAreas, approachSteps, coreValues, founder }

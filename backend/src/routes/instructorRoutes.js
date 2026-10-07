@@ -2,6 +2,7 @@ import express from 'express'
 import { allowRoles } from '../middleware/authorization.js'
 import { requireAuthentication } from '../middleware/authentication.js'
 import { requireAssignedInstructor } from '../middleware/instructorAccess.js'
+import { uploadCourseMedia } from '../controllers/courseMediaController.js'
 import {
   dashboard,
   listCourses,
@@ -34,6 +35,7 @@ router.get('/dashboard', dashboard)
 router.get('/courses', listCourses)
 router.get('/options', getAssignedInstructors)
 router.get('/courses/:courseId', requireAssignedInstructor, getOneCourse)
+router.post('/courses/:courseId/media/:kind', requireAssignedInstructor, uploadCourseMedia)
 router.patch('/courses/:courseId', requireAssignedInstructor, updateCourse)
 router.post('/courses/:courseId/submit-review', requireAssignedInstructor, submitReview)
 

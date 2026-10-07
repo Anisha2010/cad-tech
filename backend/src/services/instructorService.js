@@ -233,7 +233,7 @@ export const requestCourseChanges = async ({ courseId, adminId, feedback }) => {
 }
 
 export const getAssignableInstructors = async () => {
-  const users = await User.find({ role: 'instructor' }).sort({ name: 1 }).lean()
+  const users = await User.find({ role: 'instructor', accountStatus: { $in: ['active', null] }, deletedAt: null }).sort({ name: 1 }).lean()
   return users.map((user) => ({
     id: String(user._id),
     name: user.name,

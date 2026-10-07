@@ -1,5 +1,5 @@
 import { createContext, useEffect, useRef, useState } from 'react'
-import { getCurrentUser, login as loginRequest, logout as logoutRequest, register as registerRequest } from '../services/authService.js'
+import { getCurrentUser, login as loginRequest, loginWithOtp as loginWithOtpRequest, logout as logoutRequest, register as registerRequest, updateProfile as updateProfileRequest } from '../services/authService.js'
 
 const AuthContext = createContext(null)
 
@@ -12,6 +12,7 @@ function responseUser(response) {
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [authMessage, setAuthMessage] = useState('')
   const authRequestRef = useRef(0)
 
   useEffect(() => {
@@ -23,8 +24,10 @@ function AuthProvider({ children }) {
         if (!active || requestId !== authRequestRef.current) return
         if (!response.configured) {
           setUser(null)
+          setAuthMessage(response.authMessage || '')
           return
         }
+        setAuthMessage('')
         setUser(responseUser(response))
       })
       .catch(() => {
@@ -45,6 +48,19 @@ function AuthProvider({ children }) {
     const confirmedUser = responseUser(response)
     if (!confirmedUser) throw new Error('unsupported-role')
     authRequestRef.current += 1
+    setAuthMessage('')
+    setUser(confirmedUser)
+    setIsLoading(false)
+    return { ...response, user: confirmedUser }
+  }
+
+  const loginWithOtp = async (credentials) => {
+    const response = await loginWithOtpRequest({ email: credentials.email.trim(), otp: credentials.otp })
+    if (!response.configured) return response
+    const confirmedUser = responseUser(response)
+    if (!confirmedUser) throw new Error('unsupported-role')
+    authRequestRef.current += 1
+    setAuthMessage('')
     setUser(confirmedUser)
     setIsLoading(false)
     return { ...response, user: confirmedUser }
@@ -63,6 +79,7 @@ function AuthProvider({ children }) {
       return await logoutRequest()
     } finally {
       setUser(null)
+      setAuthMessage('')
     }
   }
 
@@ -75,11 +92,13 @@ function AuthProvider({ children }) {
       if (requestId !== authRequestRef.current) return { ...response, user: user }
       if (response.configured) {
         const confirmedUser = responseUser(response)
+        setAuthMessage('')
         setUser(confirmedUser)
         return { ...response, user: confirmedUser }
       }
 
       setUser(null)
+      setAuthMessage(response.authMessage || '')
       return { ...response, user: null }
     } catch (error) {
       if (requestId === authRequestRef.current) setUser(null)
@@ -89,7 +108,14 @@ function AuthProvider({ children }) {
     }
   }
 
-  return <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), isLoading, login, register, logout, refreshUser }}>{children}</AuthContext.Provider>
+  const updateProfile = async (profile) => {
+    const response = await updateProfileRequest(profile)
+    const updatedUser = responseUser(response)
+    if (updatedUser) setUser(updatedUser)
+    return { ...response, user: updatedUser }
+  }
+
+  return <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), isLoading, authMessage, login, loginWithOtp, register, logout, refreshUser, updateProfile }}>{children}</AuthContext.Provider>
 }
 
 export { AuthContext, AuthProvider }

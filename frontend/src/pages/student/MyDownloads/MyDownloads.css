@@ -1,0 +1,157 @@
+.my-downloads-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.my-downloads-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 0 0.35rem;
+}
+
+.download-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.download-card {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #dfe7f5;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.download-thumb-wrap {
+  display: grid;
+  place-items: center;
+  width: 180px;
+  height: 120px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.download-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.download-thumb-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.download-card-body {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.download-card-topline {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: #3b82f6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.download-card-body h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+.download-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.download-meta-grid div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.download-meta-grid label {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.download-meta-grid strong {
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.download-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 180px;
+}
+
+.empty-state-panel {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  background: #fff;
+  border: 1px solid #dfe7f5;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.student-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  color: #9a4f00;
+  font-weight: 600;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 860px) {
+  .download-card {
+    grid-template-columns: 1fr;
+  }
+
+  .download-thumb-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .my-downloads-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

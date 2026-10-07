@@ -53,7 +53,15 @@ NODE_ENV=production
 FRONTEND_URL=https://your-project.vercel.app
 SESSION_SECRET=generate_a_long_random_secret
 MONGODB_URI=mongodb+srv://username:password@cluster.example.mongodb.net/cadtech?retryWrites=true&w=majority
+SMTP_HOST=your-smtp-host
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-smtp-user
+SMTP_PASSWORD=your-smtp-password
+SMTP_FROM=CadTech Solution <no-reply@your-domain.example>
 ```
+
+SMTP is required for email verification, OTP sign-in, and password recovery. Configure the sender/domain with your provider before production use. Optional authentication controls default to a 10-minute OTP, five wrong attempts, a 24-hour verification link, and a 60-second resend cooldown. Allowed ranges are 5-30 minutes, 3-10 attempts, 1-168 hours, and 30-300 seconds respectively.
 
 Do not manually set `PORT` on Render. Render supplies it to the service. If payment functionality is enabled, add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` only on Render/backend. Never put Razorpay secrets in frontend code.
 
@@ -148,6 +156,16 @@ Backend:
 - `FRONTEND_URL`
 - `SESSION_SECRET`
 - `MONGODB_URI`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `SMTP_FROM`
+- `LOGIN_OTP_TTL_MINUTES` (optional)
+- `LOGIN_OTP_MAX_ATTEMPTS` (optional)
+- `EMAIL_VERIFICATION_TTL_HOURS` (optional)
+- `AUTH_EMAIL_RESEND_COOLDOWN_SECONDS` (optional)
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `RAZORPAY_WEBHOOK_SECRET`

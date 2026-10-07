@@ -1,50 +1,39 @@
 import { defineConfig, devices } from '@playwright/test'
-import dotenv from 'dotenv'
-import fs from 'node:fs'
-import path from 'node:path'
+import { assertE2EUrls, E2E_API_URL, E2E_BASE_URL, loadE2EEnvironment } from './tests/e2e/helpers/e2eEnvironment.js'
 
-const envPath = path.resolve(process.cwd(), '.env.e2e')
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath })
-}
-
-const localEnvPath = path.resolve(process.cwd(), '.env.e2e.local')
-if (fs.existsSync(localEnvPath)) {
-  dotenv.config({ path: localEnvPath })
-}
+loadE2EEnvironment()
 
 const requiredEnv = [
   'E2E_BASE_URL',
   'E2E_API_URL',
+  'E2E_MONGODB_URI',
   'E2E_ADMIN_EMAIL',
   'E2E_ADMIN_PASSWORD',
+  'E2E_INSTRUCTOR_EMAIL',
+  'E2E_INSTRUCTOR_PASSWORD',
   'E2E_STUDENT_EMAIL',
   'E2E_STUDENT_PASSWORD'
 ]
 
 const missing = requiredEnv.filter((key) => !process.env[key] || String(process.env[key]).trim() === '')
-
 if (missing.length) {
-  throw new Error(
-    `Missing required E2E environment variables: ${missing.join(', ')}. Create frontend/.env.e2e from frontend/.env.e2e.example and keep real values out of source control.`
-  )
+  throw new Error(`Missing required E2E environment variables: ${missing.join(', ')}`)
 }
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:5173'
-const apiURL = process.env.E2E_API_URL || 'http://127.0.0.1:5000'
+assertE2EUrls()
+const baseURL = E2E_BASE_URL
+const apiURL = E2E_API_URL
 const useExternalServers = process.env.E2E_EXTERNAL_SERVERS === 'true'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/e2e/global-setup.js',
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,
   workers: 1,
-  retries: process.env.CI ? 2 : 0,
-  reporter: [
-    ['list'],
-    ['html', { open: 'never', outputFolder: 'playwright-report' }]
-  ],
+  retries: 0,
+  reporter: [['line']],
   outputDir: 'test-results',
   use: {
     baseURL,
@@ -60,15 +49,20 @@ export default defineConfig({
     ? undefined
     : [
       {
-        command: 'npm --prefix ../backend run dev',
+        command: 'npm --prefix ../backend run start:e2e',
         url: `${apiURL}/health`,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
+        env: { E2E_API_URL: apiURL },
         timeout: 120_000
       },
       {
         command: 'npm run dev -- --host 127.0.0.1 --port 5173',
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
+        env: {
+          VITE_API_BASE_URL: apiURL,
+          VITE_PUBLIC_SITE_URL: baseURL
+        },
         timeout: 120_000
       }
     ]

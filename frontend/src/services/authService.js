@@ -72,7 +72,7 @@ async function request(method, path, data) {
 
 function getAuthErrorDetails(error) {
   const responseData = error.response?.data ?? {}
-  const fieldErrors = responseData.errors ?? responseData.validationErrors ?? {}
+  const fieldErrors = responseData.errors ?? responseData.validationErrors ?? responseData.fieldErrors ?? {}
 
   if (!error.response && isTimeoutError(error)) {
     return {
@@ -88,24 +88,63 @@ function getAuthErrorDetails(error) {
 }
 
 const startGoogleAuthentication = () => {
+  console.info('[OAuth UI] startGoogleAuthentication called')
   const baseUrl = getBaseUrl()
   if (!baseUrl) {
     throw new Error('Social authentication is not connected yet.')
   }
+  console.info('[OAuth] redirecting to /auth/google')
   window.location.assign(`${baseUrl}/auth/google`)
 }
 
 const startGitHubAuthentication = () => {
+  console.info('[OAuth UI] startGitHubAuthentication called')
   const baseUrl = getBaseUrl()
   if (!baseUrl) {
     throw new Error('Social authentication is not connected yet.')
   }
+  console.info('[OAuth] redirecting to /auth/github')
   window.location.assign(`${baseUrl}/auth/github`)
 }
 
 const login = (credentials) => request('post', '/auth/login', credentials)
+const requestLoginOtp = (email) => request('post', '/auth/otp/request', { email })
+const loginWithOtp = (details) => request('post', '/auth/otp/verify', details)
+const verifyEmail = (token) => request('post', '/auth/verify-email', { token })
+const resendVerificationEmail = (email) => request('post', '/auth/verification/resend', { email })
 const register = (details) => request('post', '/auth/register', details)
-const getCurrentUser = () => request('get', '/auth/me')
+const requestPasswordReset = (email) => request('post', '/auth/forgot-password', { email })
+const getPasswordResetStatus = () => request('get', '/auth/password-reset/status')
+const validatePasswordResetToken = (token) => request('post', '/auth/validate-reset-token', { token })
+const resetPassword = (details) => request('post', '/auth/reset-password', details)
+const updateProfile = (profile) => request('patch', '/auth/profile', profile)
+const uploadProfileImage = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await axios.post(`${getBaseUrl()}/auth/profile/avatar`, formData, {
+    withCredentials: true,
+    timeout: 120000,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+  return response.data?.data ?? response.data
+}
+const changePassword = (details) => request('post', '/auth/change-password', details)
+const getCurrentUser = async () => {
+  try {
+    return await request('get', '/auth/me')
+  } catch (error) {
+    if (error?.response?.status === 401) {
+      const message = error.response?.data?.message || ''
+      return {
+        configured: false,
+        data: { user: null },
+        authMessage: /blocked|security change|no longer available/i.test(message) ? message : ''
+      }
+    }
+
+    throw error
+  }
+}
 const logout = () => request('post', '/auth/logout')
 
-export { getAuthErrorDetails, getCurrentUser, login, logout, register, startGitHubAuthentication, startGoogleAuthentication }
+export { changePassword, getAuthErrorDetails, getCurrentUser, getPasswordResetStatus, login, loginWithOtp, logout, register, requestLoginOtp, requestPasswordReset, resendVerificationEmail, resetPassword, startGitHubAuthentication, startGoogleAuthentication, updateProfile, uploadProfileImage, validatePasswordResetToken, verifyEmail }

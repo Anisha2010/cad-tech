@@ -1,11 +1,23 @@
 import { ArrowRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ModelCard from '../../common/ModelCard/ModelCard.jsx'
-import models from '../../../data/models.js'
+import { getCadProducts } from '../../../services/cadService.js'
 import './FeaturedModels.css'
 
 function FeaturedModels() {
-  const featuredModels = models.filter((model) => model.featured).slice(0, 3)
+  const [models, setModels] = useState([])
+
+  useEffect(() => {
+    let active = true
+    getCadProducts({ limit: 3, page: 1 }).then((response) => {
+      if (active) setModels((response.products || []).filter((product) => product.featured).slice(0, 3))
+    }).catch(() => {
+      if (active) setModels([])
+    })
+    return () => { active = false }
+  }, [])
+
   return (
     <section className="featured-models-section" aria-labelledby="featured-models-heading">
       <div className="site-container">
@@ -18,7 +30,7 @@ function FeaturedModels() {
           <Link className="view-all-link" to="/cad-models">View All Models <ArrowRight size={17} /></Link>
         </div>
         <div className="featured-models-grid">
-          {featuredModels.map((model) => <ModelCard model={model} key={model.id} />)}
+          {models.map((model) => <ModelCard model={model} key={model.id} />)}
         </div>
       </div>
     </section>

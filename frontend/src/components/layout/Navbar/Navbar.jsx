@@ -2,7 +2,9 @@ import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../../../context/useAuth.jsx'
+import { getPublicSiteSettings } from '../../../services/siteContentService.js'
 import ThemeToggle from '../../common/ThemeToggle/ThemeToggle.jsx'
+import LogoutConfirmationDialog from '../../common/LogoutConfirmationDialog/LogoutConfirmationDialog.jsx'
 import './Navbar.css'
 
 const navItems = [
@@ -18,6 +20,8 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [logoutError, setLogoutError] = useState('')
+  const [logoutOpen, setLogoutOpen] = useState(false)
+  const [settings, setSettings] = useState(null)
   const { user, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -33,22 +37,35 @@ function Navbar() {
   }, [])
 
   useEffect(() => {
+    let active = true
+    getPublicSiteSettings().then((response) => {
+      if (active) setSettings(response?.settings || null)
+    }).catch(() => {
+      if (active) setSettings(null)
+    })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
   const handleLogout = async () => {
+    setLogoutOpen(false)
     setLogoutError('')
     try { await logout(); setIsOpen(false); navigate('/login', { replace: true }) } catch { setLogoutError('Unable to log out. Please try again.') }
   }
   const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard'
+  const accountPath = user?.role === 'admin' ? '/admin/account' : user?.role === 'instructor' ? '/instructor/account' : '/student/account'
+  const brandName = settings?.brandName || settings?.businessName || 'CadTech Solution'
 
   return (
     <header className={`site-navbar ${isScrolled ? 'is-scrolled' : ''}`}>
       <div className="site-container navbar-inner">
-        <NavLink className="brand" to="/" onClick={() => setIsOpen(false)} aria-label="CadTech Solution home">
-          <span className="brand-mark" aria-hidden="true"><img src="/favicon.png" alt="" /></span>
-          <span>CadTech <strong>Solution</strong></span>
+        <NavLink className="brand" to="/" onClick={() => setIsOpen(false)} aria-label={`${brandName} home`}>
+          <span className="brand-mark" aria-hidden="true"><img src="/fevicon.png" alt="" /></span>
+          <span>{brandName}</span>
         </NavLink>
 
         <nav className={`desktop-nav ${isOpen ? 'is-open' : ''}`} aria-label="Main navigation">
@@ -61,7 +78,7 @@ function Navbar() {
 
         <div className="navbar-actions">
           <ThemeToggle />
-          {isAuthenticated ? <div className="user-menu"><span className="user-name">{user.name}</span><NavLink className="button button-outline" to={dashboardPath}>Dashboard</NavLink><button className="button button-primary" type="button" onClick={handleLogout}>Logout</button></div> : <><NavLink className="button button-outline sign-in" to="/login">Sign In</NavLink><NavLink className="button button-primary get-started" to="/register">Get Started</NavLink></>}
+          {isAuthenticated ? <div className="user-menu"><span className="user-name">{user.name}</span><NavLink className="button button-outline" to={accountPath}>Account</NavLink><NavLink className="button button-outline" to={dashboardPath}>Dashboard</NavLink><button className="button button-primary" type="button" onClick={() => setLogoutOpen(true)}>Logout</button></div> : <><NavLink className="button button-outline sign-in" to="/login">Sign In</NavLink><NavLink className="button button-primary get-started" to="/register">Get Started</NavLink></>}
         </div>
 
         <div className="mobile-controls">
@@ -78,10 +95,11 @@ function Navbar() {
           </NavLink>
         ))}
         <div className="mobile-actions">
-          {isAuthenticated ? <><span className="user-name">{user.name}</span><NavLink className="button button-outline" to={dashboardPath} onClick={() => setIsOpen(false)}>Dashboard</NavLink><button className="button button-primary" type="button" onClick={handleLogout}>Logout</button></> : <><NavLink className="button button-outline" to="/login" onClick={() => setIsOpen(false)}>Sign In</NavLink><NavLink className="button button-primary" to="/register" onClick={() => setIsOpen(false)}>Get Started</NavLink></>}
+          {isAuthenticated ? <><span className="user-name">{user.name}</span><NavLink className="button button-outline" to={accountPath} onClick={() => setIsOpen(false)}>Account</NavLink><NavLink className="button button-outline" to={dashboardPath} onClick={() => setIsOpen(false)}>Dashboard</NavLink><button className="button button-primary" type="button" onClick={() => setLogoutOpen(true)}>Logout</button></> : <><NavLink className="button button-outline" to="/login" onClick={() => setIsOpen(false)}>Sign In</NavLink><NavLink className="button button-primary" to="/register" onClick={() => setIsOpen(false)}>Get Started</NavLink></>}
         </div>
         {logoutError && <p className="navbar-error" role="alert">{logoutError}</p>}
       </nav>
+      <LogoutConfirmationDialog open={logoutOpen} onCancel={() => setLogoutOpen(false)} onConfirm={handleLogout} />
     </header>
   )
 }

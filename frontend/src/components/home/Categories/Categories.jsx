@@ -1,6 +1,7 @@
 import { ArrowRight, Box, Building2, Settings, Zap } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import categories from '../../../data/categories.js'
+import { getCadCategories } from '../../../services/cadService.js'
 import './Categories.css'
 
 const categoryIcons = { Settings, Building2, Zap, Box }
@@ -12,8 +13,8 @@ function CategoryImage({ category, Icon }) {
       <Icon className="category-fallback-icon" size={58} strokeWidth={1.3} aria-hidden="true" />
       <img
         className="category-card-image"
-        src={category.image}
-        alt={`${category.title} CAD models`}
+        src={category.imageUrl || category.image || ''}
+        alt={`${category.name} CAD models`}
         loading="lazy"
         width="480"
         height="360"
@@ -24,6 +25,18 @@ function CategoryImage({ category, Icon }) {
 }
 
 function Categories() {
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    let active = true
+    getCadCategories().then((items) => {
+      if (active) setCategories(items)
+    }).catch(() => {
+      if (active) setCategories([])
+    })
+    return () => { active = false }
+  }, [])
+
   return (
     <section className="categories-section" aria-labelledby="categories-heading">
       <div className="site-container">
@@ -38,13 +51,13 @@ function Categories() {
 
         <div className="categories-grid">
           {categories.map((category) => {
-            const Icon = categoryIcons[category.iconName]
+            const Icon = categoryIcons[category.iconName] || Box
             return (
-              <Link className="category-card" to={`/cad-models/${category.slug}`} key={category.id} aria-label={`Explore ${category.title} CAD models`}>
+              <Link className="category-card" to={`/cad-models/${category.slug}`} key={category.id} aria-label={`Explore ${category.name} CAD models`}>
                 <CategoryImage category={category} Icon={Icon} />
                 <div className="category-card-content">
                   <div className="category-icon"><Icon size={19} aria-hidden="true" /></div>
-                  <h3>{category.title}</h3>
+                  <h3>{category.name}</h3>
                   <p>{category.description}</p>
                   <span className="category-action">Explore <ArrowRight size={16} /></span>
                 </div>

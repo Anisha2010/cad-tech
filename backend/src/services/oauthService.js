@@ -7,6 +7,7 @@ import crypto from 'node:crypto'
 import config from '../config/environment.js'
 import * as db from '../repositories/userRepository.js'
 import * as User from '../models/User.js'
+import * as authService from './authService.js'
 import { AppError } from '../utils/AppError.js'
 
 const OAUTH_STATE_TIMEOUT = 5 * 60 * 1000 // 5 minutes
@@ -56,6 +57,8 @@ export const findOrCreateOAuthUser = async ({ provider, providerUserId, email, n
   // Check if user already linked with this provider
   const linkedUser = await db.getUserByProvider(provider, providerUserId)
   if (linkedUser) {
+    if (linkedUser.accountStatus === 'blocked') throw new AppError('This account is blocked. Contact an administrator.', 403, null, 'ACCOUNT_BLOCKED')
+    if (linkedUser.accountStatus === 'deleted' || linkedUser.deletedAt) throw new AppError('This account is no longer available.', 401)
     return linkedUser
   }
 
@@ -74,6 +77,7 @@ export const findOrCreateOAuthUser = async ({ provider, providerUserId, email, n
     phone: null,
     role: 'student', // Default role for new OAuth users
     passwordHash: null, // OAuth-only users have no password
+    emailVerified: true,
     authProviders: [{ provider, providerUserId: String(providerUserId) }],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -99,11 +103,14 @@ export const clearOAuthState = (req) => {
 /**
  * Build frontend callback URL
  */
-export const buildFrontendCallbackUrl = (status, reason = '') => {
+export const buildFrontendCallbackUrl = (status, reason = '', provider = '') => {
   const url = new URL('/auth/callback', config.frontend_url)
   url.searchParams.set('status', status)
   if (reason) {
     url.searchParams.set('reason', reason)
+  }
+  if (provider === 'google' || provider === 'github') {
+    url.searchParams.set('provider', provider)
   }
   return url.toString()
 }
@@ -112,29 +119,7 @@ export const buildFrontendCallbackUrl = (status, reason = '') => {
  * Create authenticated session after OAuth
  */
 export const createOAuthSession = async (req, user) => {
-  return new Promise((resolve, reject) => {
-    req.session.regenerate((error) => {
-      if (error) {
-        reject(new AppError('Unable to create session.', 500))
-        return
-      }
-
-      const userId = String(user?._id ?? user?.id ?? '')
-      if (!userId) {
-        reject(new AppError('Unable to create session for the authenticated user.', 500))
-        return
-      }
-
-      req.session.userId = userId
-      req.session.save((saveError) => {
-        if (saveError) {
-          reject(new AppError('Unable to create session.', 500))
-        } else {
-          resolve()
-        }
-      })
-    })
-  })
+  return authService.createAuthenticatedSession(req, user)
 }
 
 export default {

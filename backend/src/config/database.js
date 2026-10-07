@@ -37,4 +37,6 @@ export const getDatabaseStatus = () => {
   return states[mongoose.connection.readyState] || 'disconnected'
 }
 
-export default { connectDatabase, disconnectDatabase, getDatabaseStatus }
+export const getDatabaseName = () => mongoose.connection.name || ''
+
+export default { connectDatabase, disconnectDatabase, getDatabaseStatus, getDatabaseName }

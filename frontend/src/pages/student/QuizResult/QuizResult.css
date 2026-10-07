@@ -5,9 +5,10 @@
 }
 
 .student-result-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #17212b);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
   padding: 1.5rem;
 }
@@ -81,9 +82,9 @@
 
 .student-review-panel {
   margin-top: 1.25rem;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 0.9rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface-muted, #f8fafc);
+  border-radius: 8px;
   padding: 1rem;
 }
 
@@ -113,9 +114,10 @@
   place-items: center;
   min-height: 220px;
   text-align: center;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #17212b);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
   padding: 2rem;
 }
 

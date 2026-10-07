@@ -5,11 +5,31 @@
 }
 
 .student-history-header {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
   padding: 1.4rem 1.5rem;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.student-history-filter {
+  display: grid;
+  gap: 0.35rem;
+  min-width: min(280px, 100%);
+  font-weight: 700;
+}
+
+.student-history-filter select {
+  min-height: 42px;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #17212b);
 }
 
 .student-history-header h1 {
@@ -31,10 +51,11 @@
   display: grid;
   place-items: center;
   text-align: center;
+  color: var(--color-text, #17212b);
   min-height: 220px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
   padding: 2rem;
 }
 
@@ -47,9 +68,10 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #17212b);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
   padding: 1.2rem 1.3rem;
 }
@@ -124,6 +146,11 @@
 
   .student-history-card {
     display: grid;
+  }
+
+  .student-history-header {
+    display: grid;
+    align-items: start;
   }
 
   .student-history-result {

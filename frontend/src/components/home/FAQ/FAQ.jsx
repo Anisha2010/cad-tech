@@ -1,11 +1,31 @@
 import { Minus, Plus } from 'lucide-react'
-import { useState } from 'react'
-import faqs from '../../../data/faqs.js'
+import { useEffect, useState } from 'react'
+import { getPublicFaqs } from '../../../services/siteContentService.js'
 import './FAQ.css'
 
 function FAQ() {
-  const [openId, setOpenId] = useState(faqs[0]?.id ?? null)
+  const [faqs, setFaqs] = useState([])
+  const [openId, setOpenId] = useState(null)
 
+  useEffect(() => {
+    let active = true
+    getPublicFaqs().then((response) => {
+      const items = response?.faqs || []
+      if (active) {
+        setFaqs(items)
+        setOpenId(items[0]?.id ?? null)
+      }
+    }).catch(() => {
+      if (active) {
+        setFaqs([])
+        setOpenId(null)
+      }
+    })
+
+    return () => { active = false }
+  }, [])
+
+  const safeFaqs = faqs.length ? faqs : []
   const toggleFaq = (id) => setOpenId((currentId) => currentId === id ? null : id)
 
   return (
@@ -18,14 +38,15 @@ function FAQ() {
         </div>
 
         <div className="faq-list">
-          {faqs.map((faq) => {
-            const isOpen = openId === faq.id
-            const questionId = `faq-question-${faq.id}`
-            const answerId = `faq-answer-${faq.id}`
+          {safeFaqs.map((faq) => {
+            const faqId = faq.id || faq._id || faq.question
+            const isOpen = openId === faqId
+            const questionId = `faq-question-${faqId}`
+            const answerId = `faq-answer-${faqId}`
             return (
-              <div className={`faq-item ${isOpen ? 'is-open' : ''}`} key={faq.id}>
+              <div className={`faq-item ${isOpen ? 'is-open' : ''}`} key={faqId}>
                 <h3 className="faq-question-heading">
-                  <button className="faq-question" type="button" id={questionId} aria-expanded={isOpen} aria-controls={answerId} onClick={() => toggleFaq(faq.id)}>
+                  <button className="faq-question" type="button" id={questionId} aria-expanded={isOpen} aria-controls={answerId} onClick={() => toggleFaq(faqId)}>
                     <span>{faq.question}</span>
                     {isOpen ? <Minus size={20} aria-hidden="true" /> : <Plus size={20} aria-hidden="true" />}
                   </button>

@@ -1,6 +1,7 @@
 import { CheckCircle2, Clock3, RotateCcw, Trophy, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import StudentPortalLayout from '../../../components/student/StudentPortalLayout.jsx'
 import { getQuizResult } from '../../../services/studentQuizService.js'
 import './QuizResult.css'
 
@@ -30,26 +31,28 @@ function QuizResult() {
   }, [quizId, attemptId])
 
   if (loading) {
-    return <main className="student-result-page"><div className="student-result-state">Loading results…</div></main>
+    return <StudentPortalLayout><main className="student-result-page"><div className="student-result-state">Loading results…</div></main></StudentPortalLayout>
   }
 
   if (error) {
-    return <main className="student-result-page"><div className="student-result-state"><strong>{error}</strong><button type="button" className="button button-primary" onClick={() => navigate(-1)}>Go back</button></div></main>
+    return <StudentPortalLayout><main className="student-result-page"><div className="student-result-state"><strong>{error}</strong><button type="button" className="button button-primary" onClick={() => navigate(-1)}>Go back</button></div></main></StudentPortalLayout>
   }
 
   if (!result) {
-    return <main className="student-result-page"><div className="student-result-state">No result was found for this attempt.</div></main>
+    return <StudentPortalLayout><main className="student-result-page"><div className="student-result-state">No result was found for this attempt.</div></main></StudentPortalLayout>
   }
 
   const isPassed = Boolean(result.passed)
 
   return (
+    <StudentPortalLayout>
     <main className="student-result-page">
       <section className="student-result-card">
         <div className="student-result-header">
           <div>
             <p className="student-kicker">RESULT</p>
             <h1>{result.quizTitle}</h1>
+            <p>{result.courseTitle}</p>
           </div>
           <div className={`student-result-status ${isPassed ? 'passed' : 'failed'}`}>
             {isPassed ? <CheckCircle2 size={22} /> : <XCircle size={22} />}
@@ -87,8 +90,9 @@ function QuizResult() {
             {result.questions.map((question, index) => (
               <div key={question.id} className="student-review-item">
                 <p><strong>{index + 1}. {question.prompt}</strong></p>
-                <p>Selected: {question.selectedOptionId ? question.selectedOptionId : 'Unanswered'}</p>
-                {question.correctOptionId && <p>Correct option: {question.correctOptionId}</p>}
+                <p>{question.isCorrect ? 'Correct' : question.answered ? 'Incorrect' : 'Unanswered'}</p>
+                <p>Your answer: {question.selectedOptionText || 'Unanswered'}</p>
+                {question.correctOptionText && <p>Correct answer: {question.correctOptionText}</p>}
                 {question.explanation && <p>{question.explanation}</p>}
               </div>
             ))}
@@ -103,15 +107,16 @@ function QuizResult() {
 
         <div className="student-result-actions">
           <Link className="button button-primary" to="/student/quiz-history">View Quiz History</Link>
-          <Link className="button button-outline" to="/student/my-courses">Back to Course</Link>
-          {result.remainingAttempts > 0 && (
-            <button type="button" className="button button-secondary" onClick={() => navigate(`/student/learn/${result.courseSlug || 'my-courses'}/quiz/${quizId}`)}>
+          <Link className="button button-outline" to={result.courseSlug ? `/student/learn/${result.courseSlug}` : '/student/my-courses'}>Back to Course</Link>
+          {result.remainingAttempts > 0 && result.courseSlug && (
+            <button type="button" className="button button-secondary" onClick={() => navigate(`/student/learn/${result.courseSlug}/quiz/${quizId}`)}>
               <RotateCcw size={16} /> Retry Quiz
             </button>
           )}
         </div>
       </section>
     </main>
+    </StudentPortalLayout>
   )
 }
 

@@ -9,6 +9,8 @@ export const listPublicCourses = asyncHandler(async (req, res) => {
     software: typeof req.query.software === 'string' ? req.query.software : '',
     level: typeof req.query.level === 'string' ? req.query.level : '',
     category: typeof req.query.category === 'string' ? req.query.category : '',
+    duration: typeof req.query.duration === 'string' ? req.query.duration : '',
+    sort: typeof req.query.sort === 'string' ? req.query.sort : 'featured',
     page: Number(page),
     limit: Number(limit)
   }

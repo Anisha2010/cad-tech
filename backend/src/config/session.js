@@ -9,7 +9,7 @@ import config from './environment.js'
 const sessionStore = MongoStore.create({
   mongoUrl: config.mongodb_uri || (() => { throw new Error('MONGODB_URI environment variable is required for sessions') })(),
   collectionName: 'sessions',
-  ttl: 24 * 60 * 60,
+  ttl: Math.ceil(config.session_lifetime_ms / 1000),
   touchAfter: 24 * 60 * 60
 })
 
@@ -25,7 +25,7 @@ const sessionConfig = {
     httpOnly: true,
     secure: config.node_env === 'production',
     sameSite: config.node_env === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: config.session_lifetime_ms
   }
 }
 

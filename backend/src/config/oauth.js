@@ -6,10 +6,7 @@
 import * as openidClient from 'openid-client'
 import config from './environment.js'
 
-const { Issuer } = openidClient
-
 let googleClient = null
-let googleIssuerInstance = null
 
 /**
  * Initialize Google OpenID Connect client
@@ -20,21 +17,18 @@ export const initializeGoogleClient = async () => {
     throw new Error('Google OAuth credentials not configured')
   }
 
-  if (googleClient && googleIssuerInstance) {
-    return { client: googleClient, issuer: googleIssuerInstance }
+  if (googleClient) {
+    return { client: googleClient }
   }
 
   try {
-    googleIssuerInstance = await Issuer.discover('https://accounts.google.com')
-    googleClient = new googleIssuerInstance.Client({
-      client_id: config.google_client_id,
-      client_secret: config.google_client_secret,
-      redirect_uris: [config.google_callback_url],
-      response_types: ['code'],
-      id_token_signed_response_alg: 'RS256'
-    })
+    googleClient = await openidClient.discovery(
+      new URL('https://accounts.google.com'),
+      config.google_client_id,
+      config.google_client_secret
+    )
 
-    return { client: googleClient, issuer: googleIssuerInstance }
+    return { client: googleClient }
   } catch (error) {
     throw new Error('Failed to initialize Google OAuth client')
   }

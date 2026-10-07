@@ -1,6 +1,7 @@
 import { ArrowLeft, BookOpenText, CheckCircle2, FileText, Plus, Save, Trash2, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { uploadAdminCourseMedia } from '../../services/mediaUploadService.js'
 import {
   archiveCurriculumLesson,
   archiveCurriculumSection,
@@ -14,7 +15,7 @@ import {
 import './AdminCurriculumBuilder.css'
 
 const emptySectionForm = { title: '', description: '' }
-const emptyLessonForm = { title: '', description: '', type: 'video', videoUrl: '', articleContent: '', pdfUrl: '', durationSeconds: '' }
+const emptyLessonForm = { title: '', description: '', type: 'video', videoUrl: '', articleContent: '', pdfUrl: '', resources: [], durationSeconds: '' }
 
 function AdminCurriculumBuilder() {
   const { courseId } = useParams()
@@ -27,6 +28,7 @@ function AdminCurriculumBuilder() {
   const [lessonForms, setLessonForms] = useState({})
   const [editingSectionId, setEditingSectionId] = useState(null)
   const [editingLessonId, setEditingLessonId] = useState(null)
+  const [uploadingMedia, setUploadingMedia] = useState('')
 
   const loadCurriculum = async () => {
     if (!courseId) return
@@ -56,6 +58,27 @@ function AdminCurriculumBuilder() {
         [key]: value
       }
     }))
+  }
+
+  const handleLessonFileUpload = async (sectionId, kind, event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const uploadKey = `${sectionId}:${kind}`
+    setUploadingMedia(uploadKey)
+    setError('')
+    try {
+      const result = await uploadAdminCourseMedia(kind, file)
+      const url = result?.media?.url
+      if (!url) throw new Error('The upload did not return a media URL.')
+      if (kind === 'video') setLessonFormValue(sectionId, 'videoUrl', url)
+      else if (kind === 'pdf') setLessonFormValue(sectionId, 'pdfUrl', url)
+      else setLessonFormValue(sectionId, 'resources', [...(lessonForms[sectionId]?.resources || []), { title: file.name, url }])
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || `Unable to upload ${kind} file.`)
+    } finally {
+      setUploadingMedia('')
+      event.target.value = ''
+    }
   }
 
   const refreshCurriculum = async () => {
@@ -134,6 +157,7 @@ function AdminCurriculumBuilder() {
         videoUrl: form.videoUrl || '',
         articleContent: form.articleContent || '',
         pdfUrl: form.pdfUrl || '',
+        resources: form.resources || [],
         durationSeconds: form.durationSeconds ? Number(form.durationSeconds) : null
       })
       setLessonForms((current) => ({ ...current, [sectionId]: emptyLessonForm }))
@@ -260,14 +284,16 @@ function AdminCurriculumBuilder() {
               </div>
               <label>Description<textarea rows="2" value={lessonForms[section.id]?.description ?? ''} onChange={(event) => setLessonFormValue(section.id, 'description', event.target.value)} placeholder="Short summary" /></label>
               {((lessonForms[section.id]?.type ?? 'video') === 'video') && (
-                <label>Video URL<input type="url" value={lessonForms[section.id]?.videoUrl ?? ''} onChange={(event) => setLessonFormValue(section.id, 'videoUrl', event.target.value)} placeholder="https://..." /></label>
+                <><label>Video URL<input type="url" value={lessonForms[section.id]?.videoUrl ?? ''} onChange={(event) => setLessonFormValue(section.id, 'videoUrl', event.target.value)} placeholder="https://..." /></label><label>Upload video<input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" onChange={(event) => handleLessonFileUpload(section.id, 'video', event)} disabled={uploadingMedia === `${section.id}:video`} />{uploadingMedia === `${section.id}:video` && <span role="status">Uploading video...</span>}</label></>
               )}
               {((lessonForms[section.id]?.type ?? 'video') === 'article') && (
                 <label>Article content<textarea rows="4" value={lessonForms[section.id]?.articleContent ?? ''} onChange={(event) => setLessonFormValue(section.id, 'articleContent', event.target.value)} placeholder="Long-form lesson content" /></label>
               )}
               {((lessonForms[section.id]?.type ?? 'video') === 'pdf') && (
-                <label>PDF URL<input type="url" value={lessonForms[section.id]?.pdfUrl ?? ''} onChange={(event) => setLessonFormValue(section.id, 'pdfUrl', event.target.value)} placeholder="https://..." /></label>
+                <><label>PDF URL<input type="url" value={lessonForms[section.id]?.pdfUrl ?? ''} onChange={(event) => setLessonFormValue(section.id, 'pdfUrl', event.target.value)} placeholder="https://..." /></label><label>Upload PDF<input type="file" accept="application/pdf" onChange={(event) => handleLessonFileUpload(section.id, 'pdf', event)} disabled={uploadingMedia === `${section.id}:pdf`} />{uploadingMedia === `${section.id}:pdf` && <span role="status">Uploading PDF...</span>}</label></>
               )}
+              <label>Upload resource file<input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,.jpg,.jpeg,.png,.webp" onChange={(event) => handleLessonFileUpload(section.id, 'resource', event)} disabled={uploadingMedia === `${section.id}:resource`} />{uploadingMedia === `${section.id}:resource` && <span role="status">Uploading resource...</span>}</label>
+              {(lessonForms[section.id]?.resources || []).map((resource) => <p key={resource.url}>{resource.title} uploaded</p>)}
               <button type="button" className="button button-primary" onClick={() => handleCreateLesson(section.id)}><Plus size={15} /> Add lesson</button>
             </div>
 

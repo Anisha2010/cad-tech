@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0 <21 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,7 +14,13 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "e2e:runner:list": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test --config=playwright.config.js --list --reporter=line",
+    "e2e:runner:auth": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test tests/e2e/authorization.spec.js --config=playwright.config.js --project=chromium --workers=1 --reporter=line",
+    "test:e2e:list": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test --config=playwright.config.js --list --reporter=line",
+    "test:e2e:auth": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test tests/e2e/authorization.spec.js --config=playwright.config.js --project=chromium --workers=1 --reporter=line",
+    "test:e2e:admin": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test tests/e2e/admin-course-lifecycle.spec.js --config=playwright.config.js --project=chromium --workers=1 --reporter=line",
+    "test:e2e:quiz": "npx --yes --package=node@20 node ./node_modules/@playwright/test/cli.js test tests/e2e/quiz-lifecycle.spec.js --config=playwright.config.js --project=chromium --workers=1 --reporter=line"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",

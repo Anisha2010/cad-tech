@@ -1,11 +1,14 @@
 .site-footer { background: var(--surface-dark-bg); color: var(--surface-dark-text); }
 .site-footer .footer-brand, .site-footer .footer-column h2 { color: var(--surface-dark-heading); }
 .site-footer { padding: 4.5rem 0 1.25rem; background: var(--color-footer-bg); color: var(--color-footer-text); }
-.footer-grid { display: grid; grid-template-columns: 1.35fr 0.8fr 1fr 1.2fr; gap: 3rem; padding-bottom: 3rem; }
+.footer-grid { display: grid; grid-template-columns: 1.25fr 0.75fr 0.95fr 1fr 1.15fr; gap: 2rem; padding-bottom: 3rem; }
 .footer-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-surface); font-size: 1.05rem; font-weight: 700; }
 .footer-brand strong { color: var(--color-accent); }
 .footer-brand-icon { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid color-mix(in srgb, var(--color-accent) 55%, transparent); border-radius: 10px; color: var(--color-accent); }
 .footer-brand-column p, .footer-contact-column p { max-width: 290px; margin: 1rem 0 0; color: var(--color-footer-text); font-size: 0.86rem; line-height: 1.7; }
+.footer-social-links { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 1.15rem; }
+.footer-social-links a { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid color-mix(in srgb, var(--color-footer-text) 35%, transparent); border-radius: 50%; color: var(--color-footer-text); transition: color var(--transition), border-color var(--transition), background var(--transition); }
+.footer-social-links a:hover, .footer-social-links a:focus-visible { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); outline: none; }
 .footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 0.65rem; }
 .footer-column h2 { margin: 0 0 0.55rem; color: var(--color-surface); font-size: 0.9rem; font-weight: 800; }
 .footer-column a { color: var(--color-footer-text); font-size: 0.84rem; transition: color var(--transition); }

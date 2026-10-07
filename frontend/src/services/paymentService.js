@@ -5,3 +5,4 @@ const baseUrl = () => apiBaseUrl
 const request = (method, path, data) => axios({ method, url: `${baseUrl()}${path}`, data, withCredentials: true, timeout: 15000 })
 export const createPaymentOrder = (courseSlug) => request('post', '/payments/orders', { courseSlug })
 export const verifyPayment = (details) => request('post', '/payments/verify', details)
+export const getCoursePaymentStatus = (courseSlug, orderId) => axios.get(`${baseUrl()}/payments/status`, { params: { courseSlug, ...(orderId ? { orderId } : {}) }, withCredentials: true, timeout: 15000 })

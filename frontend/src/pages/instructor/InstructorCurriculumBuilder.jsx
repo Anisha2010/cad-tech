@@ -1,6 +1,7 @@
-import { ArrowLeft, BookOpenText, Plus, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpenText, FileQuestion, FileText, Plus, Save, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { uploadInstructorCourseMedia } from '../../services/mediaUploadService.js'
 import {
   createInstructorCurriculumLesson,
   createInstructorCurriculumSection,
@@ -10,12 +11,14 @@ import {
   updateInstructorCurriculumLesson,
   updateInstructorCurriculumSection
 } from '../../services/instructorService.js'
+import './InstructorCurriculumBuilder.css'
 
 const emptySection = { title: '', description: '' }
-const emptyLesson = { title: '', description: '', type: 'video', videoUrl: '', articleContent: '', pdfUrl: '', durationSeconds: '' }
+const emptyLesson = { title: '', description: '', type: 'video', videoUrl: '', articleContent: '', pdfUrl: '', resources: [], durationSeconds: '' }
 
 function InstructorCurriculumBuilder() {
   const { courseId } = useParams()
+  const navigate = useNavigate()
   const [course, setCourse] = useState(null)
   const [curriculum, setCurriculum] = useState({ sections: [] })
   const [sectionForm, setSectionForm] = useState(emptySection)
@@ -23,6 +26,7 @@ function InstructorCurriculumBuilder() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [uploadingMedia, setUploadingMedia] = useState('')
 
   const loadCurriculum = async () => {
     if (!courseId) return
@@ -49,6 +53,27 @@ function InstructorCurriculumBuilder() {
         [field]: value
       }
     }))
+  }
+
+  const handleLessonFileUpload = async (sectionId, kind, event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const uploadKey = `${sectionId}:${kind}`
+    setUploadingMedia(uploadKey)
+    setError('')
+    try {
+      const result = await uploadInstructorCourseMedia(courseId, kind, file)
+      const url = result?.media?.url
+      if (!url) throw new Error('The upload did not return a media URL.')
+      if (kind === 'video') updateLessonForm(sectionId, 'videoUrl', url)
+      else if (kind === 'pdf') updateLessonForm(sectionId, 'pdfUrl', url)
+      else updateLessonForm(sectionId, 'resources', [...(lessonForms[sectionId]?.resources || []), { title: file.name, url }])
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || `Unable to upload ${kind} file.`)
+    } finally {
+      setUploadingMedia('')
+      event.target.value = ''
+    }
   }
 
   const handleCreateSection = async (event) => {
@@ -86,6 +111,7 @@ function InstructorCurriculumBuilder() {
         videoUrl: form.videoUrl || '',
         articleContent: form.articleContent || '',
         pdfUrl: form.pdfUrl || '',
+        resources: form.resources || [],
         durationSeconds: form.durationSeconds ? Number(form.durationSeconds) : null
       })
       setLessonForms((current) => ({ ...current, [sectionId]: emptyLesson }))
@@ -212,8 +238,12 @@ function InstructorCurriculumBuilder() {
               </div>
               <div className="curriculum-form-grid compact">
                 <label>Video URL<input value={lessonForms[section.id]?.videoUrl ?? ''} onChange={(event) => updateLessonForm(section.id, 'videoUrl', event.target.value)} /></label>
+                <label>Upload video<input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" onChange={(event) => handleLessonFileUpload(section.id, 'video', event)} disabled={uploadingMedia === `${section.id}:video`} />{uploadingMedia === `${section.id}:video` && <span role="status">Uploading video...</span>}</label>
                 <label>PDF URL<input value={lessonForms[section.id]?.pdfUrl ?? ''} onChange={(event) => updateLessonForm(section.id, 'pdfUrl', event.target.value)} /></label>
+                <label>Upload PDF<input type="file" accept="application/pdf" onChange={(event) => handleLessonFileUpload(section.id, 'pdf', event)} disabled={uploadingMedia === `${section.id}:pdf`} />{uploadingMedia === `${section.id}:pdf` && <span role="status">Uploading PDF...</span>}</label>
               </div>
+              <label className="full-width">Upload resource file<input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,.jpg,.jpeg,.png,.webp" onChange={(event) => handleLessonFileUpload(section.id, 'resource', event)} disabled={uploadingMedia === `${section.id}:resource`} />{uploadingMedia === `${section.id}:resource` && <span role="status">Uploading resource...</span>}</label>
+              {(lessonForms[section.id]?.resources || []).map((resource) => <p key={resource.url}>{resource.title} uploaded</p>)}
               <label className="full-width">Lesson description<textarea rows="3" value={lessonForms[section.id]?.description ?? ''} onChange={(event) => updateLessonForm(section.id, 'description', event.target.value)} /></label>
               <label className="full-width">Article content<textarea rows="3" value={lessonForms[section.id]?.articleContent ?? ''} onChange={(event) => updateLessonForm(section.id, 'articleContent', event.target.value)} /></label>
               <button type="button" className="button button-primary" onClick={() => handleCreateLesson(section.id)}><Plus size={15} /> Add lesson</button>
@@ -239,9 +269,11 @@ function InstructorCurriculumBuilder() {
                         <option value="pdf">PDF</option>
                       </select>
                     </div>
-                    <div className="section-actions">
-                      <button type="button" className="button button-primary" onClick={() => handleUpdateLesson(section.id, lesson.id)}><Save size={15} /> Save</button>
-                      <button type="button" className="button button-danger" onClick={() => handleDeleteLesson(section.id, lesson.id)}><Trash2 size={15} /> Archive</button>
+                    <div className="instructor-lesson-actions" aria-label={`Actions for ${lesson.title}`}>
+                      <button type="button" className="button button-primary" onClick={() => navigate(`/instructor/courses/${courseId}/quizzes/new?lessonId=${encodeURIComponent(lesson.id)}`)}><FileQuestion size={15} /> Add Quiz</button>
+                      <button type="button" className="button button-secondary" onClick={() => navigate(`/instructor/courses/${courseId}/assignments/new?lessonId=${encodeURIComponent(lesson.id)}`)}><FileText size={15} /> Add Assignment</button>
+                      <button type="button" className="instructor-lesson-icon-action" onClick={() => handleUpdateLesson(section.id, lesson.id)} aria-label={`Save ${lesson.title}`} title="Save lesson"><Save size={16} /></button>
+                      <button type="button" className="instructor-lesson-icon-action is-danger" onClick={() => handleDeleteLesson(section.id, lesson.id)} aria-label={`Archive ${lesson.title}`} title="Archive lesson"><Trash2 size={16} /></button>
                     </div>
                   </div>
                 ))}

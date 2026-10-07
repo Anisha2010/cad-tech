@@ -1,34 +1,35 @@
-import { BookOpen, Compass, LogOut, MessageSquareText, LayoutDashboard, X } from 'lucide-react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import useAuth from '../../../context/useAuth.jsx'
+import { BookOpen, Compass, LogOut, MessageSquareText, LayoutDashboard, Settings, X } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { fetchInstructorCourses } from '../../../services/instructorService.js'
 import './InstructorSidebar.css'
 
 const navigationItems = [
   { label: 'Dashboard', to: '/instructor/dashboard', Icon: LayoutDashboard },
   { label: 'My Courses', to: '/instructor/courses', Icon: BookOpen },
+  { label: 'Assessments', to: '/instructor/assessments', Icon: LayoutDashboard },
   { label: 'Browse Courses', to: '/courses', Icon: Compass },
-  { label: 'Contact Support', to: '/contact', Icon: MessageSquareText }
+  { label: 'Contact Support', to: '/contact', Icon: MessageSquareText },
+  { label: 'Account settings', to: '/instructor/profile', Icon: Settings }
 ]
 
-function getInitials(name) {
-  if (!name || typeof name !== 'string') return 'I'
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return 'I'
-  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('')
-}
+function InstructorSidebar({ isOpen, onNavigate, onRequestLogout }) {
+  const location = useLocation()
+  const [firstCourseId, setFirstCourseId] = useState('')
+  const courseId = location.pathname.match(/^\/instructor\/courses\/([^/]+)/)?.[1]
 
-function InstructorSidebar({ isOpen, onNavigate }) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  useEffect(() => {
+    let active = true
+    fetchInstructorCourses({ limit: 1 }).then((result) => {
+      const nextCourseId = result?.courses?.[0]?.id || ''
+      if (active) setFirstCourseId(nextCourseId)
+    }).catch(() => {})
+    return () => { active = false }
+  }, [])
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-      navigate('/login', { replace: true })
-    } finally {
-      onNavigate?.()
-    }
-  }
+  const submissionsCourseId = courseId || firstCourseId
+  const submissionsPath = submissionsCourseId ? `/instructor/courses/${submissionsCourseId}/submissions` : ''
+  const navigation = [...navigationItems.slice(0, 2), { label: 'Submissions', to: submissionsPath, Icon: MessageSquareText }, ...navigationItems.slice(2)]
 
   return (
     <>
@@ -51,13 +52,17 @@ function InstructorSidebar({ isOpen, onNavigate }) {
           </button>
         </div>
         <nav className="instructor-sidebar-nav" aria-label="Instructor portal navigation">
-          {navigationItems.map(({ label, to, Icon }) => (
+          {navigation.map(({ label, to, Icon }) => (
+            !to ? <span key={label} className="instructor-nav-link" aria-disabled="true"><Icon size={18} aria-hidden="true" /><span>{label}</span></span> :
             <NavLink
-              key={to}
+              key={to + label}
               to={to}
-              end={to === '/instructor/dashboard'}
+              end
               onClick={onNavigate}
-              className={({ isActive }) => `instructor-nav-link${isActive ? ' active' : ''}`}
+              className={({ isActive }) => {
+                const isAssessmentActive = label === 'Assessments' && (/^\/instructor\/courses\/[^/]+\/assessments$/.test(location.pathname) || /^\/instructor\/courses\/[^/]+\/quizzes\//.test(location.pathname))
+                return `instructor-nav-link${isActive || isAssessmentActive ? ' active' : ''}`
+              }}
             >
               <Icon size={18} aria-hidden="true" />
               <span>{label}</span>
@@ -65,7 +70,7 @@ function InstructorSidebar({ isOpen, onNavigate }) {
           ))}
         </nav>
 
-        <button type="button" className="instructor-sidebar-logout" onClick={handleLogout}>
+        <button type="button" className="instructor-sidebar-logout" onClick={() => { onNavigate?.(); onRequestLogout() }}>
           <LogOut size={17} aria-hidden="true" />
           Logout
         </button>

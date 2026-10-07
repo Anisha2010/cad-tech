@@ -16,6 +16,7 @@ const courseSchema = new mongoose.Schema({
   priceInPaise: { type: Number, default: null, validate: { validator: (value) => value === null || (Number.isInteger(value) && value > 0), message: 'Enter a valid course price.' } },
   currency: { type: String, enum: ['INR'], default: 'INR' },
   enrollmentOpen: { type: Boolean, default: false },
+  certificateEnabled: { type: Boolean, default: false },
   status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true },
   instructorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
   reviewStatus: { type: String, enum: ['not_submitted', 'pending', 'changes_requested', 'approved'], default: 'not_submitted', index: true },
@@ -48,6 +49,7 @@ export const serializeCourse = (course) => {
     priceInPaise: value.priceInPaise ?? null,
     currency: value.currency || 'INR',
     enrollmentOpen: Boolean(value.enrollmentOpen),
+    certificateEnabled: Boolean(value.certificateEnabled),
     status: value.status,
     instructorId: value.instructorId ? String(value.instructorId) : null,
     reviewStatus: value.reviewStatus || 'not_submitted',
@@ -58,6 +60,22 @@ export const serializeCourse = (course) => {
     createdAt: value.createdAt ? new Date(value.createdAt).toISOString() : null,
     updatedAt: value.updatedAt ? new Date(value.updatedAt).toISOString() : null
   }
+}
+
+export const serializePublicCourse = (course) => {
+  const publicCourse = { ...serializeCourse(course) }
+  for (const field of [
+    'status',
+    'instructorId',
+    'reviewStatus',
+    'submittedForReviewAt',
+    'reviewedAt',
+    'reviewedBy',
+    'reviewFeedback',
+    'createdAt',
+    'updatedAt'
+  ]) delete publicCourse[field]
+  return publicCourse
 }
 
 export const Course = mongoose.models.Course || mongoose.model('Course', courseSchema)

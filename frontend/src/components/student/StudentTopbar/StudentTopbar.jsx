@@ -1,30 +1,13 @@
-import { Menu, LogOut, PanelRightOpen } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import ThemeToggle from '../../common/ThemeToggle/ThemeToggle.jsx'
+import AccountDropdown from '../../common/AccountDropdown/AccountDropdown.jsx'
 import useAuth from '../../../context/useAuth.jsx'
-import { useNavigate } from 'react-router-dom'
 import './StudentTopbar.css'
 
-function getInitials(name) {
-  if (!name || typeof name !== 'string') return 'U'
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return 'U'
-  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('')
-}
+function StudentTopbar({ onMenuToggle, isSidebarOpen, pageTitle = 'Student Dashboard', onRequestLogout }) {
+  const { user } = useAuth()
 
-function StudentTopbar({ onMenuToggle, isSidebarOpen }) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = async () => {
-    try {
-      await logout()
-      navigate('/login', { replace: true })
-    } catch (error) {
-      console.error('Student topbar logout failed', error)
-    }
-  }
-
-  const avatarUrl = user?.avatar || user?.image || ''
+  const avatarUrl = user?.avatarUrl || user?.avatar || user?.image || ''
   const displayName = user?.name || 'Student'
 
   return (
@@ -38,31 +21,12 @@ function StudentTopbar({ onMenuToggle, isSidebarOpen }) {
         >
           <Menu size={18} aria-hidden="true" />
         </button>
-        <h1 className="student-page-title">Student Dashboard</h1>
+        <h1 className="student-page-title">{pageTitle}</h1>
       </div>
 
       <div className="student-topbar-actions">
         <ThemeToggle />
-        <div className="student-user-menu" aria-label="User menu">
-          {avatarUrl ? (
-            <img className="student-user-avatar" src={avatarUrl} alt={`${displayName} avatar`} loading="lazy" />
-          ) : (
-            <span className="student-user-avatar student-user-initials" aria-label={`${displayName} profile initials`}>
-              {getInitials(displayName)}
-            </span>
-          )}
-          <span className="student-user-name">{displayName}</span>
-          <div className="student-user-dropdown">
-            <button type="button" className="student-dropdown-link" onClick={() => window.location.assign('/student/dashboard')}>
-              <PanelRightOpen size={14} aria-hidden="true" />
-              Dashboard
-            </button>
-            <button type="button" className="student-dropdown-link danger" onClick={handleLogout}>
-              <LogOut size={14} aria-hidden="true" />
-              Logout
-            </button>
-          </div>
-        </div>
+        <AccountDropdown role="student" name={displayName} avatarUrl={avatarUrl} onLogout={onRequestLogout} />
       </div>
     </header>
   )

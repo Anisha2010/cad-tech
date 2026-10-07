@@ -44,6 +44,9 @@ export const createQuiz = async ({ courseId, instructorId, payload = {} }) => {
 
   const settings = validateQuizSettings(payload)
   await ensureLessonBelongsToCourse({ courseId, lessonId: settings.lessonId })
+  const questions = Array.isArray(payload.questions) && payload.questions.length
+    ? validateQuizQuestions(payload.questions)
+    : []
 
   const draft = await Quiz.create({
     courseId: new mongoose.Types.ObjectId(courseId),
@@ -55,8 +58,8 @@ export const createQuiz = async ({ courseId, instructorId, payload = {} }) => {
     timeLimitMinutes: settings.timeLimitMinutes,
     maximumAttempts: settings.maximumAttempts,
     shuffleQuestions: settings.shuffleQuestions,
-    questions: [],
-    totalMarks: 0,
+    questions,
+    totalMarks: calculateQuizTotalMarks(questions),
     createdBy: new mongoose.Types.ObjectId(instructorId),
     updatedBy: new mongoose.Types.ObjectId(instructorId),
     reviewStatus: 'not_submitted',
@@ -118,6 +121,9 @@ export const updateQuiz = async ({ courseId, instructorId, quizId, payload = {} 
 }
 
 export const createQuestion = async ({ courseId, instructorId, quizId, payload = {} }) => {
+  if (!mongoose.isValidObjectId(courseId) || !mongoose.isValidObjectId(quizId)) {
+    throw new AppError('Invalid course or quiz reference.', 400)
+  }
   await ensureAssignedInstructorForCourse({ courseId, instructorId })
   const quiz = await Quiz.findOne({ _id: quizId, courseId: new mongoose.Types.ObjectId(courseId) }).lean()
   if (!quiz) throw new AppError('Quiz not found.', 404)
@@ -135,6 +141,9 @@ export const createQuestion = async ({ courseId, instructorId, quizId, payload =
 }
 
 export const updateQuestion = async ({ courseId, instructorId, quizId, questionId, payload = {} }) => {
+  if (!mongoose.isValidObjectId(courseId) || !mongoose.isValidObjectId(quizId) || !mongoose.isValidObjectId(questionId)) {
+    throw new AppError('Invalid course, quiz, or question reference.', 400)
+  }
   await ensureAssignedInstructorForCourse({ courseId, instructorId })
   const quiz = await Quiz.findOne({ _id: quizId, courseId: new mongoose.Types.ObjectId(courseId) }).lean()
   if (!quiz) throw new AppError('Quiz not found.', 404)

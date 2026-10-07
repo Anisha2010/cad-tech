@@ -39,6 +39,7 @@ export const registerUser = async (userData) => {
     phone: phone ? String(phone).trim() : null,
     role: safeRole,
     passwordHash,
+    emailVerified: false,
     authProviders: [{ provider: 'local', providerUserId: `local:${crypto.randomUUID()}` }],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -71,6 +72,17 @@ export const loginUser = async (email, password) => {
     throw new AppError('Invalid email or password.', 401)
   }
 
+  if (user.emailVerified === false) {
+    throw new AppError('Please verify your email before signing in.', 403)
+  }
+
+  if (user.accountStatus === 'blocked') {
+    throw new AppError('This account is blocked. Contact an administrator.', 403, null, 'ACCOUNT_BLOCKED')
+  }
+  if (user.accountStatus === 'deleted' || user.deletedAt) {
+    throw new AppError('Invalid email or password.', 401)
+  }
+
   return user
 }
 
@@ -78,19 +90,29 @@ export const loginUser = async (email, password) => {
  * Create authenticated session
  */
 export const createAuthenticatedSession = async (req, user) => {
+  const userId = String(user?._id ?? user?.id ?? '')
+  const authenticatedUser = await db.markLogin(userId)
+  if (!authenticatedUser) {
+    const currentUser = await db.getUserById(userId)
+    if (currentUser?.accountStatus === 'blocked') {
+      throw new AppError('This account is blocked. Contact an administrator.', 403, null, 'ACCOUNT_BLOCKED')
+    }
+    throw new AppError('This account is no longer available. Sign in again.', 401, null, 'ACCOUNT_UNAVAILABLE')
+  }
+
   return new Promise((resolve, reject) => {
     req.session.regenerate((error) => {
       if (error) return reject(new AppError('Unable to create session.', 500))
 
-      const userId = String(user?._id ?? user?.id ?? '')
       if (!userId) {
         return reject(new AppError('Unable to create session for the authenticated user.', 500))
       }
 
       req.session.userId = userId
+      req.session.authVersion = Number(authenticatedUser.authVersion || 0)
       req.session.save((saveError) => {
         if (saveError) return reject(new AppError('Unable to create session.', 500))
-        resolve()
+        resolve(authenticatedUser)
       })
     })
   })

@@ -34,13 +34,26 @@ export const ensureAssignedInstructorForCourse = async ({ courseId, instructorId
 
 export const ensureLessonBelongsToCourse = async ({ courseId, lessonId }) => {
   if (!lessonId) return true
-  if (!mongoose.isValidObjectId(lessonId)) throw new AppError('Invalid lesson reference.', 400)
+
+  const rawLessonId = String(lessonId).trim()
+  if (!rawLessonId) throw new AppError('Invalid lesson reference.', 400)
+
   const curriculum = await CourseCurriculum.findOne({ courseId: new mongoose.Types.ObjectId(courseId) }).lean()
   if (!curriculum) throw new AppError('Course curriculum not found.', 404)
+
   const matches = Array.isArray(curriculum.sections)
-    ? curriculum.sections.some((section) => Array.isArray(section.lessons) && section.lessons.some((lesson) => String(lesson.id || lesson._id) === String(lessonId) && (!lesson.archivedAt)))
+    ? curriculum.sections.some((section) => Array.isArray(section.lessons) && section.lessons.some((lesson) => {
+      const lessonKey = String(lesson.id || lesson._id || '')
+      return lessonKey === rawLessonId && !lesson.archivedAt
+    }))
     : false
-  if (!matches) throw new AppError('Selected lesson does not belong to this course.', 400)
+
+  if (!matches) {
+    const isObjectIdLesson = mongoose.isValidObjectId(rawLessonId)
+    if (!isObjectIdLesson) throw new AppError('Invalid lesson reference.', 400)
+    throw new AppError('Selected lesson does not belong to this course.', 400)
+  }
+
   return true
 }
 
@@ -67,7 +80,7 @@ export const ensureAssessmentIsDraftOrChangesRequested = ({ assessment }) => {
   }
 }
 
-export const validateQuestionType = (value) => ['multiple_choice', 'true_false'].includes(value) ? value : null
+export const validateQuestionType = (value) => ['multiple_choice', 'true_false', 'short_answer'].includes(value) ? value : null
 
 export const validateIsObjectId = (value) => {
   if (!value) return false
@@ -76,40 +89,45 @@ export const validateIsObjectId = (value) => {
 }
 
 export const normalizeQuizQuestion = (question, index) => {
+  const errors = {}
   const type = validateQuestionType(question?.type)
-  if (!type) throw new AppError(`Question ${index + 1} has an unsupported type.`, 422)
+  if (!type) errors.type = 'Choose Multiple Choice, True / False, or Short Answer.'
 
   const prompt = normalizeText(question?.prompt)
-  if (!prompt) throw new AppError(`Question ${index + 1} requires a prompt.`, 422)
+  if (!prompt) errors.prompt = 'Question text cannot be empty.'
 
   const marks = Number(question?.marks)
-  if (!Number.isInteger(marks) || marks <= 0) throw new AppError(`Question ${index + 1} must use positive integer marks.`, 422)
+  if (!Number.isInteger(marks) || marks <= 0) errors.marks = 'Marks must be a positive whole number.'
 
   const order = Number(question?.order)
-  if (!Number.isInteger(order) || order < 0) throw new AppError(`Question ${index + 1} has an invalid order.`, 422)
+  if (!Number.isInteger(order) || order < 0) errors.order = 'Question order must be a non-negative whole number.'
+
+  if (Object.keys(errors).length) throw new AppError(`Question ${index + 1} validation failed.`, 422, errors)
 
   if (type === 'multiple_choice') {
     const options = Array.isArray(question?.options) ? question.options : []
-    if (options.length < 2) throw new AppError(`Question ${index + 1} must contain at least two options.`, 422)
+    if (options.length < 2) errors.options = 'MCQ questions require at least two options.'
 
     const normalizedOptions = options.map((option, optionIndex) => {
       const text = normalizeText(option?.text)
-      if (!text) throw new AppError(`Question ${index + 1} has an empty option at position ${optionIndex + 1}.`, 422)
+      if (!text) errors.options = `Option ${optionIndex + 1} cannot be empty.`
       const id = option?._id || option?.id || new mongoose.Types.ObjectId()
+      if (!validateIsObjectId(id)) {
+        errors.options = `Option ${optionIndex + 1} has an invalid ID.`
+        return { _id: null, text }
+      }
       return { _id: new mongoose.Types.ObjectId(String(id)), text }
     })
 
-    const uniqueIds = normalizedOptions.map((option) => String(option._id))
-    if (new Set(uniqueIds).size !== uniqueIds.length) throw new AppError(`Question ${index + 1} contains duplicate option IDs.`, 422)
+    const optionIds = normalizedOptions.filter((option) => option._id).map((option) => String(option._id))
+    if (new Set(optionIds).size !== optionIds.length) errors.options = 'Answer option IDs must be unique.'
 
     const chosenId = question?.correctOptionId
-    if (!validateIsObjectId(chosenId)) throw new AppError(`Question ${index + 1} must include a valid correct option.`, 422)
-    const correctId = String(new mongoose.Types.ObjectId(String(chosenId)))
-    const belongs = normalizedOptions.some((option) => String(option._id) === correctId)
-    if (!belongs) throw new AppError(`Question ${index + 1} has a correct answer that does not belong to the question.`, 422)
-
-    const correctCount = normalizedOptions.filter((option) => String(option._id) === correctId).length
-    if (correctCount !== 1) throw new AppError(`Question ${index + 1} must have exactly one correct answer.`, 422)
+    if (!validateIsObjectId(chosenId)) errors.correctOptionId = 'Select a valid correct answer.'
+    const correctId = validateIsObjectId(chosenId) ? String(new mongoose.Types.ObjectId(String(chosenId))) : null
+    const belongs = correctId && normalizedOptions.some((option) => option._id && String(option._id) === correctId)
+    if (correctId && !belongs) errors.correctOptionId = 'Correct answer must match one of the question options.'
+    if (Object.keys(errors).length) throw new AppError(`Question ${index + 1} validation failed.`, 422, errors)
 
     return {
       _id: question?._id && validateIsObjectId(question._id) ? new mongoose.Types.ObjectId(String(question._id)) : new mongoose.Types.ObjectId(),
@@ -123,19 +141,49 @@ export const normalizeQuizQuestion = (question, index) => {
     }
   }
 
-  const options = [
-    { _id: new mongoose.Types.ObjectId(), text: 'True' },
-    { _id: new mongoose.Types.ObjectId(), text: 'False' }
-  ]
+  if (type === 'short_answer') {
+    const correctAnswer = normalizeText(question?.correctAnswer)
+    if (!correctAnswer) errors.correctAnswer = 'Enter the expected short answer.'
+    if (Object.keys(errors).length) throw new AppError(`Question ${index + 1} validation failed.`, 422, errors)
+    return {
+      _id: question?._id && validateIsObjectId(question._id) ? new mongoose.Types.ObjectId(String(question._id)) : new mongoose.Types.ObjectId(),
+      type,
+      prompt,
+      options: [],
+      correctOptionId: null,
+      correctAnswer,
+      explanation: typeof question?.explanation === 'string' ? question.explanation.trim() || null : null,
+      marks,
+      order
+    }
+  }
+
+  const suppliedOptions = Array.isArray(question?.options) ? question.options : []
+  const trueOption = suppliedOptions.find((option) => normalizeText(option?.text).toLowerCase() === 'true')
+  const falseOption = suppliedOptions.find((option) => normalizeText(option?.text).toLowerCase() === 'false')
   const correctValue = question?.correctOptionId
-  if (!validateIsObjectId(correctValue)) throw new AppError(`Question ${index + 1} must include a valid correct answer.`, 422)
-  const correctOptionId = new mongoose.Types.ObjectId(String(correctValue))
+  if (!trueOption || !falseOption) errors.options = 'True / False questions require the fixed True and False options.'
+  if (!validateIsObjectId(correctValue)) errors.correctOptionId = 'Select True or False as the correct answer.'
+  const normalizedOptions = [trueOption, falseOption].filter(Boolean).map((option) => {
+    const id = option?._id || option?.id
+    if (!validateIsObjectId(id)) {
+      errors.options = 'True / False option IDs must be valid.'
+      return null
+    }
+    return { _id: new mongoose.Types.ObjectId(String(id)), text: normalizeText(option.text) }
+  }).filter(Boolean)
+  const correctId = validateIsObjectId(correctValue) ? new mongoose.Types.ObjectId(String(correctValue)) : null
+  if (correctId && !normalizedOptions.some((option) => String(option._id) === String(correctId))) {
+    errors.correctOptionId = 'Correct answer must match True or False.'
+  }
+  if (Object.keys(errors).length) throw new AppError(`Question ${index + 1} validation failed.`, 422, errors)
   return {
     _id: question?._id && validateIsObjectId(question._id) ? new mongoose.Types.ObjectId(String(question._id)) : new mongoose.Types.ObjectId(),
     type,
     prompt,
-    options,
-    correctOptionId,
+    options: normalizedOptions,
+    correctOptionId: correctId,
+    correctAnswer: null,
     explanation: typeof question?.explanation === 'string' ? question.explanation.trim() || null : null,
     marks,
     order
@@ -165,6 +213,14 @@ export const validateQuizSettings = (payload = {}) => {
     throw new AppError('Shuffle questions must be a boolean value.', 422)
   }
 
+  const lessonIdInput = payload.lessonId === undefined || payload.lessonId === null || payload.lessonId === '' ? null : String(payload.lessonId).trim()
+  if (payload.lessonId !== undefined && payload.lessonId !== null && payload.lessonId !== '' && !lessonIdInput) {
+    throw new AppError('Invalid lesson reference.', 400)
+  }
+  if (lessonIdInput && !mongoose.isValidObjectId(lessonIdInput)) {
+    throw new AppError('Invalid lesson reference.', 400)
+  }
+
   return {
     title,
     description: normalizeText(payload.description, ''),
@@ -173,7 +229,7 @@ export const validateQuizSettings = (payload = {}) => {
     timeLimitMinutes,
     maximumAttempts,
     shuffleQuestions: payload.shuffleQuestions,
-    lessonId: payload.lessonId && mongoose.isValidObjectId(payload.lessonId) ? new mongoose.Types.ObjectId(String(payload.lessonId)) : null
+    lessonId: lessonIdInput && mongoose.isValidObjectId(lessonIdInput) ? new mongoose.Types.ObjectId(String(lessonIdInput)) : null
   }
 }
 
@@ -222,6 +278,14 @@ export const validateAssignmentPayload = (payload = {}) => {
     return { _id: entry?._id && validateIsObjectId(entry._id) ? new mongoose.Types.ObjectId(String(entry._id)) : new mongoose.Types.ObjectId(), title: resourceTitle, url }
   })
 
+  const lessonIdInput = payload.lessonId === undefined || payload.lessonId === null || payload.lessonId === '' ? null : String(payload.lessonId).trim()
+  if (payload.lessonId !== undefined && payload.lessonId !== null && payload.lessonId !== '' && !lessonIdInput) {
+    throw new AppError('Invalid lesson reference.', 400)
+  }
+  if (lessonIdInput && !mongoose.isValidObjectId(lessonIdInput)) {
+    throw new AppError('Invalid lesson reference.', 400)
+  }
+
   return {
     title,
     description: normalizeText(payload.description, ''),
@@ -231,7 +295,7 @@ export const validateAssignmentPayload = (payload = {}) => {
     allowLateSubmissions,
     allowedSubmissionTypes: Array.from(new Set(normalizedTypes)),
     resources: normalizedResources,
-    lessonId: payload.lessonId && mongoose.isValidObjectId(payload.lessonId) ? new mongoose.Types.ObjectId(String(payload.lessonId)) : null
+    lessonId: lessonIdInput && mongoose.isValidObjectId(lessonIdInput) ? new mongoose.Types.ObjectId(String(lessonIdInput)) : null
   }
 }
 

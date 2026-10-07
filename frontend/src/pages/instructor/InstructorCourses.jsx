@@ -1,7 +1,8 @@
-import { BookOpenText, Edit3, Search } from 'lucide-react'
+import { BookOpenText, ClipboardList, Edit3, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchInstructorCourses } from '../../services/instructorService.js'
+import './InstructorCourses.css'
 
 function InstructorCourses() {
   const [courses, setCourses] = useState([])
@@ -36,7 +37,7 @@ function InstructorCourses() {
   const visibleCourses = useMemo(() => courses, [courses])
 
   return (
-    <main className="admin-page">
+    <main className="admin-page instructor-courses-page">
       <header className="admin-page-header">
         <div>
           <p className="admin-kicker">COURSE PORTFOLIO</p>
@@ -103,9 +104,10 @@ function InstructorCourses() {
                     <td>{course.reviewStatus}</td>
                     <td>{course.status}</td>
                     <td>{course.updatedAt ? new Date(course.updatedAt).toLocaleDateString() : '-'}</td>
-                    <td className="admin-actions">
-                      <Link to={`/instructor/courses/${course.id}/edit`} aria-label={`Edit ${course.title}`}><Edit3 size={16} /></Link>
-                      <Link to={`/instructor/courses/${course.id}/curriculum`} aria-label={`Manage curriculum for ${course.title}`}><BookOpenText size={16} /></Link>
+                    <td className="instructor-course-actions">
+                      <Link to={`/instructor/courses/${course.id}/edit`} aria-label={`Edit ${course.title}`} title="Edit Course"><Edit3 size={16} /></Link>
+                      <Link to={`/instructor/courses/${course.id}/curriculum`} aria-label={`Manage curriculum for ${course.title}`} title="Manage Curriculum"><BookOpenText size={16} /></Link>
+                      <Link to={`/instructor/courses/${course.id}/assessments`} aria-label={`Manage assessments for ${course.title}`} title="Manage Assessments"><ClipboardList size={16} /></Link>
                     </td>
                   </tr>
                 ))}

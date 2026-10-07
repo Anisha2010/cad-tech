@@ -3,9 +3,9 @@ import apiBaseUrl from '../config/api.js'
 
 const getBaseUrl = () => apiBaseUrl
 
-export async function fetchPublicCourses({ search = '', software = '', level = '', category = '', page = 1, limit = 12 } = {}) {
+export async function fetchPublicCourses({ search = '', software = '', level = '', category = '', duration = '', sort = 'featured', page = 1, limit = 12 } = {}) {
   const response = await axios.get(`${getBaseUrl()}/courses`, {
-    params: { search, software, level, category, page, limit },
+    params: { search, software, level, category, duration, sort, page, limit },
     withCredentials: true,
     timeout: 15000
   })

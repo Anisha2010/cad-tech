@@ -1,5 +1,5 @@
 import { SearchX, SlidersHorizontal } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import CourseCard from '../../components/courses/CourseCard/CourseCard.jsx'
 import CourseFilters from '../../components/courses/CourseFilters/CourseFilters.jsx'
@@ -53,6 +53,8 @@ function Courses() {
       software: selectedSoftware.join(','),
       level: selectedLevels.join(','),
       category: selectedCategory,
+      duration: selectedDuration,
+      sort,
       page: requestedPage,
       limit: pageSize
     })
@@ -69,7 +71,7 @@ function Courses() {
       })
 
     return () => { active = false }
-  }, [query, selectedLevelsKey, selectedSoftwareKey, selectedCategory, requestedPage])
+  }, [query, selectedLevelsKey, selectedSoftwareKey, selectedCategory, selectedDuration, sort, requestedPage])
 
   const totalPages = pagination.totalPages || 1
   const currentPage = Math.min(Math.max(requestedPage, 1), Math.max(totalPages, 1))
@@ -84,7 +86,7 @@ function Courses() {
     setParams(next)
   }
 
-  const toggle = (key, value, selected) => update({
+  const toggle = (key, value, selected = []) => update({
     [key]: selected.includes(value) ? selected.filter((item) => item !== value) : [...selected, value],
     page: '1'
   })

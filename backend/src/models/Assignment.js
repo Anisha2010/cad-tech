@@ -14,6 +14,7 @@ const assignmentSchema = new mongoose.Schema({
   instructions: { type: String, required: true, trim: true },
   maximumMarks: { type: Number, required: true, min: 1 },
   dueDate: { type: Date, default: null },
+  required: { type: Boolean, default: true },
   allowLateSubmissions: { type: Boolean, default: true },
   allowedSubmissionTypes: { type: [String], default: ['pdf'], enum: ['pdf', 'document', 'image', 'text'] },
   resources: { type: [resourceSchema], default: [] },

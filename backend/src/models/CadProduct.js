@@ -24,6 +24,17 @@ const previewImageSchema = new mongoose.Schema({
   sortOrder: { type: Number, default: 0, min: 0, validate: { validator: (value) => Number.isInteger(value) && value >= 0, message: 'Preview image sortOrder must be a non-negative integer.' } }
 }, { _id: true })
 
+const secureFileSchema = new mongoose.Schema({
+  provider: { type: String, enum: ['cloudinary'], default: 'cloudinary', trim: true },
+  publicId: { type: String, default: null, trim: true },
+  storageKey: { type: String, default: null, trim: true },
+  originalName: { type: String, default: null, trim: true },
+  mimeType: { type: String, default: null, trim: true },
+  sizeInBytes: { type: Number, default: 0, min: 0 },
+  signedUrlTtlSeconds: { type: Number, default: 3600, min: 1 },
+  uploadedAt: { type: Date, default: null }
+}, { _id: true })
+
 const cadProductSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
@@ -41,6 +52,7 @@ const cadProductSchema = new mongoose.Schema({
   currency: { type: String, default: 'INR', enum: ['INR'] },
   isFree: { type: Boolean, default: false },
   previewImages: { type: [previewImageSchema], default: [] },
+  secureFile: { type: secureFileSchema, default: null },
   previewVideoUrl: { type: String, default: null, trim: true },
   licenseType: { type: String, enum: allowedLicenseTypes, default: 'personal_and_commercial' },
   featured: { type: Boolean, default: false },
@@ -55,7 +67,7 @@ const cadProductSchema = new mongoose.Schema({
 
 cadProductSchema.index({ title: 'text', shortDescription: 'text', description: 'text', slug: 'text' })
 
-export const serializeCadProduct = (product) => {
+export const serializeCadProduct = (product, { includeSecureFile = false } = {}) => {
   const value = typeof product.toObject === 'function' ? product.toObject() : product
   const category = value.categoryId && typeof value.categoryId === 'object' ? value.categoryId : null
   const previewImages = Array.isArray(value.previewImages) ? value.previewImages.map((image) => ({
@@ -65,6 +77,17 @@ export const serializeCadProduct = (product) => {
     publicId: image.publicId || null,
     sortOrder: Number.isInteger(image.sortOrder) ? image.sortOrder : 0
   })) : []
+
+  const secureFile = value.secureFile && includeSecureFile ? {
+    provider: value.secureFile.provider || 'cloudinary',
+    publicId: value.secureFile.publicId || null,
+    storageKey: value.secureFile.storageKey || null,
+    originalName: value.secureFile.originalName || null,
+    mimeType: value.secureFile.mimeType || null,
+    sizeInBytes: Number.isFinite(value.secureFile.sizeInBytes) ? Number(value.secureFile.sizeInBytes) : 0,
+    signedUrlTtlSeconds: Number.isFinite(value.secureFile.signedUrlTtlSeconds) ? Number(value.secureFile.signedUrlTtlSeconds) : 3600,
+    uploadedAt: value.secureFile.uploadedAt ? new Date(value.secureFile.uploadedAt).toISOString() : null,
+  } : null
 
   return {
     id: String(value._id || value.id),
@@ -91,6 +114,7 @@ export const serializeCadProduct = (product) => {
     isFree: Boolean(value.isFree),
     previewImages,
     previewVideoUrl: value.previewVideoUrl || null,
+    secureFile: includeSecureFile ? secureFile : undefined,
     licenseType: value.licenseType || 'personal_and_commercial',
     featured: Boolean(value.featured),
     status: value.status || 'draft',

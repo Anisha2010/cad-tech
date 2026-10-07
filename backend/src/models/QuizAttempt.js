@@ -11,6 +11,7 @@ const questionSnapshotSchema = new mongoose.Schema({
   prompt: { type: String, required: true, trim: true },
   options: { type: [optionSnapshotSchema], default: [] },
   correctOptionId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  correctAnswer: { type: String, default: null },
   explanation: { type: String, default: null },
   marks: { type: Number, default: 0, min: 0 },
   order: { type: Number, default: 0, min: 0 }
@@ -19,6 +20,7 @@ const questionSnapshotSchema = new mongoose.Schema({
 const answerEntrySchema = new mongoose.Schema({
   questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
   selectedOptionId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  textAnswer: { type: String, default: null, trim: true },
   savedAt: { type: Date, default: Date.now }
 }, { _id: false })
 
@@ -44,6 +46,8 @@ const quizAttemptSchema = new mongoose.Schema({
 
 quizAttemptSchema.index({ studentId: 1, quizId: 1, attemptNumber: 1 }, { unique: true })
 quizAttemptSchema.index({ studentId: 1, createdAt: -1 })
+quizAttemptSchema.index({ studentId: 1, status: 1, submittedAt: -1 })
+quizAttemptSchema.index({ studentId: 1, quizId: 1, status: 1 })
 quizAttemptSchema.index({ quizId: 1, studentId: 1, status: 1 })
 
 export const QuizAttempt = mongoose.models.QuizAttempt || mongoose.model('QuizAttempt', quizAttemptSchema)

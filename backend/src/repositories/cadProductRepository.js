@@ -83,7 +83,7 @@ export const getCadProductBySlug = async (slug, { includeArchived = false, inclu
   if (includeDraft && !includeArchived) filter.status = { $in: ['draft', 'published'] }
 
   const product = await CadProduct.findOne(filter).populate('categoryId', 'name slug isActive').lean()
-  return product ? serializeCadProduct(product) : null
+  return product ? serializeCadProduct(product, { includeSecureFile: includeArchived || includeDraft }) : null
 }
 
 export const getAdminCadProducts = async ({ search = '', status = 'all', category = '', featured = 'all', page = 1, limit = 12 } = {}) => {
@@ -133,7 +133,7 @@ export const getAdminCadProducts = async ({ search = '', status = 'all', categor
 export const findCadProductById = async (productId) => {
   if (!mongoose.isValidObjectId(productId)) return null
   const product = await CadProduct.findById(productId).populate('categoryId', 'name slug isActive').lean()
-  return product ? serializeCadProduct(product) : null
+  return product ? serializeCadProduct(product, { includeSecureFile: true }) : null
 }
 
 export const createCadProductRecord = async (payload) => {

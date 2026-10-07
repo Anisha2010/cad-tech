@@ -2,6 +2,7 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { assignInstructor, createAdminCourse, fetchAdminCourseById, getInstructors, updateAdminCourse } from '../../services/adminCourseService.js'
+import { uploadAdminCourseMedia } from '../../services/mediaUploadService.js'
 import './AdminCourseForm.css'
 
 const initial = {
@@ -28,6 +29,7 @@ function AdminCourseForm() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [fieldError, setFieldError] = useState('')
+  const [thumbnailUploading, setThumbnailUploading] = useState(false)
 
   const loadInstructors = async () => {
     setInstructorsLoading(true)
@@ -60,6 +62,23 @@ function AdminCourseForm() {
   }, [courseId])
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
+
+  const handleThumbnailUpload = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setFieldError('')
+    setThumbnailUploading(true)
+    try {
+      const result = await uploadAdminCourseMedia('thumbnail', file)
+      if (!result?.media?.url) throw new Error('The upload did not return a thumbnail URL.')
+      update('thumbnailUrl', result.media.url)
+    } catch (requestError) {
+      setFieldError(requestError.response?.data?.message || requestError.message || 'Unable to upload thumbnail.')
+    } finally {
+      setThumbnailUploading(false)
+      event.target.value = ''
+    }
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -97,7 +116,7 @@ function AdminCourseForm() {
         }
       }
 
-      navigate('/admin/courses', { replace: true })
+      navigate('/admin/courses', { replace: true, state: { notice: `Course ${courseId ? 'updated' : 'created'} successfully.` } })
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Unable to save this course.')
     } finally {
@@ -126,6 +145,7 @@ function AdminCourseForm() {
           <label>Status<select value={form.status} onChange={(event) => update('status', event.target.value)}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
         </div>
         <label>Thumbnail URL<input type="url" value={form.thumbnailUrl || ''} onChange={(event) => update('thumbnailUrl', event.target.value)} /></label>
+        <label>Upload thumbnail image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleThumbnailUpload} disabled={thumbnailUploading} />{thumbnailUploading && <span role="status">Uploading thumbnail...</span>}</label>
         <div className="admin-course-field">
           <label htmlFor="assigned-instructor">Assigned Instructor</label>
           <select id="assigned-instructor" name="instructorId" value={instructorId} onChange={(event) => setInstructorId(event.target.value)} disabled={instructorsLoading || saving}>

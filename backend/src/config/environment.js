@@ -9,13 +9,36 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Load .env file
-dotenv.config({ path: path.join(__dirname, '../../.env') })
+const readIntegerSetting = (name, fallback, minimum, maximum) => {
+  const value = Number(process.env[name])
+  return Number.isInteger(value) && value >= minimum && value <= maximum ? value : fallback
+}
+
+const loadEnvironment = () => {
+  if (process.env.E2E_MODE === 'true') return
+  const envPath = path.join(__dirname, '../../.env')
+  const result = dotenv.config({ path: envPath })
+  if (result.error) {
+    console.warn('[Env] Local .env file not found. Using process environment values only.')
+  }
+}
+
+loadEnvironment()
 
 const config = {
   node_env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 5000),
-  frontend_url: process.env.FRONTEND_URL || 'http://localhost:5173',
+  frontend_url: process.env.FRONTEND_URL || '',
+  smtp_host: process.env.SMTP_HOST || '',
+  smtp_port: process.env.SMTP_PORT || '',
+  smtp_secure: process.env.SMTP_SECURE || '',
+  smtp_user: process.env.SMTP_USER || '',
+  smtp_password: process.env.SMTP_PASSWORD || '',
+  smtp_from: process.env.SMTP_FROM || '',
+  login_otp_ttl_minutes: readIntegerSetting('LOGIN_OTP_TTL_MINUTES', 10, 5, 30),
+  login_otp_max_attempts: readIntegerSetting('LOGIN_OTP_MAX_ATTEMPTS', 5, 3, 10),
+  email_verification_ttl_hours: readIntegerSetting('EMAIL_VERIFICATION_TTL_HOURS', 24, 1, 168),
+  auth_email_resend_cooldown_seconds: readIntegerSetting('AUTH_EMAIL_RESEND_COOLDOWN_SECONDS', 60, 30, 300),
   session_secret: process.env.SESSION_SECRET || '',
   mongodb_uri: process.env.MONGODB_URI || '',
   session_lifetime_ms: 1000 * 60 * 60 * 8,

@@ -71,6 +71,7 @@ const normalizeLesson = (lesson = {}) => {
       url: resource?.url || ''
     })) : [],
     order: Number(lesson.order || 0),
+    required: lesson.required !== false,
     isPublished: lesson.isPublished !== false,
     archivedAt: lesson.archivedAt ? new Date(lesson.archivedAt).toISOString() : null
   }

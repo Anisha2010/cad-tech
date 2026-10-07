@@ -1,0 +1,32 @@
+.student-learning-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.student-learning-curriculum,
+.student-learning-lesson {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.student-learning-video,
+.student-learning-video-embed {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #111;
+}
+
+.student-learning-video { height: auto; }
+
+@media (max-width: 760px) {
+  .student-learning-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1rem;
+  }
+}

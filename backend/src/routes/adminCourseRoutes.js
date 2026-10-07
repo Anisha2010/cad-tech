@@ -15,6 +15,7 @@ import {
   updateAdminSection
 } from '../controllers/adminCurriculumController.js'
 import { approveReview, assignAdminCourseInstructor, requestReviewChanges } from '../controllers/adminCourseController.js'
+import { uploadCourseMedia } from '../controllers/courseMediaController.js'
 
 const router = express.Router()
 const attempts = new Map()
@@ -31,6 +32,7 @@ const rateLimit = (req, res, next) => {
 }
 
 router.use(requireAuthentication, allowRoles('admin'))
+router.post('/media/:kind', rateLimit, uploadCourseMedia)
 router.get('/', listAdminCourses)
 router.post('/', rateLimit, createAdminCourse)
 router.get('/:courseId/curriculum', getAdminCourseCurriculum)

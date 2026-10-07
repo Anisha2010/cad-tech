@@ -6,27 +6,31 @@ import './SocialLoginButtons.css'
 
 function SocialLoginButtons() {
   const [status, setStatus] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submittingProvider, setSubmittingProvider] = useState(null)
   const isConfigured = isApiConfigured
 
   const handleProviderAuth = (provider) => {
+    console.info(`[OAuth UI] ${provider === 'google' ? 'Google' : 'GitHub'} button clicked`)
     if (!isConfigured) {
       setStatus('Social authentication is not connected yet.')
       return
     }
 
     setStatus('')
-    setIsSubmitting(true)
+    setSubmittingProvider(provider)
 
     try {
       if (provider === 'google') {
         startGoogleAuthentication()
-      } else {
+      } else if (provider === 'github') {
         startGitHubAuthentication()
+      } else {
+        setStatus('Social authentication is not connected yet.')
+        setSubmittingProvider(null)
       }
     } catch (error) {
       setStatus(error.message || 'Social authentication is not connected yet.')
-      setIsSubmitting(false)
+      setSubmittingProvider(null)
     }
   }
 
@@ -43,7 +47,7 @@ function SocialLoginButtons() {
           type="button"
           className="social-login-button"
           onClick={() => handleProviderAuth('google')}
-          disabled={isSubmitting}
+          disabled={submittingProvider === 'google'}
           aria-label="Continue with Google"
         >
           <span className="social-login-icon google-icon" aria-hidden="true">
@@ -51,20 +55,20 @@ function SocialLoginButtons() {
               <path fill="#EA4335" d="M12 10.2v3.98h5.45c-.23 1.33-1.6 3.92-5.45 3.92-3.28 0-5.95-2.72-5.95-6.06s2.67-6.06 5.95-6.06c1.87 0 3.13.8 3.85 1.49l2.62-2.54C16.9 3.28 14.72 2.4 12 2.4 6.99 2.4 2.8 6.66 2.8 11.9c0 5.24 4.19 9.5 9.2 9.5 5.31 0 8.82-3.73 8.82-8.98 0-.6-.06-1.05-.13-1.5H12Z" />
             </svg>
           </span>
-          <span>{isSubmitting ? 'Connecting...' : 'Continue with Google'}</span>
+          <span>{submittingProvider === 'google' ? 'Connecting...' : 'Continue with Google'}</span>
         </button>
 
         <button
           type="button"
           className="social-login-button"
           onClick={() => handleProviderAuth('github')}
-          disabled={isSubmitting}
+          disabled={submittingProvider === 'github'}
           aria-label="Continue with GitHub"
         >
           <span className="social-login-icon" aria-hidden="true">
             <Github size={18} />
           </span>
-          <span>{isSubmitting ? 'Connecting...' : 'Continue with GitHub'}</span>
+          <span>{submittingProvider === 'github' ? 'Connecting...' : 'Continue with GitHub'}</span>
         </button>
       </div>
     </div>

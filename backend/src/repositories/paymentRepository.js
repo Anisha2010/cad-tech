@@ -15,12 +15,18 @@ export const getPaymentByProviderOrderId = async (providerOrderId, options = {})
 export const getPaymentByProviderPaymentId = async (providerPaymentId, options = {}) => Payment.findOne({ providerPaymentId }).session(options.session || null).lean()
 export const getReusablePendingPayment = async (userId, courseId, options = {}) => {
   if (!validId(userId) || !validId(courseId)) return null
-  return Payment.findOne({ userId, courseId, status: { $in: ['created', 'pending'] } }).sort({ createdAt: -1 }).session(options.session || null).lean()
+  return Payment.findOne({ userId, courseId, status: { $in: ['creating', 'created', 'pending'] } }).sort({ createdAt: -1 }).session(options.session || null).lean()
 }
+
+export const updatePaymentProviderOrder = async (id, providerOrderId, options = {}) => Payment.findOneAndUpdate(
+  { _id: id, status: 'creating' },
+  { $set: { providerOrderId, status: 'pending' } },
+  { new: true, session: options.session }
+).lean()
 
 export const markPaymentPaid = async (id, providerPaymentId, options = {}) => {
   const payment = await Payment.findOneAndUpdate(
-    { _id: id, status: { $in: ['created', 'pending', 'paid'] } },
+    { _id: id, status: { $in: ['creating', 'created', 'pending', 'failed'] } },
     { $set: { status: 'paid', providerPaymentId, verifiedAt: new Date(), failedAt: null, failureCode: null, failureDescription: null } },
     { new: true, session: options.session }
   ).lean()
@@ -28,7 +34,7 @@ export const markPaymentPaid = async (id, providerPaymentId, options = {}) => {
 }
 
 export const markPaymentFailed = async (id, failure = {}, options = {}) => Payment.findOneAndUpdate(
-  { _id: id, status: { $in: ['created', 'pending', 'failed'] } },
+  { _id: id, status: { $in: ['creating', 'created', 'pending', 'failed'] } },
   { $set: { status: 'failed', failedAt: new Date(), failureCode: failure.code || null, failureDescription: failure.description || null } },
   { new: true, session: options.session }
 ).lean()

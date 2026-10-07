@@ -48,8 +48,8 @@ export const validateRegistration = (data) => {
   // Password validation
   if (!data.password || typeof data.password !== 'string') {
     errors.password = 'Password is required.'
-  } else if (data.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters long.'
+  } else if (!isValidPassword(data.password)) {
+    errors.password = 'Use 12 to 64 characters with uppercase, lowercase, number, and symbol.'
   }
 
   return {
@@ -58,7 +58,9 @@ export const validateRegistration = (data) => {
   }
 }
 
-export const isValidPassword = (password) => typeof password === 'string' && password.length >= 8
+export const isValidPassword = (password) => typeof password === 'string'
+  && /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{12,64}$/.test(password)
+  && Buffer.byteLength(password, 'utf8') <= 72
 
 /**
  * Validate login input
@@ -88,7 +90,31 @@ export const validateLogin = (data) => {
   }
 }
 
+export const validateOtpRequest = (data) => validateEmailRequestShape(data)
+
+export const validateOtpLogin = (data) => {
+  const { errors } = validateEmailRequestShape(data)
+  if (typeof data.otp !== 'string' || !/^\d{6}$/.test(data.otp)) errors.otp = 'Enter the 6-digit code from your email.'
+  return { isValid: Object.keys(errors).length === 0, errors }
+}
+
+export const validateEmailVerification = (data) => {
+  const errors = {}
+  if (typeof data.token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(data.token)) errors.token = 'This verification link is invalid or expired.'
+  return { isValid: Object.keys(errors).length === 0, errors }
+}
+
+function validateEmailRequestShape(data) {
+  const errors = {}
+  if (typeof data.email !== 'string' || !data.email.trim()) errors.email = 'Email is required.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(data.email))) errors.email = 'Please enter a valid email address.'
+  return { isValid: Object.keys(errors).length === 0, errors }
+}
+
 export default {
   validateRegistration,
-  validateLogin
+  validateLogin,
+  validateOtpRequest,
+  validateOtpLogin,
+  validateEmailVerification
 }

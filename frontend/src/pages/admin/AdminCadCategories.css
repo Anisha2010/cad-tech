@@ -1,0 +1,52 @@
+.admin-cad-page { display: grid; gap: 24px; }
+.admin-cad-panel {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+.admin-cad-panel h2 {
+  margin: 0 0 18px;
+  font-size: 1.25rem;
+}
+.admin-cad-form {
+  display: grid;
+  gap: 16px;
+}
+.admin-cad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.admin-cad-form label, .admin-cad-form textarea, .admin-cad-form input {
+  font: inherit;
+}
+.admin-cad-form label {
+  display: grid;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.admin-cad-form input, .admin-cad-form textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #0f172a;
+}
+.admin-check-wrap {
+  align-items: center;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px;
+  min-height: 44px;
+}
+.admin-check-wrap input {
+  width: auto;
+}

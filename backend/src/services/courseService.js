@@ -43,10 +43,10 @@ const ensureRequiredFields = (course) => {
   return errors
 }
 
-export const getPublicCourseList = async ({ page = 1, limit = 12, search = '', software = '', level = '', category = '' } = {}) => {
+export const getPublicCourseList = async ({ page = 1, limit = 12, search = '', software = '', level = '', category = '', duration = '', sort = 'featured' } = {}) => {
   const safePage = Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1
   const safeLimit = Number.isInteger(Number(limit)) && Number(limit) > 0 ? Number(limit) : 12
-  return getPublishedCourses({ search, software, level, category, page: safePage, limit: safeLimit })
+  return getPublishedCourses({ search, software, level, category, duration, sort, page: safePage, limit: safeLimit })
 }
 
 export const getCourseDetailBySlug = async (slug) => {

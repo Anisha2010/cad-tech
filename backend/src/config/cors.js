@@ -17,6 +17,10 @@ const resolveAllowedOrigin = (origin) => {
   if (!origin) return true
 
   const configuredOrigin = process.env.FRONTEND_URL || config.frontend_url
+  if (process.env.E2E_MODE === 'true') {
+    return origin === 'http://127.0.0.1:5173' ? origin : false
+  }
+
   if (configuredOrigin && origin === configuredOrigin) return configuredOrigin
 
   if (config.node_env !== 'production' && allowedLocalOrigins.has(origin)) {
@@ -31,6 +35,14 @@ const corsConfig = {
     const allowedOrigin = resolveAllowedOrigin(origin)
     if (allowedOrigin) {
       callback(null, allowedOrigin)
+      return
+    }
+
+    if (process.env.E2E_MODE === 'true') {
+      const error = new Error('Origin is not allowed by the E2E CORS policy.')
+      error.statusCode = 403
+      error.code = 'CORS_ORIGIN_REJECTED'
+      callback(error)
       return
     }
 

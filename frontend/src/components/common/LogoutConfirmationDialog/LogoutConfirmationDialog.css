@@ -1,0 +1,4 @@
+.logout-dialog-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgba(15, 23, 42, .48); }
+.logout-dialog { width: min(100%, 420px); padding: 1.4rem; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); box-shadow: 0 20px 60px rgba(15, 23, 42, .25); }
+.logout-dialog h2 { margin: 0; color: var(--color-text); font-size: 1.1rem; font-weight: 750; }
+.logout-dialog-actions { display: flex; justify-content: flex-end; gap: .65rem; margin-top: 1.4rem; }

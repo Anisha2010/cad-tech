@@ -15,6 +15,7 @@ import {
   unpublishCadProductRecord,
   updateCadProductRecord
 } from '../repositories/cadProductRepository.js'
+import { uploadCadSecureFile as uploadSecureCadFile, deleteCadSecureFile as deleteSecureCadFile, validateCadSecureFileUpload } from '../config/storage.js'
 
 const normalizeString = (value, fallback = '') => {
   if (typeof value !== 'string') return fallback
@@ -40,6 +41,69 @@ const safeUrl = (value) => {
   if (!trimmed) return null
   if (!/^https?:\/\//i.test(trimmed)) return null
   return trimmed
+}
+
+const normalizePublicCategory = (category = null) => {
+  if (!category) return null
+  const name = typeof category.name === 'string' ? category.name.trim() : ''
+  const slug = typeof category.slug === 'string' ? category.slug.trim() : ''
+  if (!name || !slug) return null
+
+  return {
+    id: String(category.id || category._id || ''),
+    name,
+    slug,
+    description: typeof category.description === 'string' ? category.description.trim() : '',
+    imageUrl: typeof category.imageUrl === 'string' && category.imageUrl.trim() ? category.imageUrl.trim() : null,
+    iconName: typeof category.icon === 'string' && category.icon.trim() ? category.icon.trim() : (typeof category.iconName === 'string' && category.iconName.trim() ? category.iconName.trim() : null),
+    displayOrder: Number.isInteger(Number(category.sortOrder)) ? Number(category.sortOrder) : 0
+  }
+}
+
+const normalizePublicProduct = (product = null) => {
+  if (!product) return null
+
+  const category = product.category && typeof product.category === 'object' ? product.category : null
+  const software = Array.isArray(product.software) ? product.software.map((entry) => String(entry).trim()).filter(Boolean) : []
+  const fileFormats = Array.isArray(product.fileFormats) ? product.fileFormats.map((entry) => String(entry).trim().toUpperCase()).filter(Boolean) : []
+  const packageContents = Array.isArray(product.packageContents) ? product.packageContents.map((entry) => String(entry).trim()).filter(Boolean) : []
+  const includedRequirements = Array.isArray(product.requirements) ? product.requirements.map((entry) => String(entry).trim()).filter(Boolean) : []
+  const galleryImages = Array.isArray(product.galleryImages) ? product.galleryImages.map((entry) => String(entry).trim()).filter(Boolean) : []
+  const thumbnail = Array.isArray(product.previewImages) && product.previewImages.length > 0 ? String(product.previewImages[0]?.url || '').trim() : null
+  const priceInPaise = Number.isInteger(Number(product.salePriceInPaise)) ? Number(product.salePriceInPaise) : (Number.isInteger(Number(product.priceInPaise)) ? Number(product.priceInPaise) : 0)
+  const isFree = Boolean(product.isFree || priceInPaise === 0)
+  const purchaseAvailable = !isFree && Number.isInteger(priceInPaise) && priceInPaise > 0 && String(product.status || 'published') === 'published'
+
+  return {
+    id: String(product.id || product._id || ''),
+    title: String(product.title || '').trim(),
+    slug: String(product.slug || '').trim(),
+    shortDescription: String(product.shortDescription || '').trim(),
+    description: String(product.description || '').trim(),
+    category: category ? {
+      id: String(category.id || category._id || ''),
+      name: String(category.name || '').trim(),
+      slug: String(category.slug || '').trim()
+    } : null,
+    software,
+    fileFormats,
+    compatibility: typeof product.compatibilityNotes === 'string' && product.compatibilityNotes.trim() ? [product.compatibilityNotes.trim()] : [],
+    version: typeof product.version === 'string' && product.version.trim() ? product.version.trim() : null,
+    thumbnailUrl: thumbnail || null,
+    galleryImages,
+    previewFileUrl: typeof product.previewVideoUrl === 'string' && product.previewVideoUrl.trim() ? product.previewVideoUrl.trim() : null,
+    includedFiles: packageContents,
+    requirements: includedRequirements,
+    isFree,
+    priceInPaise,
+    currency: String(product.currency || 'INR').toUpperCase(),
+    featured: Boolean(product.featured),
+    purchaseAvailable,
+    meta: {
+      status: product.status || 'published',
+      publicPreviewAllowed: Boolean(product.previewVideoUrl || thumbnail)
+    }
+  }
 }
 
 const toValidPreviewImages = (images = []) => {
@@ -98,19 +162,38 @@ const validateProductPayload = ({ title, slug, categoryId, shortDescription, des
   return fieldErrors
 }
 
-export const getPublicCadProductList = async (filters = {}) => getPublishedCadProducts({
-  search: typeof filters.search === 'string' ? filters.search : '',
-  category: typeof filters.category === 'string' ? filters.category : '',
-  software: typeof filters.software === 'string' ? filters.software : '',
-  format: typeof filters.format === 'string' ? filters.format : '',
-  pricing: typeof filters.pricing === 'string' ? filters.pricing : 'all',
-  featured: Boolean(filters.featured),
-  sort: typeof filters.sort === 'string' ? filters.sort : 'newest',
-  page: Number(filters.page || 1),
-  limit: Number(filters.limit || 12)
-})
+export const getPublicCadCategories = async () => {
+  const categories = await listPublicCadCategories()
+  return categories.map(normalizePublicCategory).filter(Boolean)
+}
 
-export const getPublicCadProductDetail = async (slug) => getCadProductBySlug(slug, { includeArchived: false, includeDraft: false })
+export const getPublicCadProductList = async (filters = {}) => {
+  const response = await getPublishedCadProducts({
+    search: typeof filters.search === 'string' ? filters.search : '',
+    category: typeof filters.category === 'string' ? filters.category : '',
+    software: typeof filters.software === 'string' ? filters.software : '',
+    format: typeof filters.format === 'string' ? filters.format : '',
+    pricing: typeof filters.pricing === 'string' ? filters.pricing : 'all',
+    featured: Boolean(filters.featured),
+    sort: typeof filters.sort === 'string' ? filters.sort : 'newest',
+    page: Number(filters.page || 1),
+    limit: Number(filters.limit || 12)
+  })
+
+  return {
+    ...response,
+    products: (response.products || []).map(normalizePublicProduct).filter(Boolean),
+    filters: {
+      software: Array.from(new Set((response.products || []).flatMap((product) => Array.isArray(product.software) ? product.software.map((entry) => String(entry).trim()).filter(Boolean) : []).filter(Boolean))).sort(),
+      formats: Array.from(new Set((response.products || []).flatMap((product) => Array.isArray(product.fileFormats) ? product.fileFormats.map((entry) => String(entry).trim().toUpperCase()).filter(Boolean) : []).filter(Boolean))).sort()
+    }
+  }
+}
+
+export const getPublicCadProductDetail = async (slug) => {
+  const product = await getCadProductBySlug(slug, { includeArchived: false, includeDraft: false })
+  return normalizePublicProduct(product)
+}
 
 export const getAdminCadProductList = async (filters = {}) => getAdminCadProducts({
   search: typeof filters.search === 'string' ? filters.search : '',
@@ -324,6 +407,84 @@ export const archiveCadProduct = async ({ productId, userId }) => {
   if (!existing) return null
 
   return archiveCadProductRecord(productId, userId)
+}
+
+export const uploadCadSecureFile = async ({ userId, productId, file }) => {
+  if (!mongoose.isValidObjectId(userId)) throw new AppError('Authentication required.', 401)
+  if (!mongoose.isValidObjectId(productId)) throw new AppError('A valid CAD product is required.', 400)
+  if (!file || !file.buffer) throw new AppError('No CAD file was provided.', 400)
+
+  const existing = await findCadProductById(productId)
+  if (!existing) throw new AppError('CAD product not found.', 404)
+
+  const validation = validateCadSecureFileUpload({
+    originalName: file.originalname || existing.title,
+    mimeType: file.mimetype || 'application/octet-stream',
+    sizeBytes: file.size || file.buffer.length
+  })
+
+  const previousPublicId = existing.secureFile?.publicId || null
+  let uploadMetadata = null
+
+  try {
+    uploadMetadata = await uploadSecureCadFile({
+      buffer: file.buffer,
+      originalName: file.originalname || existing.title,
+      mimeType: file.mimetype || 'application/octet-stream'
+    })
+  } catch (error) {
+    if (error instanceof AppError && error.statusCode === 503) throw error
+    throw new AppError('Secure CAD file upload failed.', 400)
+  }
+
+  const safeSecureFile = {
+    provider: uploadMetadata.provider,
+    publicId: uploadMetadata.publicId,
+    storageKey: uploadMetadata.storageKey,
+    originalName: uploadMetadata.originalName,
+    mimeType: validation.mimeType,
+    sizeInBytes: validation.sizeBytes,
+    signedUrlTtlSeconds: Number(uploadMetadata.signedUrlTtlSeconds || 3600),
+    uploadedAt: new Date()
+  }
+
+  const product = await updateCadProductRecord(productId, {
+    secureFile: safeSecureFile,
+    updatedBy: userId
+  })
+
+  if (!product) {
+    if (uploadMetadata?.publicId) {
+      await deleteSecureCadFile({ publicId: uploadMetadata.publicId })
+    }
+    throw new AppError('Unable to save secure CAD file metadata.', 500)
+  }
+
+  if (previousPublicId && previousPublicId !== uploadMetadata.publicId) {
+    await deleteSecureCadFile({ publicId: previousPublicId })
+  }
+
+  return product
+}
+
+export const deleteCadSecureFile = async ({ userId, productId }) => {
+  if (!mongoose.isValidObjectId(userId)) throw new AppError('Authentication required.', 401)
+  if (!mongoose.isValidObjectId(productId)) throw new AppError('A valid CAD product is required.', 400)
+
+  const existing = await findCadProductById(productId)
+  if (!existing) return null
+
+  const publicId = existing.secureFile?.publicId
+  if (publicId) {
+    await deleteSecureCadFile({ publicId })
+  }
+
+  const product = await updateCadProductRecord(productId, {
+    secureFile: null,
+    updatedBy: userId
+  })
+
+  return product
 }
 
 export const getAvailableCadFormats = () => CAD_PRODUCT_FORMATS
