@@ -51,6 +51,7 @@ function getTransporter() {
       host: config.smtp_host,
       port: Number(config.smtp_port),
       secure: String(config.smtp_secure).toLowerCase() === 'true',
+      family: 4,
       auth: { user: config.smtp_user, pass: config.smtp_password }
     })
   }
