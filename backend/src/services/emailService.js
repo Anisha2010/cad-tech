@@ -2,6 +2,13 @@ import nodemailer from 'nodemailer'
 import config from '../config/environment.js'
 
 let transporter
+let transporterVerificationStarted = false
+
+const getSafeSmtpErrorDetails = (error) => Object.fromEntries(
+  ['name', 'code', 'command', 'responseCode', 'response', 'message']
+    .filter((field) => error?.[field] !== undefined)
+    .map((field) => [field, error[field]])
+)
 
 export const getPasswordResetEmailStatus = () => {
   const missing = []
@@ -47,6 +54,16 @@ function getTransporter() {
       auth: { user: config.smtp_user, pass: config.smtp_password }
     })
   }
+
+  if (!transporterVerificationStarted) {
+    transporterVerificationStarted = true
+    void transporter.verify()
+      .then(() => console.info('[Email] SMTP connection verified'))
+      .catch((error) => {
+        console.error('[Email] SMTP connection verification failed', getSafeSmtpErrorDetails(error))
+      })
+  }
+
   return transporter
 }
 
@@ -67,7 +84,7 @@ export const sendPasswordResetEmail = async (email, resetUrl) => {
       html: `<div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.6"><h1 style="font-size:22px">Reset your password</h1><p>We received a request to reset your CadTech Solution password.</p><p><a href="${resetUrl}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px">Reset password</a></p><p>This secure link expires in 30 minutes and can only be used once.</p><p>If you did not request this change, you can ignore this email.</p></div>`
     })
   } catch (error) {
-    console.error('[Email] Password reset delivery failed.', { code: typeof error?.code === 'string' ? error.code : 'UNKNOWN' })
+    console.error('[Email] Password reset delivery failed.', getSafeSmtpErrorDetails(error))
     return false
   }
   return true
@@ -90,7 +107,7 @@ export const sendLoginOtpEmail = async (email, otp) => {
     })
     return true
   } catch (error) {
-    console.error('[Email] Login OTP delivery failed.', { code: typeof error?.code === 'string' ? error.code : 'UNKNOWN' })
+    console.error('[Email] Login OTP delivery failed.', getSafeSmtpErrorDetails(error))
     return false
   }
 }
@@ -112,9 +129,11 @@ export const sendVerificationEmail = async (email, verificationUrl) => {
     })
     return true
   } catch (error) {
-    console.error('[Email] Email verification delivery failed.', { code: typeof error?.code === 'string' ? error.code : 'UNKNOWN' })
+    console.error('[Email] Email verification delivery failed.', getSafeSmtpErrorDetails(error))
     return false
   }
 }
+
+if (config.node_env === 'production') getTransporter()
 
 export default { getPasswordResetEmailStatus, sendPasswordResetEmail, sendLoginOtpEmail, sendVerificationEmail }
