@@ -7,10 +7,15 @@ const senderAddress = (sender) => {
 
 const isValidSender = (sender) => /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(senderAddress(sender))
 
-const isPlaceholderSender = (sender) => {
+const RESEND_SANDBOX_SENDER = 'onboarding@resend.dev'
+
+const isPlaceholderSender = (sender, { provider } = {}) => {
   const address = senderAddress(sender).toLowerCase()
   const domain = address.split('@')[1] || ''
-  return domain === 'resend.dev' || domain.includes('example') ||
+  if (domain === 'resend.dev') {
+    return !(provider === 'resend' && address === RESEND_SANDBOX_SENDER)
+  }
+  return domain.includes('example') ||
     ['.test', '.localhost', '.invalid', '.local'].some((suffix) => domain.endsWith(suffix)) ||
     /your[-_]/.test(address)
 }
@@ -67,7 +72,7 @@ export const assertEmailConfiguration = (emailConfig) => {
 
   const problems = [...emailConfig.missing]
   if (!isValidSender(emailConfig.from)) problems.push('EMAIL_FROM')
-  if (isPlaceholderSender(emailConfig.from)) problems.push('EMAIL_FROM (use a sender on your verified domain)')
+  if (isPlaceholderSender(emailConfig.from, { provider: emailConfig.provider })) problems.push('EMAIL_FROM (use a sender on your verified domain)')
 
   if (problems.length) {
     throw new Error(`Invalid production email configuration. Configure: ${[...new Set(problems)].join(', ')}.`)

@@ -52,7 +52,27 @@ test('production Resend configuration requires its key and a non-placeholder sen
     RESEND_API_KEY: 're_test_key',
     EMAIL_FROM: 'onboarding@resend.dev'
   })
-  assert.throws(() => assertEmailConfiguration(onboarding), /verified domain/)
+  assert.doesNotThrow(() => assertEmailConfiguration(onboarding))
+
+  const otherResendDev = getEmailConfiguration({
+    NODE_ENV: 'production',
+    EMAIL_PROVIDER: 'resend',
+    RESEND_API_KEY: 're_test_key',
+    EMAIL_FROM: 'noreply@resend.dev'
+  })
+  assert.throws(() => assertEmailConfiguration(otherResendDev), /verified domain/)
+
+  const sandboxWithSmtp = getEmailConfiguration({
+    NODE_ENV: 'production',
+    EMAIL_PROVIDER: 'smtp',
+    SMTP_HOST: 'smtp.example.net',
+    SMTP_PORT: '587',
+    SMTP_SECURE: 'false',
+    SMTP_USER: 'user',
+    SMTP_PASSWORD: 'secret',
+    EMAIL_FROM: 'onboarding@resend.dev'
+  })
+  assert.throws(() => assertEmailConfiguration(sandboxWithSmtp), /verified domain/)
 })
 
 test('production requires configured real email delivery and rejects mock delivery', () => {
