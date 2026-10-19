@@ -34,7 +34,7 @@ function FAQ() {
         <div className="faq-heading">
           <span className="categories-eyebrow">COMMON QUESTIONS</span>
           <h2 className="section-heading" id="faq-heading">Frequently Asked Questions</h2>
-          <p className="section-description">Find quick answers about CAD models, courses, engineering services, and platform access.</p>
+          <p className="section-description">Everything you need to know about our professional CAD files</p>
         </div>
 
         <div className="faq-list">
