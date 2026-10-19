@@ -2,7 +2,7 @@ import express from 'express'
 import { requireAuthentication } from '../middleware/authentication.js'
 import { allowRoles } from '../middleware/authorization.js'
 import { listPublicCadCategories, listPublicCadProducts, getPublicCadProductBySlug } from '../controllers/cadProductController.js'
-import { listAdminCadCategories, createAdminCadCategory, updateAdminCadCategory, deleteAdminCadCategory, listAdminCadProducts, createAdminCadProduct, getAdminCadProduct, updateAdminCadProduct, publishAdminCadProduct, unpublishAdminCadProduct, archiveAdminCadProduct } from '../controllers/adminCadController.js'
+import { listAdminCadCategories, createAdminCadCategory, updateAdminCadCategory, deleteAdminCadCategory, uploadCadCategoryImage, listAdminCadProducts, createAdminCadProduct, getAdminCadProduct, updateAdminCadProduct, publishAdminCadProduct, unpublishAdminCadProduct, archiveAdminCadProduct } from '../controllers/adminCadController.js'
 import { uploadCadSecureProductFile, deleteCadSecureProductFile } from '../controllers/cadSecureFileController.js'
 import { uploadCadPreviewImage } from '../controllers/cadPreviewImageController.js'
 import {
@@ -52,6 +52,7 @@ router.get('/cad-services/:slug', getPublicCadServiceBySlug)
 
 router.get('/admin/cad-categories', requireAuthentication, allowRoles('admin'), listAdminCadCategories)
 router.post('/admin/cad-categories', requireAuthentication, allowRoles('admin'), rateLimit, createAdminCadCategory)
+router.post('/admin/cad-categories/image', requireAuthentication, allowRoles('admin'), rateLimit, uploadCadCategoryImage)
 router.patch('/admin/cad-categories/:categoryId', requireAuthentication, allowRoles('admin'), rateLimit, updateAdminCadCategory)
 router.delete('/admin/cad-categories/:categoryId', requireAuthentication, allowRoles('admin'), rateLimit, deleteAdminCadCategory)
 

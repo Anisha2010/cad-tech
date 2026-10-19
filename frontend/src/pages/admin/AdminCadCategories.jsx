@@ -1,7 +1,7 @@
 import { Plus, PencilLine, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createAdminCadCategory, deleteAdminCadCategory, fetchAdminCadCategories, updateAdminCadCategory } from '../../services/adminCadService.js'
+import { createAdminCadCategory, deleteAdminCadCategory, fetchAdminCadCategories, updateAdminCadCategory, uploadCadCategoryImage } from '../../services/adminCadService.js'
 import './AdminCadCategories.css'
 
 const emptyForm = {
@@ -20,6 +20,7 @@ function AdminCadCategories() {
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -41,6 +42,28 @@ function AdminCadCategories() {
   }, [])
 
   const updateField = (key, value) => setForm((current) => ({ ...current, [key]: value }))
+
+  const handleImageUpload = async (event) => {
+    const input = event.target
+    const file = input.files?.[0]
+    if (!file) return
+    setError('')
+    setSuccess('')
+    setUploadingImage(true)
+
+    try {
+      const result = await uploadCadCategoryImage(file)
+      const imageUrl = result?.image?.url
+      if (!imageUrl) throw new Error('The upload did not return an image URL.')
+      updateField('imageUrl', imageUrl)
+      setSuccess('Image uploaded. Save the category to keep it.')
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to upload category image.')
+    } finally {
+      setUploadingImage(false)
+      input.value = ''
+    }
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -144,11 +167,23 @@ function AdminCadCategories() {
             Description
             <textarea rows="3" value={form.description} onChange={(event) => updateField('description', event.target.value)} placeholder="Describe what this category covers" />
           </label>
+          <div className="admin-cad-image-field">
+            <span className="admin-cad-image-label">Category image</span>
+            {form.imageUrl ? (
+              <img className="admin-cad-image-preview" src={form.imageUrl} alt="Category preview" />
+            ) : (
+              <p className="admin-cad-image-empty">No image uploaded yet.</p>
+            )}
+            <div className="admin-cad-image-actions">
+              <label className="button button-outline admin-cad-image-upload">
+                {uploadingImage ? 'Uploading...' : 'Upload image'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} disabled={uploadingImage || saving} />
+              </label>
+              {form.imageUrl && <button type="button" className="button button-outline" onClick={() => updateField('imageUrl', '')} disabled={uploadingImage || saving}>Remove image</button>}
+            </div>
+            <input value={form.imageUrl} onChange={(event) => updateField('imageUrl', event.target.value)} placeholder="https://... (or upload above)" />
+          </div>
           <div className="admin-cad-grid">
-            <label>
-              Image URL
-              <input value={form.imageUrl} onChange={(event) => updateField('imageUrl', event.target.value)} placeholder="https://..." />
-            </label>
             <label>
               Icon name
               <input value={form.icon} onChange={(event) => updateField('icon', event.target.value)} placeholder="drafting" />

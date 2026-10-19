@@ -9,7 +9,7 @@ import PortfolioProject from '../models/PortfolioProject.js'
 import ContactEnquiry from '../models/ContactEnquiry.js'
 import { buildSlugFromTitle, normalizeCmsListItem, normalizeCmsText } from '../utils/siteContent.js'
 import { AppError } from '../utils/AppError.js'
-import { uploadProfileImageFile, validateFounderImageUpload } from '../config/storage.js'
+import { uploadProfileImageFile, validateFounderImageUpload, validateProfileImageUpload } from '../config/storage.js'
 
 const defaultSettings = {
   businessName: 'CadTech Solution',
@@ -335,6 +335,7 @@ export const createAdminTestimonial = asyncHandler(async (req, res) => {
     company: normalizeCmsText(payload.company, ''),
     quote: normalizeCmsText(payload.quote, 'Great experience.'),
     initials: normalizeCmsText(payload.initials, 'LT'),
+    imageUrl: normalizeCmsText(payload.imageUrl, ''),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
   })
@@ -349,6 +350,7 @@ export const updateAdminTestimonial = asyncHandler(async (req, res) => {
     company: normalizeCmsText(payload.company, ''),
     quote: normalizeCmsText(payload.quote, 'Great experience.'),
     initials: normalizeCmsText(payload.initials, 'LT'),
+    imageUrl: normalizeCmsText(payload.imageUrl, ''),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
   }, { returnDocument: 'after' })
@@ -361,6 +363,23 @@ export const deleteAdminTestimonial = asyncHandler(async (req, res) => {
   const item = await Testimonial.findByIdAndDelete(req.params.itemId)
   if (!item) return sendError(res, 'Testimonial not found.', 404)
   return sendSuccess(res, { id: req.params.itemId }, 'Testimonial deleted successfully.')
+})
+
+export const uploadTestimonialImage = asyncHandler(async (req, res) => {
+  if (!req.file) return sendError(res, 'No testimonial image was provided.', 400)
+  validateProfileImageUpload({
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype,
+    sizeBytes: req.file.size
+  })
+  const image = await uploadProfileImageFile({
+    buffer: req.file.buffer,
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype
+  })
+  if (!image.url) throw new AppError('Cloudinary did not return an image URL.', 503)
+
+  return sendSuccess(res, { image }, 'Testimonial image uploaded successfully.', 201)
 })
 
 export const listAdminFaqs = asyncHandler(async (req, res) => {
@@ -538,6 +557,7 @@ export default {
   createAdminTestimonial,
   updateAdminTestimonial,
   deleteAdminTestimonial,
+  uploadTestimonialImage,
   listAdminFaqs,
   createAdminFaq,
   updateAdminFaq,

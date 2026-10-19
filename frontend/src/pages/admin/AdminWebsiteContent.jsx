@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createAdminCmsItem, deleteAdminCmsItem, fetchAdminCmsItems, updateAdminCmsItem } from '../../services/siteContentService.js'
+import { createAdminCmsItem, deleteAdminCmsItem, fetchAdminCmsItems, updateAdminCmsItem, uploadTestimonialImage } from '../../services/siteContentService.js'
 import './AdminWebsiteContent.css'
 
 const contentSections = {
@@ -46,6 +46,7 @@ const contentSections = {
       { name: 'company', label: 'Company' },
       { name: 'quote', label: 'Quote', type: 'textarea', required: true },
       { name: 'initials', label: 'Initials' },
+      { name: 'imageUrl', label: 'Photo', type: 'image' },
       { name: 'displayOrder', label: 'Display order', type: 'number' },
       { name: 'isPublished', label: 'Published', type: 'checkbox' }
     ]
@@ -109,6 +110,7 @@ function AdminWebsiteContent() {
   const [loading, setLoading] = useState(true)
   const [reload, setReload] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [deletingId, setDeletingId] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -163,6 +165,28 @@ function AdminWebsiteContent() {
   const reloadItems = async () => {
     const result = await fetchAdminCmsItems(section)
     setItems(Array.isArray(result?.items) ? result.items : [])
+  }
+
+  const handleImageUpload = async (event) => {
+    const input = event.target
+    const file = input.files?.[0]
+    if (!file) return
+    setUploadingImage(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const result = await uploadTestimonialImage(file)
+      const url = result?.image?.url
+      if (!url) throw new Error('The upload did not return an image URL.')
+      setForm((current) => ({ ...current, imageUrl: url }))
+      setNotice('Photo uploaded. Save the testimonial to keep it.')
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, 'Unable to upload testimonial photo.'))
+    } finally {
+      setUploadingImage(false)
+      input.value = ''
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -269,6 +293,22 @@ function AdminWebsiteContent() {
                     <input type="checkbox" checked={Boolean(form[field.name])} onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.checked }))} />
                     <span>{field.label}</span>
                   </label>
+                ) : field.type === 'image' ? (
+                  <div className="website-content-image-field is-wide" key={field.name}>
+                    <span className="website-content-image-label">{field.label}</span>
+                    {form[field.name] ? (
+                      <img className="website-content-image-preview" src={form[field.name]} alt="Testimonial photo preview" />
+                    ) : (
+                      <p className="website-content-image-empty">No photo uploaded yet.</p>
+                    )}
+                    <div className="website-content-image-actions">
+                      <label className="button button-outline website-content-image-upload">
+                        {uploadingImage ? 'Uploading...' : 'Upload photo'}
+                        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} disabled={uploadingImage || saving} />
+                      </label>
+                      {form[field.name] && <button type="button" className="button button-outline" onClick={() => setForm((current) => ({ ...current, [field.name]: '' }))} disabled={uploadingImage || saving}>Remove photo</button>}
+                    </div>
+                  </div>
                 ) : (
                   <label className={field.type === 'textarea' || field.type === 'list' ? 'is-wide' : ''} key={field.name}>
                     <span>{field.label}{field.required ? ' *' : ''}</span>

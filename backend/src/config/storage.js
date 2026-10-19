@@ -157,6 +157,19 @@ export const validateFounderImageUpload = ({ originalName, mimeType, sizeBytes }
   return { extension: extension.slice(1), mimeType: safeMimeType || 'application/octet-stream', sizeBytes: size }
 }
 
+export const validateProfileImageUpload = ({ originalName, mimeType, sizeBytes }) => {
+  const extension = path.extname(typeof originalName === 'string' ? originalName : '').toLowerCase()
+  const safeMimeType = typeof mimeType === 'string' ? mimeType.toLowerCase().trim() : ''
+  const size = Number(sizeBytes) || 0
+  const maxBytes = Number(process.env.CAD_PREVIEW_IMAGE_UPLOAD_MAX_BYTES || 10485760)
+  if (!FOUNDER_IMAGE_EXTENSIONS.has(extension) || (safeMimeType && safeMimeType !== 'application/octet-stream' && !FOUNDER_IMAGE_MIME_TYPES.has(safeMimeType))) {
+    throw new AppError('Unsupported image file type. Upload a JPG, PNG, or WebP image.', 400)
+  }
+  if (size <= 0) throw new AppError('Image file cannot be empty.', 400)
+  if (size > maxBytes) throw new AppError(`Image exceeds the ${maxBytes} byte upload limit.`, 413)
+  return { extension: extension.slice(1), mimeType: safeMimeType || 'application/octet-stream', sizeBytes: size }
+}
+
 export const getAssignmentUploadMaxBytes = () => Number.isFinite(storageConfig.maxBytes) && storageConfig.maxBytes > 0 ? storageConfig.maxBytes : 10485760
 export const getCadSecureStorageMaxBytes = () => Math.min(
   Number.isFinite(storageConfig.cadMaxBytes) && storageConfig.cadMaxBytes > 0 ? storageConfig.cadMaxBytes : 52428800,
@@ -383,6 +396,14 @@ export const uploadProfileImageFile = ({ buffer, originalName, mimeType }) => up
   originalName,
   mimeType,
   folder: 'cadtech/profile-images',
+  resourceType: 'image'
+})
+
+export const uploadCategoryImageFile = ({ buffer, originalName, mimeType }) => uploadPublicCloudinaryFile({
+  buffer,
+  originalName,
+  mimeType,
+  folder: 'cadtech/category-images',
   resourceType: 'image'
 })
 

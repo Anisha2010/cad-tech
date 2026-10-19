@@ -12,13 +12,18 @@ function TestimonialCard({ testimonial }) {
   const name = testimonial.name || 'Anonymous learner'
   const role = testimonial.role || 'Learner'
   const initials = testimonial.initials || name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'AL'
+  const imageUrl = typeof testimonial.imageUrl === 'string' ? testimonial.imageUrl.trim() : ''
 
   return (
     <article className="testimonial-card">
       <Quote className="testimonial-quote-icon" size={26} aria-hidden="true" />
       <blockquote>{quote}</blockquote>
       <div className="testimonial-author">
-        <span className="testimonial-avatar" aria-hidden="true">{initials}</span>
+        {imageUrl ? (
+          <img className="testimonial-avatar testimonial-avatar-image" src={imageUrl} alt={name} width="44" height="44" loading="lazy" />
+        ) : (
+          <span className="testimonial-avatar" aria-hidden="true">{initials}</span>
+        )}
         <div className="testimonial-author-details"><strong>{name}</strong><span>{role}</span></div>
       </div>
       {testimonial.isPlaceholder && <span className="demo-content-label">Demo content</span>}

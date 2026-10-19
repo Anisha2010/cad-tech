@@ -46,6 +46,13 @@ export const uploadCadPreviewImage = (file) => {
     .then((response) => response.data?.data || response.data)
 }
 
+export const uploadCadCategoryImage = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return axios({ method: 'post', url: `${apiBaseUrl}/admin/cad-categories/image`, data: formData, withCredentials: true, timeout: 120000, headers: { 'Content-Type': 'multipart/form-data' } })
+    .then((response) => response.data?.data || response.data)
+}
+
 export const fetchAdminCadServices = ({ search = '', status = 'all', page = 1, limit = 20 } = {}) => request('get', '/admin/cad-services', null, { search, status, page, limit })
 export const fetchAdminCadServiceById = (serviceId) => request('get', `/admin/cad-services/${serviceId}`)
 export const createAdminCadService = (payload) => request('post', '/admin/cad-services', payload)
@@ -75,6 +82,7 @@ export default {
   uploadCadSecureFile,
   deleteCadSecureFile,
   uploadCadPreviewImage,
+  uploadCadCategoryImage,
   fetchAdminCadServices,
   fetchAdminCadServiceById,
   createAdminCadService,

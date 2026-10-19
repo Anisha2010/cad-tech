@@ -40,6 +40,54 @@
   background: #fff;
   color: #0f172a;
 }
+.admin-cad-image-field {
+  display: grid;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.admin-cad-image-label {
+  display: block;
+}
+.admin-cad-image-preview {
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+}
+.admin-cad-image-empty {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.admin-cad-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.admin-cad-form label.admin-cad-image-upload {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  color: inherit;
+}
+.admin-cad-form label.admin-cad-image-upload input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
 .admin-check-wrap {
   align-items: center;
   display: flex !important;
