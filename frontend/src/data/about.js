@@ -31,9 +31,7 @@ const founder = {
   sectionLabel: 'THE FOUNDER',
   heading: 'Meet Our Founder',
   paragraphs: [
-    'Arvind Nagpure established CAD Tech Solution in 2020 to address the gap between digital design and practical manufacturing requirements.',
-    ' With a background in mechanical engineering and a focus on special-purpose machinery and robotics, he brings a manufacturing-oriented perspective to CAD design.',
-    ' His approach emphasizes measurable precision, thoughtful engineering decisions, and deliverables that perform in real-world production.'
+    'Arvind Nagpure established CAD Tech Solution in 2020 to address the gap between digital design and practical manufacturing requirements. With a background in mechanical engineering and a focus on special-purpose machinery and robotics, he brings a manufacturing-oriented perspective to CAD design. His approach emphasizes measurable precision, thoughtful engineering decisions, and deliverables that perform in real-world production.'
   ],
   portraitLabel: 'Founder portrait'
 }

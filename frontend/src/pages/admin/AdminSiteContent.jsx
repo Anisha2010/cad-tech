@@ -21,7 +21,8 @@ const defaultForm = {
     facebook: '',
     linkedin: '',
     instagram: '',
-    youtube: ''
+    youtube: '',
+    whatsapp: ''
   }
 }
 
@@ -175,6 +176,7 @@ function AdminSiteContent() {
             <SiteField label="LinkedIn"><input type="url" value={form.socialLinks.linkedin} onChange={(event) => updateSocialField('linkedin', event.target.value)} /></SiteField>
             <SiteField label="Instagram"><input type="url" value={form.socialLinks.instagram} onChange={(event) => updateSocialField('instagram', event.target.value)} /></SiteField>
             <SiteField label="YouTube"><input type="url" value={form.socialLinks.youtube} onChange={(event) => updateSocialField('youtube', event.target.value)} /></SiteField>
+            <SiteField label="WhatsApp"><input type="url" value={form.socialLinks.whatsapp} onChange={(event) => updateSocialField('whatsapp', event.target.value)} /></SiteField>
           </SettingsSection>
 
           <div className="site-settings-submit"><button type="submit" className="button button-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Site Settings'}</button></div>

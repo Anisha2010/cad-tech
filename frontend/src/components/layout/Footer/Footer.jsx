@@ -1,4 +1,4 @@
-import { Box, Cpu, Facebook, Instagram, Linkedin, Youtube } from 'lucide-react'
+import { Box, Cpu, Facebook, Instagram, Linkedin, MessageCircle, Youtube } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCadCategories } from '../../../services/cadService.js'
@@ -14,7 +14,8 @@ const socialPlatforms = [
   ['facebook', 'Facebook', Facebook],
   ['linkedin', 'LinkedIn', Linkedin],
   ['instagram', 'Instagram', Instagram],
-  ['youtube', 'YouTube', Youtube]
+  ['youtube', 'YouTube', Youtube],
+  ['whatsapp', 'WhatsApp', MessageCircle]
 ]
 
 function Footer() {

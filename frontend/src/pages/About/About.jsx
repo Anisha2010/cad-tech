@@ -7,11 +7,12 @@ import { getPublicAboutContent, getPublicSiteSettings } from '../../services/sit
 import './About.css'
 
 const defaultAbout = {
-  pageTitle: 'About CadTech Solution',
+  pageTitle: 'About CAD Tech Solution',
+  tagline: 'Learn. Design. Innovate.',
   intro: `CAD Tech Solution is a mechanical CAD design and engineering resource established in 2020 by Arvind Nagpure. We focus on practical mechanical design, 3D CAD modelling, engineering drawings, and digital design resources that help engineers, students, designers, and businesses bring ideas to life.
 Our approach goes beyond creating models that look good on screen. We emphasize design accuracy, clear documentation, and Design for Manufacturability (DFM), helping clients prepare designs for applications such as CNC machining, fabrication, and 3D printing.`,
-  mission: 'Make professional CAD knowledge and engineering support easier to access for learners and businesses.',
-  vision: 'Build a practical digital platform where engineering education and design resources work together.',
+  mission: 'To make mechanical design resources and CAD solutions more accessible while encouraging engineering creativity, practical learning, and innovation.',
+  vision: 'To support a global community of engineers, learners, designers, and manufacturers through reliable CAD resources, practical design solutions, and a commitment to quality.',
   supportAreas: ['CAD models', 'engineering services', 'professional training'],
   values: ['Practical learning', 'Accessible resources', 'Quality design'],
   finalCta: 'Ready to start your CAD journey?'
@@ -84,8 +85,9 @@ function About() {
       <section className="about-hero" aria-labelledby="about-hero-heading">
         <div className="site-container about-hero-grid">
           <motion.div className="about-hero-copy" {...reveal}>
-            <span className="categories-eyebrow">ABOUT CADTECH SOLUTION</span>
+            <span className="categories-eyebrow">ABOUT US</span>
             <h1 id="about-hero-heading">{aboutData.pageTitle || 'About CadTech Solution'}</h1>
+            {aboutData.tagline && <p className="about-tagline">{aboutData.tagline}</p>}
             <p>{aboutData.intro}</p>
             <div className="about-actions"><Link className="button button-primary" to="/courses">Explore Our Courses <ArrowRight size={17} /></Link><Link className="button button-outline" to="/contact">Contact Us <ArrowRight size={17} /></Link></div>
           </motion.div>

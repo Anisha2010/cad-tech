@@ -21,7 +21,8 @@ const siteSettingsSchema = new mongoose.Schema({
       facebook: { type: String, default: '' },
       linkedin: { type: String, default: '' },
       instagram: { type: String, default: '' },
-      youtube: { type: String, default: '' }
+      youtube: { type: String, default: '' },
+      whatsapp: { type: String, default: '' }
     },
     default: {}
   }

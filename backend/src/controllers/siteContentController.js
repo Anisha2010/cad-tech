@@ -25,10 +25,11 @@ const defaultSettings = {
   metaTitle: 'CadTech Solution | CAD Training and Design Services',
   metaDescription: 'Learn CAD, access engineering resources, and request professional design support.',
   socialLinks: {
-    facebook: 'https://www.facebook.com/cadtech2/',
+    facebook: 'https://www.facebook.com/share/14tXnwfmeMC/',
     linkedin: '',
-    instagram: 'https://www.instagram.com/cad__tech/?hl=en',
-    youtube: 'https://www.youtube.com/channel/UCKpzCS-vY2BO9QjTPFSmsuA'
+    instagram: 'https://www.instagram.com/cad__tech/',
+    youtube: 'https://www.youtube.com/channel/UCKpzCS-vY2BO9QjTPFSmsuA',
+    whatsapp: 'https://wa.me/918839989046'
   }
 }
 
@@ -41,8 +42,10 @@ const formatSettings = (settings = null) => {
     socialLinks: {
       ...defaultSettings.socialLinks,
       ...(value.socialLinks || {}),
+      facebook: normalizeCmsText(value.socialLinks?.facebook, defaultSettings.socialLinks.facebook),
       instagram: normalizeCmsText(value.socialLinks?.instagram, defaultSettings.socialLinks.instagram),
-      youtube: normalizeCmsText(value.socialLinks?.youtube, defaultSettings.socialLinks.youtube)
+      youtube: normalizeCmsText(value.socialLinks?.youtube, defaultSettings.socialLinks.youtube),
+      whatsapp: normalizeCmsText(value.socialLinks?.whatsapp, defaultSettings.socialLinks.whatsapp)
     }
   }
 }
@@ -51,7 +54,8 @@ const sanitizeSocialLinks = (socialLinks = {}) => ({
   facebook: normalizeCmsText(socialLinks.facebook, ''),
   linkedin: normalizeCmsText(socialLinks.linkedin, ''),
   instagram: normalizeCmsText(socialLinks.instagram, ''),
-  youtube: normalizeCmsText(socialLinks.youtube, '')
+  youtube: normalizeCmsText(socialLinks.youtube, ''),
+  whatsapp: normalizeCmsText(socialLinks.whatsapp, '')
 })
 
 const containsNoSqlOperator = (value) => {
@@ -112,10 +116,11 @@ export const getPublicAboutContent = asyncHandler(async (req, res) => {
   const about = await AboutContent.findOne({ isPublished: true }).sort({ displayOrder: 1, updatedAt: -1 }).lean()
   return sendSuccess(res, {
     about: about || {
-      pageTitle: 'About CadTech Solution',
-      intro: 'CadTech Solution brings together practical CAD training, organized design resources, and engineering services.',
-      mission: 'Make professional CAD knowledge and engineering support easier to access for learners and businesses.',
-      vision: 'Build a practical digital platform where engineering education and design resources work together.',
+      pageTitle: 'About CAD Tech Solution',
+      tagline: 'Learn. Design. Innovate.',
+      intro: 'CAD Tech Solution is a mechanical CAD design and engineering resource established in 2020 by Arvind Nagpure. We focus on practical mechanical design, 3D CAD modelling, engineering drawings, and digital design resources that help engineers, students, designers, and businesses bring ideas to life.\nOur approach goes beyond creating models that look good on screen. We emphasize design accuracy, clear documentation, and Design for Manufacturability (DFM), helping clients prepare designs for applications such as CNC machining, fabrication, and 3D printing.',
+      mission: 'To make mechanical design resources and CAD solutions more accessible while encouraging engineering creativity, practical learning, and innovation.',
+      vision: 'To support a global community of engineers, learners, designers, and manufacturers through reliable CAD resources, practical design solutions, and a commitment to quality.',
       supportAreas: ['CAD models', 'engineering services', 'professional training'],
       values: ['Practical learning', 'Accessible resources', 'Quality design'],
       finalCta: 'Ready to start your CAD journey?'
@@ -278,7 +283,8 @@ export const listAdminAboutContent = asyncHandler(async (req, res) => {
 export const createAdminAboutContent = asyncHandler(async (req, res) => {
   const payload = req.body || {}
   const item = await AboutContent.create({
-    pageTitle: normalizeCmsText(payload.pageTitle, 'About CadTech Solution'),
+    pageTitle: normalizeCmsText(payload.pageTitle, 'About CAD Tech Solution'),
+    tagline: normalizeCmsText(payload.tagline, 'Learn. Design. Innovate.'),
     intro: normalizeCmsText(payload.intro, 'CadTech Solution brings together practical CAD training, organized design resources, and engineering services.'),
     mission: normalizeCmsText(payload.mission, 'Make professional CAD knowledge and engineering support easier to access for learners and businesses.'),
     vision: normalizeCmsText(payload.vision, 'Build a practical digital platform where engineering education and design resources work together.'),
@@ -294,7 +300,8 @@ export const createAdminAboutContent = asyncHandler(async (req, res) => {
 export const updateAdminAboutContent = asyncHandler(async (req, res) => {
   const payload = req.body || {}
   const item = await AboutContent.findByIdAndUpdate(req.params.itemId, {
-    pageTitle: normalizeCmsText(payload.pageTitle, 'About CadTech Solution'),
+    pageTitle: normalizeCmsText(payload.pageTitle, 'About CAD Tech Solution'),
+    tagline: normalizeCmsText(payload.tagline, 'Learn. Design. Innovate.'),
     intro: normalizeCmsText(payload.intro, 'CadTech Solution brings together practical CAD training, organized design resources, and engineering services.'),
     mission: normalizeCmsText(payload.mission, 'Make professional CAD knowledge and engineering support easier to access for learners and businesses.'),
     vision: normalizeCmsText(payload.vision, 'Build a practical digital platform where engineering education and design resources work together.'),
