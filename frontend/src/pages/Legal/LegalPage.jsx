@@ -103,7 +103,6 @@ function LegalPage() {
           {section.bullets && <ul>{section.bullets.map((item) => <li key={item}>{item}</li>)}</ul>}
           {section.after && <p>{section.after}</p>}
         </section>)}
-        <footer className="legal-source"><span>Official source</span><a href={policy.source} target="_blank" rel="noreferrer">View the published {policy.title.toLowerCase()} <span aria-hidden="true">↗</span></a></footer>
       </article>
       <nav className="legal-related" aria-label="Other legal policies">{legalLinks.filter(([, path]) => path !== `/${slug}`).map(([label, path]) => <Link to={path} key={path}>{label}</Link>)}</nav>
     </main>
@@ -118,7 +117,6 @@ function LegalInformation() {
         <h2>Business information published on the official website</h2>
         <dl><div><dt>Business name</dt><dd>CAD Tech Solution</dd></div><div><dt>Founder</dt><dd>Arvind Nagpure</dd></div><div><dt>Established</dt><dd>2020</dd></div><div><dt>Email</dt><dd><a href="mailto:arvind@cadtechsolution.com">arvind@cadtechsolution.com</a></dd></div><div><dt>Phone / WhatsApp</dt><dd><a href="tel:+918839989046">+91-8839989046</a></dd></div><div><dt>Hours</dt><dd>Monday-Saturday, 8AM-8PM</dd></div></dl>
         <p className="legal-source-note">The official website does not publish a business address or registration number in the information reviewed. Policy pages also use the name “Design With Ajay” and contain differing WhatsApp numbers; the wording and details on each policy page are preserved as published.</p>
-        <p><a href="https://www.cadtechsolution.com" target="_blank" rel="noreferrer">Source: official CAD Tech Solution website <span aria-hidden="true">↗</span></a></p>
       </section>
       <nav className="legal-index" aria-label="Legal policies">{legalLinks.map(([label, path]) => <Link to={path} key={path}>{label}<span aria-hidden="true">→</span></Link>)}<Link to="/terms#disclaimer">Disclaimer section<span aria-hidden="true">→</span></Link></nav>
     </main>
