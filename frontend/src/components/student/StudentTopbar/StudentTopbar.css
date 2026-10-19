@@ -62,7 +62,7 @@
   border-radius: 50%;
   object-fit: cover;
   background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -126,11 +126,11 @@
 .student-dropdown-link:hover,
 .student-dropdown-link:focus-visible {
   background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .student-dropdown-link.danger {
-  color: #dc2626;
+  color: var(--color-danger);
 }
 
 @media (max-width: 1024px) {

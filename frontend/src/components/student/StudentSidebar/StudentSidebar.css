@@ -27,7 +27,7 @@
   height: 36px;
   border-radius: 10px;
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: var(--surface-dark-heading);
   font-size: 1.2rem;
   font-weight: 800;
 }
@@ -84,12 +84,12 @@
 .student-nav-item:hover,
 .student-nav-item:focus-visible {
   background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .student-nav-item.active {
   background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
   box-shadow: inset 3px 0 var(--color-accent);
 }
 
@@ -115,7 +115,7 @@
 
 .student-logout:hover {
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 @media (max-width: 1024px) {
@@ -128,7 +128,7 @@
     min-height: 100vh;
     transform: translateX(-110%);
     transition: transform var(--transition);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    box-shadow: var(--shadow-navbar);
   }
 
   .student-sidebar.is-open {

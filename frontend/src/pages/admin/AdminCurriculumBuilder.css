@@ -14,20 +14,20 @@
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1.5rem;
   display: grid;
   gap: 1rem;
-  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .admin-curriculum-card h2,
 .admin-curriculum-card h3,
 .admin-curriculum-card h4 {
   margin: 0;
-  color: #0f172a;
+  color: var(--color-text);
 }
 
 .curriculum-form-grid {
@@ -51,7 +51,7 @@
   gap: 0.5rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
+  color: var(--color-text-secondary);
 }
 
 .curriculum-form-grid input,
@@ -65,7 +65,7 @@
 .curriculum-inline-edit input,
 .curriculum-inline-edit textarea {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-input-border);
   border-radius: 8px;
   padding: 0.75rem 0.9rem;
   font: inherit;
@@ -96,7 +96,7 @@
 
 .lesson-form {
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   display: grid;
   gap: 1rem;
 }
@@ -105,7 +105,7 @@
   display: grid;
   gap: 0.9rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
 }
 
 .lesson-item {
@@ -114,9 +114,9 @@
   gap: 1rem;
   align-items: flex-start;
   padding: 0.9rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--color-bg);
 }
 
 .lesson-meta {
@@ -126,7 +126,7 @@
 
 .lesson-meta p {
   margin: 0;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .lesson-type-badge {
@@ -136,7 +136,7 @@
   width: fit-content;
   border-radius: 999px;
   background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
   padding: 0.25rem 0.5rem;
   font-size: 0.7rem;
   font-weight: 700;
@@ -165,8 +165,8 @@
 .button:hover { opacity: 0.96; }
 .button:disabled { opacity: 0.6; cursor: not-allowed; }
 .button-primary { background: var(--color-accent); color: var(--color-primary); }
-.button-outline { background: #fff; color: #1e293b; border-color: #cbd5e1; }
-.button-danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.button-outline { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border); }
+.button-danger { background: var(--color-danger-bg); color: var(--color-danger); border-color: var(--color-danger-border); }
 
 @media (max-width: 820px) {
   .curriculum-form-grid,

@@ -120,7 +120,7 @@ function LearningPlayer() {
               <div className="panel-header">
                 <h3>{currentLesson.title}</h3>
               </div>
-              <div style={{ background: '#f8fafc', borderRadius: '1rem', padding: '1.25rem', minHeight: '200px', marginBottom: '1rem' }}>
+              <div style={{ background: 'var(--color-bg)', borderRadius: '1rem', padding: '1.25rem', minHeight: '200px', marginBottom: '1rem' }}>
                 {currentLesson.lessonType === 'video' && (
                   <div>
                     <PlayCircle size={36} />

@@ -4,24 +4,24 @@
   display: grid;
   gap: 16px;
   padding: 24px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
 }
 .admin-cad-product-form label {
   display: grid;
   gap: 8px;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 0.86rem;
   font-weight: 700;
 }
 .admin-cad-product-form input, .admin-cad-product-form select, .admin-cad-product-form textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-input-border);
   border-radius: 8px;
-  background: #fff;
-  color: #0f172a;
+  background: var(--color-input-bg);
+  color: var(--color-text);
   font: inherit;
 }
 .admin-cad-product-form .admin-form-grid {

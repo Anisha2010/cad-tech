@@ -1,7 +1,7 @@
 .admin-website-content {
   min-height: 100%;
   padding: 32px clamp(16px, 3vw, 40px);
-  color: var(--color-text, #1f2937);
+  color: var(--color-text);
 }
 
 .admin-website-content .admin-page-header {
@@ -15,7 +15,7 @@
   max-width: 1440px;
   margin: 0 auto 20px;
   overflow-x: auto;
-  border-bottom: 1px solid var(--color-border, #d7dee8);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .website-content-tabs button {
@@ -24,15 +24,15 @@
   border: 0;
   border-bottom: 3px solid transparent;
   background: transparent;
-  color: var(--color-muted, #586579);
+  color: var(--color-text-muted);
   font: inherit;
   font-weight: 650;
   cursor: pointer;
 }
 
 .website-content-tabs button.is-active {
-  border-bottom-color: var(--color-primary, #176b5b);
-  color: var(--color-text, #1f2937);
+  border-bottom-color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .website-content-layout {
@@ -47,9 +47,9 @@
 .website-content-editor {
   min-width: 0;
   padding: 20px;
-  border: 1px solid var(--color-border, #d7dee8);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 
 .website-content-section-heading,
@@ -75,7 +75,7 @@
 
 .website-content-section-heading span,
 .website-content-record span {
-  color: var(--color-muted, #586579);
+  color: var(--color-text-muted);
   font-size: 0.82rem;
 }
 
@@ -92,12 +92,12 @@
   align-items: stretch;
   gap: 8px;
   min-width: 0;
-  border: 1px solid var(--color-border, #d7dee8);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
 }
 
 .website-content-records li.is-selected {
-  border-color: var(--color-primary, #176b5b);
+  border-color: var(--color-primary);
 }
 
 .website-content-record,
@@ -123,7 +123,7 @@
 
 .website-content-delete {
   padding: 0 12px;
-  color: #a52c2c;
+  color: var(--color-danger);
   font-weight: 650;
 }
 
@@ -147,7 +147,7 @@
   align-content: start;
   gap: 7px;
   min-width: 0;
-  color: var(--color-text, #1f2937);
+  color: var(--color-text);
   font-size: 0.88rem;
   font-weight: 650;
 }
@@ -161,10 +161,10 @@
   width: 100%;
   min-width: 0;
   padding: 10px 11px;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #1f2937);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
   font-weight: 400;
 }
@@ -178,7 +178,7 @@
 .website-content-checkbox input {
   width: 17px;
   height: 17px;
-  accent-color: var(--color-primary, #176b5b);
+  accent-color: var(--color-primary);
 }
 
 .website-content-image-field {
@@ -186,7 +186,7 @@
   align-content: start;
   gap: 7px;
   min-width: 0;
-  color: var(--color-text, #1f2937);
+  color: var(--color-text);
   font-size: 0.88rem;
   font-weight: 650;
 }
@@ -200,14 +200,14 @@
   width: 96px;
   height: 96px;
   object-fit: cover;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
 }
 
 .website-content-image-empty {
   margin: 0;
-  color: var(--color-muted, #586579);
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 400;
 }
@@ -249,9 +249,9 @@
   max-width: 1440px;
   margin: 0 auto 16px;
   padding: 10px 12px;
-  border-left: 3px solid #19734e;
-  background: #eaf5ee;
-  color: #155b3d;
+  border-left: 3px solid var(--color-success-border);
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .admin-website-content > .admin-error {

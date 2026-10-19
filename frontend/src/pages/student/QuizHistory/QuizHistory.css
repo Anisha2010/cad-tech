@@ -9,11 +9,11 @@
   justify-content: space-between;
   align-items: end;
   gap: 1rem;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.4rem 1.5rem;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 .student-history-filter {
@@ -25,11 +25,11 @@
 
 .student-history-filter select {
   min-height: 42px;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0.5rem 0.7rem;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #17212b);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .student-history-header h1 {
@@ -51,10 +51,10 @@
   display: grid;
   place-items: center;
   text-align: center;
-  color: var(--color-text, #17212b);
+  color: var(--color-text);
   min-height: 220px;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 2rem;
 }
@@ -68,17 +68,17 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #17212b);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-card);
   padding: 1.2rem 1.3rem;
 }
 
 .student-history-course {
   margin: 0;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -94,7 +94,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -123,20 +123,20 @@
 }
 
 .student-history-badge.passed {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .student-history-badge.failed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .student-history-date {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 768px) {

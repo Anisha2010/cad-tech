@@ -14,10 +14,10 @@
 .admin-records-student strong, .admin-records-course strong { color: var(--color-text); font-size: .82rem; }
 .admin-records-student span, .admin-records-course span { color: var(--color-text-muted); font-size: .74rem; overflow-wrap: anywhere; }
 .admin-records-status { display: inline-flex; min-height: 24px; align-items: center; padding: 3px 8px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text-muted); font-size: .72rem; font-weight: 700; white-space: nowrap; }
-.admin-records-status.is-active, .admin-records-status.is-completed, .admin-records-status.is-paid { border-color: #b7dfc7; background: #edf8f1; color: #176744; }
-.admin-records-status.is-cancelled, .admin-records-status.is-failed, .admin-records-status.is-refunded { border-color: #f1bfbb; background: #fff0ef; color: #9f2525; }
+.admin-records-status.is-active, .admin-records-status.is-completed, .admin-records-status.is-paid { border-color: var(--color-success-border); background: var(--color-success-bg); color: var(--color-success); }
+.admin-records-status.is-cancelled, .admin-records-status.is-failed, .admin-records-status.is-refunded { border-color: var(--color-danger-border); background: var(--color-danger-bg); color: var(--color-danger); }
 .admin-records-reference { max-width: 190px; overflow-wrap: anywhere; font-size: .78rem; }
-.admin-records-feedback { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 11px 13px; border-left: 3px solid #b42318; background: #fff1f0; color: #8a1c13; }
+.admin-records-feedback { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 11px 13px; border-left: 3px solid var(--color-danger-border); background: var(--color-danger-bg); color: var(--color-danger); }
 .admin-records-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 18px; }
 .admin-records-pagination span { color: var(--color-text-muted); font-size: .86rem; }
 @media (max-width: 640px) { .admin-records-toolbar { align-items: stretch; flex-direction: column; }.admin-records-toolbar label { min-width: 100%; }.admin-records-feedback { align-items: flex-start; flex-direction: column; } }

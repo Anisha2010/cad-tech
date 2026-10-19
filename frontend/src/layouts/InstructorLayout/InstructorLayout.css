@@ -1,8 +1,8 @@
 .instructor-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--color-bg, #f8fafc);
-  color: var(--color-text, #0f172a);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .instructor-main {
@@ -22,8 +22,8 @@
   gap: 1rem;
   min-height: 82px;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border, #e2e8f0);
-  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -40,10 +40,10 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
 }
 
@@ -51,7 +51,7 @@
   margin: 0;
   font-size: clamp(1.05rem, 1.4vw, 1.35rem);
   line-height: 1.25;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -68,9 +68,9 @@
   align-items: center;
   gap: 0.7rem;
   padding: 0.45rem 0.7rem 0.45rem 0.45rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
 }
 
 .instructor-user-avatar {
@@ -95,7 +95,7 @@
 }
 
 .instructor-user-copy span {
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
   font-size: 0.68rem;
 }
 
@@ -104,10 +104,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text, #0f172a);
+  background: var(--color-surface);
+  color: var(--color-text);
   padding: 0.68rem 0.9rem;
   font-weight: 700;
   cursor: pointer;

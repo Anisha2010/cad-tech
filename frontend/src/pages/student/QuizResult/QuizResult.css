@@ -5,11 +5,11 @@
 }
 
 .student-result-card {
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #17212b);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
   padding: 1.5rem;
 }
 
@@ -36,13 +36,13 @@
 }
 
 .student-result-status.passed {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .student-result-status.failed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .student-result-grid {
@@ -53,8 +53,8 @@
 }
 
 .student-stat-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: 0.9rem;
   padding: 1rem;
   display: grid;
@@ -62,7 +62,7 @@
 }
 
 .student-stat-box span {
-  color: #64748b;
+  color: var(--color-text-muted);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -76,26 +76,26 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  color: #475569;
+  color: var(--color-text-secondary);
   margin-bottom: 1rem;
 }
 
 .student-review-panel {
   margin-top: 1.25rem;
-  border: 1px solid var(--color-border, #e2e8f0);
-  background: var(--color-surface-muted, #f8fafc);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
   border-radius: 8px;
   padding: 1rem;
 }
 
 .student-review-panel.neutral {
-  background: #fff7ed;
-  border-color: #fdba74;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
 }
 
 .student-review-item {
   padding: 0.85rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .student-review-item:last-child {
@@ -114,9 +114,9 @@
   place-items: center;
   min-height: 220px;
   text-align: center;
-  background: var(--color-surface, #fff);
-  color: var(--color-text, #17212b);
-  border: 1px solid var(--color-border, #e2e8f0);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 2rem;
 }

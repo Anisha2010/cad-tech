@@ -4,10 +4,10 @@
   margin: 0 auto;
   width: 100%;
   padding: 24px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--shadow-card);
 }
 .admin-cad-panel h2 {
   margin: 0 0 18px;
@@ -28,22 +28,22 @@
 .admin-cad-form label {
   display: grid;
   gap: 8px;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 0.86rem;
   font-weight: 700;
 }
 .admin-cad-form input, .admin-cad-form textarea {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-input-border);
   border-radius: 8px;
   padding: 10px 12px;
-  background: #fff;
-  color: #0f172a;
+  background: var(--color-input-bg);
+  color: var(--color-text);
 }
 .admin-cad-image-field {
   display: grid;
   gap: 8px;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -54,13 +54,13 @@
   width: 128px;
   height: 128px;
   object-fit: cover;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .admin-cad-image-empty {
   margin: 0;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 0.82rem;
   font-weight: 500;
 }

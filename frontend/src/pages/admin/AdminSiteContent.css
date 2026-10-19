@@ -4,8 +4,8 @@
 .admin-site-settings > .admin-page-header h1 { margin: 4px 0 7px; font-size: 1.65rem; }
 .admin-site-settings > .admin-page-header p:last-child { max-width: 760px; margin: 0; color: var(--color-text-muted); line-height: 1.5; }
 .site-settings-content { display: grid; gap: 16px; }
-.site-settings-content > .admin-error { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 12px 14px; border-left: 3px solid #b42318; background: #fff1f0; color: #8a1c13; }
-.admin-site-settings .admin-success { margin: 0; padding: 11px 14px; border-left: 3px solid #19734e; background: #eaf5ee; color: #155b3d; }
+.site-settings-content > .admin-error { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; padding: 12px 14px; border-left: 3px solid var(--color-danger-border); background: var(--color-danger-bg); color: var(--color-danger); }
+.admin-site-settings .admin-success { margin: 0; padding: 11px 14px; border-left: 3px solid var(--color-success-border); background: var(--color-success-bg); color: var(--color-success); }
 .site-settings-summary, .site-settings-section { min-width: 0; padding: 19px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); box-shadow: var(--shadow-card); }
 .site-settings-summary > header, .site-settings-section > header { margin-bottom: 16px; }
 .site-settings-summary h2, .site-settings-section h2 { margin: 0; font-size: 1.05rem; font-weight: 750; }

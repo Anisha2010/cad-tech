@@ -24,7 +24,7 @@
   height: 46px;
   border-radius: 12px;
   background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .summary-meta {
@@ -50,7 +50,7 @@
 .summary-loading .skeleton-card {
   min-height: 120px;
   border-radius: var(--radius-md);
-  background: linear-gradient(90deg, rgba(148, 163, 184, 0.14), rgba(148, 163, 184, 0.24), rgba(148, 163, 184, 0.14));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-text-muted) 16%, transparent), color-mix(in srgb, var(--color-text-muted) 28%, transparent), color-mix(in srgb, var(--color-text-muted) 16%, transparent));
   background-size: 200% 100%;
   animation: dashboard-skeleton 1.2s ease-in-out infinite;
 }
