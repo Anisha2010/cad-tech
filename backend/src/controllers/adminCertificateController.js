@@ -37,7 +37,7 @@ export const revokeAdminCertificate = asyncHandler(async (req, res) => {
       revocationReason: reason,
       updatedAt: new Date()
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return sendSuccess(res, { certificate: updated }, 'Certificate revoked successfully.')
 })

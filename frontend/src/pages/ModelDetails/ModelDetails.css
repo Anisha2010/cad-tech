@@ -1,6 +1,6 @@
 .model-details { min-height: calc(100vh - var(--navbar-height)); padding: 2rem 0 var(--section-spacing); background: var(--color-bg); }
 .model-breadcrumb { display: flex; flex-wrap: wrap; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.85rem; }
-.model-breadcrumb a { color: var(--color-primary); }
+.model-breadcrumb a { color: var(--color-text); }
 .model-detail-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: center; gap: clamp(2rem, 7vw, 7rem); padding: clamp(3rem, 8vw, 7rem) 0; }
 .model-detail-image { position: relative; display: grid; min-height: 360px; aspect-ratio: 4 / 3; place-items: center; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-elevated); }
 .model-detail-image .model-blueprint { position: absolute; inset: 0; background: url('/images/hero/blueprint-grid.svg') repeat; }
@@ -11,4 +11,5 @@
 .detail-formats { margin: 2rem 0; color: var(--color-text); }
 .detail-formats strong { display: block; margin-bottom: 0.7rem; }
 .detail-note { border-left: 3px solid var(--color-accent); padding-left: 1rem; font-size: 0.9rem !important; }
+.purchase-owned { color: var(--color-primary); font-weight: 700; }
 @media (max-width: 767px) { .model-detail-grid { grid-template-columns: 1fr; gap: 2rem; } .model-detail-image { min-height: 280px; } }

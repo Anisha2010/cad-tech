@@ -28,7 +28,7 @@ const normalizeProduct = (product = {}) => {
     ? Number(product.priceInPaise)
     : (Number.isInteger(Number(product.salePriceInPaise)) ? Number(product.salePriceInPaise) : 0)
 
-  const purchaseAvailable = !Boolean(product.isFree) && Number.isInteger(Number(priceInPaise)) && Number(priceInPaise) > 0
+  const purchaseAvailable = !product.isFree && Number.isInteger(Number(priceInPaise)) && Number(priceInPaise) > 0
 
   const thumbnailUrl = typeof product.thumbnailUrl === 'string' && product.thumbnailUrl.trim()
     ? product.thumbnailUrl.trim()
@@ -111,7 +111,7 @@ export const getCadProductBySlug = async (slug) => {
   return normalizeProduct(response.data?.data?.product || null)
 }
 
-const request = (method, path, data) => axios({ method, url: `${apiBaseUrl}${path}`, data, withCredentials: true, timeout: 20000 })
+const request = (method, path, data, options = {}) => axios({ method, url: `${apiBaseUrl}${path}`, data, withCredentials: true, timeout: 20000, ...options })
 
 export const getCadServiceCatalog = async (params = {}) => {
   const safeParams = {}
@@ -193,7 +193,7 @@ export const cancelStudentServiceRequest = async (enquiryId) => {
   return response.data?.data || response.data
 }
 
-export const createCadPaymentOrder = (productSlug) => request('post', '/cad-payments/orders', { productSlug })
+export const createCadPaymentOrder = (productSlug, idempotencyKey) => request('post', '/cad-payments/orders', { productSlug }, { headers: { 'Idempotency-Key': idempotencyKey } })
 export const verifyCadPayment = (details) => request('post', '/cad-payments/verify', details)
 
 export default {

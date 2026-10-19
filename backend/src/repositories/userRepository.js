@@ -45,7 +45,7 @@ export const updateUser = async (userId, updates) => {
   for (const field of ['name', 'phone', 'avatarUrl', 'authProviders']) {
     if (Object.hasOwn(updates, field)) allowedUpdates[field] = updates[field]
   }
-  const user = await User.findByIdAndUpdate(userId, allowedUpdates, { new: true, runValidators: true }).exec()
+  const user = await User.findByIdAndUpdate(userId, allowedUpdates, { returnDocument: 'after', runValidators: true }).exec()
   return toPlainUser(user)
 }
 
@@ -56,7 +56,7 @@ export const updateProfile = async (userId, updates) => {
     if (Object.hasOwn(updates, field)) allowedUpdates[field] = updates[field]
   }
   if (Object.hasOwn(updates, 'email')) allowedUpdates.email = normalizeEmail(updates.email)
-  const user = await User.findByIdAndUpdate(userId, allowedUpdates, { new: true, runValidators: true }).exec()
+  const user = await User.findByIdAndUpdate(userId, allowedUpdates, { returnDocument: 'after', runValidators: true }).exec()
   return toPlainUser(user)
 }
 
@@ -66,13 +66,13 @@ export const markLogin = async (userId) => {
     _id: userId,
     $or: [{ accountStatus: 'active' }, { accountStatus: { $exists: false } }],
     deletedAt: null
-  }, { $set: { lastLoginAt: new Date() } }, { new: true }).exec()
+  }, { $set: { lastLoginAt: new Date() } }, { returnDocument: 'after' }).exec()
   return toPlainUser(user)
 }
 
 export const setPasswordReset = async (userId, tokenHash, expiresAt) => {
   if (!mongoose.isValidObjectId(userId)) return null
-  return User.findByIdAndUpdate(userId, { passwordResetTokenHash: tokenHash, passwordResetExpiresAt: expiresAt }, { new: true }).exec()
+  return User.findByIdAndUpdate(userId, { passwordResetTokenHash: tokenHash, passwordResetExpiresAt: expiresAt }, { returnDocument: 'after' }).exec()
 }
 
 export const clearPasswordReset = async (userId, tokenHash) => {
@@ -80,7 +80,7 @@ export const clearPasswordReset = async (userId, tokenHash) => {
   return User.findOneAndUpdate(
     { _id: userId, passwordResetTokenHash: tokenHash },
     { $unset: { passwordResetTokenHash: 1, passwordResetExpiresAt: 1 } },
-    { new: true }
+    { returnDocument: 'after' }
   ).exec()
 }
 
@@ -92,7 +92,7 @@ export const hasValidPasswordReset = async (tokenHash, now = new Date()) => Bool
 export const consumePasswordReset = async (tokenHash, passwordHash, now = new Date()) => User.findOneAndUpdate(
   { passwordResetTokenHash: tokenHash, passwordResetExpiresAt: { $gt: now } },
   { $set: { passwordHash }, $unset: { passwordResetTokenHash: 1, passwordResetExpiresAt: 1 }, $inc: { authVersion: 1 } },
-  { new: true }
+  { returnDocument: 'after' }
 ).select('+passwordHash').exec()
 
 export const issueLoginOtp = async (userId, otpHash, expiresAt, sentAt, cooldownCutoff) => {
@@ -100,7 +100,7 @@ export const issueLoginOtp = async (userId, otpHash, expiresAt, sentAt, cooldown
   if (cooldownCutoff) filter.$or = [{ loginOtpSentAt: null }, { loginOtpSentAt: { $exists: false } }, { loginOtpSentAt: { $lte: cooldownCutoff } }]
   return User.findOneAndUpdate(filter, {
     $set: { loginOtpHash: otpHash, loginOtpExpiresAt: expiresAt, loginOtpAttempts: 0, loginOtpSentAt: sentAt }
-  }, { new: true }).exec()
+  }, { returnDocument: 'after' }).exec()
 }
 
 export const clearLoginOtp = async (userId, otpHash) => {
@@ -109,7 +109,7 @@ export const clearLoginOtp = async (userId, otpHash) => {
   if (otpHash) filter.loginOtpHash = otpHash
   return User.findOneAndUpdate(filter, {
     $unset: { loginOtpHash: 1, loginOtpExpiresAt: 1, loginOtpAttempts: 1, loginOtpSentAt: 1 }
-  }, { new: true }).exec()
+  }, { returnDocument: 'after' }).exec()
 }
 
 export const recordLoginOtpFailure = async (email, otpHash, now = new Date(), maxAttempts = 5) => {
@@ -118,7 +118,7 @@ export const recordLoginOtpFailure = async (email, otpHash, now = new Date(), ma
     loginOtpHash: otpHash,
     loginOtpExpiresAt: { $gt: now },
     loginOtpAttempts: { $lt: maxAttempts }
-  }, { $inc: { loginOtpAttempts: 1 } }, { new: true }).select('+loginOtpAttempts').exec()
+  }, { $inc: { loginOtpAttempts: 1 } }, { returnDocument: 'after' }).select('+loginOtpAttempts').exec()
   if (!user) return maxAttempts
   if (user.loginOtpAttempts >= maxAttempts) {
     await User.findOneAndUpdate({ _id: user._id, loginOtpHash: otpHash }, {
@@ -136,14 +136,14 @@ export const consumeLoginOtp = async (email, otpHash, now = new Date(), maxAttem
   loginOtpAttempts: { $lt: maxAttempts }
 }, {
   $unset: { loginOtpHash: 1, loginOtpExpiresAt: 1, loginOtpAttempts: 1 }
-}, { new: true }).exec()
+}, { returnDocument: 'after' }).exec()
 
 export const issueEmailVerification = async (userId, tokenHash, expiresAt, sentAt, cooldownCutoff) => {
   const filter = { _id: userId, emailVerified: false }
   if (cooldownCutoff) filter.$or = [{ emailVerificationSentAt: null }, { emailVerificationSentAt: { $exists: false } }, { emailVerificationSentAt: { $lte: cooldownCutoff } }]
   return User.findOneAndUpdate(filter, {
     $set: { emailVerificationTokenHash: tokenHash, emailVerificationExpiresAt: expiresAt, emailVerificationSentAt: sentAt }
-  }, { new: true }).exec()
+  }, { returnDocument: 'after' }).exec()
 }
 
 export const clearEmailVerification = async (userId, tokenHash) => {
@@ -152,7 +152,7 @@ export const clearEmailVerification = async (userId, tokenHash) => {
   if (tokenHash) filter.emailVerificationTokenHash = tokenHash
   return User.findOneAndUpdate(filter, {
     $unset: { emailVerificationTokenHash: 1, emailVerificationExpiresAt: 1, emailVerificationSentAt: 1 }
-  }, { new: true }).exec()
+  }, { returnDocument: 'after' }).exec()
 }
 
 export const consumeEmailVerification = async (tokenHash, now = new Date()) => User.findOneAndUpdate({
@@ -162,7 +162,7 @@ export const consumeEmailVerification = async (tokenHash, now = new Date()) => U
 }, {
   $set: { emailVerified: true },
   $unset: { emailVerificationTokenHash: 1, emailVerificationExpiresAt: 1, emailVerificationSentAt: 1 }
-}, { new: true }).exec()
+}, { returnDocument: 'after' }).exec()
 
 export const changePassword = async (userId, passwordHash) => {
   if (!mongoose.isValidObjectId(userId)) return null
@@ -170,7 +170,7 @@ export const changePassword = async (userId, passwordHash) => {
     $set: { passwordHash },
     $unset: { passwordResetTokenHash: 1, passwordResetExpiresAt: 1 },
     $inc: { authVersion: 1 }
-  }, { new: true }).exec()
+  }, { returnDocument: 'after' }).exec()
 }
 
 export default { getUserById, getUserByEmail, getUserByProvider, createUser, updateUser, updateProfile, markLogin, setPasswordReset, clearPasswordReset, hasValidPasswordReset, consumePasswordReset, issueLoginOtp, clearLoginOtp, recordLoginOtpFailure, consumeLoginOtp, issueEmailVerification, clearEmailVerification, consumeEmailVerification, changePassword }

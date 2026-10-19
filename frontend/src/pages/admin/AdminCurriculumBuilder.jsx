@@ -197,6 +197,19 @@ function AdminCurriculumBuilder() {
     }
   }
 
+  const handleLessonPublishToggle = async (sectionId, lesson) => {
+    setError('')
+    setSaving(true)
+    try {
+      await updateCurriculumLesson(courseId, sectionId, lesson.id, { isPublished: lesson.isPublished === false })
+      await refreshCurriculum()
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Unable to update lesson publication.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleDeleteLesson = async (sectionId, lessonId) => {
     if (!window.confirm('Archive this lesson and hide it from students?')) return
     setSaving(true)
@@ -320,6 +333,14 @@ function AdminCurriculumBuilder() {
                     ) : (
                       <button type="button" className="button button-outline" onClick={() => setEditingLessonId(lesson.id)}><Video size={15} /> Edit</button>
                     )}
+                    <button
+                      type="button"
+                      className={lesson.isPublished === false ? 'button button-primary' : 'button button-outline'}
+                      disabled={saving}
+                      onClick={() => handleLessonPublishToggle(section.id, lesson)}
+                    >
+                      {lesson.isPublished === false ? 'Publish' : 'Unpublish'}
+                    </button>
                     <button type="button" className="button button-danger" onClick={() => handleDeleteLesson(section.id, lesson.id)}><Trash2 size={15} /> Archive</button>
                   </div>
                 </div>

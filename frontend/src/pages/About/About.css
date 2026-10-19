@@ -19,7 +19,7 @@
 .founder-copy { max-width: 680px; }
 .founder-copy .section-heading { margin: 0.55rem 0 1.5rem; }
 .founder-name { margin: 0; color: var(--color-text); font-size: 1.25rem; font-weight: 800; }
-.founder-designation { margin: 0.3rem 0 1.25rem; color: var(--color-primary); font-size: 0.9rem; font-weight: 700; }
+.founder-designation { margin: 0.3rem 0 1.25rem; color: var(--color-secondary); font-size: 0.9rem; font-weight: 700; }
 .founder-biography p { margin: 0 0 0.9rem; color: var(--color-text-muted); font-size: 0.96rem; line-height: 1.75; }
 .founder-biography p:last-child { margin-bottom: 0; }
 .about-section-heading { margin-bottom: 2rem; }
@@ -27,20 +27,20 @@
 .mission-grid, .support-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 .support-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .about-info-card, .value-card { display: flex; min-height: 220px; flex-direction: column; align-items: flex-start; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.5rem; background: var(--color-card-bg); box-shadow: var(--shadow-card); }
-.about-card-icon { display: grid; width: 50px; height: 50px; margin-bottom: 1.25rem; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--color-primary) 13%, transparent); color: var(--color-primary); }
+.about-card-icon { display: grid; width: 50px; height: 50px; margin-bottom: 1.25rem; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--color-accent) 13%, transparent); color: var(--color-primary); }
 .about-info-card:nth-child(even) .about-card-icon { background: color-mix(in srgb, var(--color-accent) 13%, transparent); color: var(--color-accent); }
 .about-info-card h3, .value-card h3, .approach-step h3 { margin: 0; color: var(--color-text); font-size: 1.15rem; font-weight: 800; }
 .about-info-card p, .value-card p, .approach-step p { margin: 0.7rem 0 0; color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.65; }
 .support-card { color: var(--color-text); transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition); }
 .support-card:hover { border-color: var(--color-primary); color: var(--color-text); transform: translateY(-4px); }
-.about-inline-link { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: auto; padding-top: 1.25rem; color: var(--color-primary); font-size: 0.86rem; font-weight: 800; }
+.about-inline-link { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: auto; padding-top: 1.25rem; color: var(--color-secondary); font-size: 0.86rem; font-weight: 800; }
 .approach-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .approach-step { position: relative; border-top: 2px solid var(--color-border); padding-top: 1.25rem; }
 .step-number { color: var(--color-primary); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; }
 .approach-icon { display: grid; width: 44px; height: 44px; margin: 1rem 0; place-items: center; border-radius: 12px; background: color-mix(in srgb, var(--color-accent) 13%, transparent); color: var(--color-accent); }
 .values-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .value-card { min-height: 185px; padding: 1.25rem; }
-.value-icon { margin-bottom: 1.1rem; color: var(--color-primary); }
+.value-icon { margin-bottom: 1.1rem; color: var(--color-secondary); }
 .about-final-cta { padding: 0 0 var(--section-spacing); background: var(--color-bg); }
 .about-final-cta-inner { position: relative; display: flex; min-height: 250px; align-items: center; justify-content: space-between; gap: 2rem; overflow: hidden; border-radius: var(--radius-lg); padding: clamp(2rem, 5vw, 4rem); background: var(--color-footer-bg); }
 .about-cta-grid { position: absolute; inset: 0; background: url('/images/hero/blueprint-grid.svg') repeat; opacity: 0.25; }

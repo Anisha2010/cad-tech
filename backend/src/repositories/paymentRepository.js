@@ -21,14 +21,14 @@ export const getReusablePendingPayment = async (userId, courseId, options = {}) 
 export const updatePaymentProviderOrder = async (id, providerOrderId, options = {}) => Payment.findOneAndUpdate(
   { _id: id, status: 'creating' },
   { $set: { providerOrderId, status: 'pending' } },
-  { new: true, session: options.session }
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const markPaymentPaid = async (id, providerPaymentId, options = {}) => {
   const payment = await Payment.findOneAndUpdate(
     { _id: id, status: { $in: ['creating', 'created', 'pending', 'failed'] } },
     { $set: { status: 'paid', providerPaymentId, verifiedAt: new Date(), failedAt: null, failureCode: null, failureDescription: null } },
-    { new: true, session: options.session }
+    { returnDocument: 'after', session: options.session }
   ).lean()
   return payment
 }
@@ -36,19 +36,19 @@ export const markPaymentPaid = async (id, providerPaymentId, options = {}) => {
 export const markPaymentFailed = async (id, failure = {}, options = {}) => Payment.findOneAndUpdate(
   { _id: id, status: { $in: ['creating', 'created', 'pending', 'failed'] } },
   { $set: { status: 'failed', failedAt: new Date(), failureCode: failure.code || null, failureDescription: failure.description || null } },
-  { new: true, session: options.session }
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const markPaymentRefunded = async (id, options = {}) => Payment.findOneAndUpdate(
   { _id: id, status: 'paid' },
   { $set: { status: 'refunded', refundedAt: new Date() } },
-  { new: true, session: options.session }
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const attachEnrollment = async (id, enrollmentId, options = {}) => Payment.findOneAndUpdate(
   { _id: id, enrollmentId: null },
   { $set: { enrollmentId } },
-  { new: true, session: options.session }
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const getStudentPayments = async ({ userId, page = 1, limit = 12 }) => {

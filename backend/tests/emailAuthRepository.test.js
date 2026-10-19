@@ -32,7 +32,7 @@ test('OTP issuance atomically enforces cooldown and replaces the previous code w
     $or: [{ loginOtpSentAt: null }, { loginOtpSentAt: { $exists: false } }, { loginOtpSentAt: { $lte: cutoff } }]
   })
   assert.deepEqual(update, { $set: { loginOtpHash: 'otp-hash', loginOtpExpiresAt: new Date(sentAt.getTime() + 600_000), loginOtpAttempts: 0, loginOtpSentAt: sentAt } })
-  assert.deepEqual(options, { new: true })
+  assert.deepEqual(options, { returnDocument: 'after' })
 })
 
 test('OTP and verification consumption atomically require unexpired, unused state', async () => {
@@ -51,11 +51,11 @@ test('OTP and verification consumption atomically require unexpired, unused stat
   assert.deepEqual(calls[0], {
     filter: { email: 'person@example.com', emailVerified: { $ne: false }, loginOtpHash: 'otp-hash', loginOtpExpiresAt: { $gt: now }, loginOtpAttempts: { $lt: 5 } },
     update: { $unset: { loginOtpHash: 1, loginOtpExpiresAt: 1, loginOtpAttempts: 1 } },
-    options: { new: true }
+    options: { returnDocument: 'after' }
   })
   assert.deepEqual(calls[1], {
     filter: { emailVerificationTokenHash: 'verification-hash', emailVerificationExpiresAt: { $gt: now }, emailVerified: false },
     update: { $set: { emailVerified: true }, $unset: { emailVerificationTokenHash: 1, emailVerificationExpiresAt: 1, emailVerificationSentAt: 1 } },
-    options: { new: true }
+    options: { returnDocument: 'after' }
   })
 })

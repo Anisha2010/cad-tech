@@ -150,7 +150,7 @@ export const updateDraftText = async ({ studentId, submissionId, textAnswer }) =
       textAnswer: cleanText,
       updatedAt: new Date()
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }
@@ -212,7 +212,7 @@ export const uploadSubmissionAttachment = async ({ studentId, submissionId, file
   const updated = await AssignmentSubmission.findByIdAndUpdate(submissionId, {
     $push: { attachments: item },
     $set: { updatedAt: new Date() }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }
@@ -232,7 +232,7 @@ export const removeSubmissionAttachment = async ({ studentId, submissionId, atta
   const updated = await AssignmentSubmission.findByIdAndUpdate(submissionId, {
     $pull: { attachments: { _id: new mongoose.Types.ObjectId(attachmentId) } },
     $set: { updatedAt: new Date() }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }
@@ -299,7 +299,7 @@ export const submitAssignmentFinal = async ({ studentId, submissionId }) => {
       submittedAt: now,
       updatedAt: now
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }
@@ -418,7 +418,7 @@ export const gradeSubmission = async ({ instructorId, submissionId, marksAwarded
       status: 'graded',
       updatedAt: new Date()
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }
@@ -441,7 +441,7 @@ export const requestResubmission = async ({ instructorId, submissionId, reason }
       resubmissionRequestedAt: new Date(),
       updatedAt: new Date()
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return buildSubmissionSummary(updated)
 }

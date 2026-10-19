@@ -69,6 +69,8 @@ cd backend && npm install
 
 ### Running Development Servers
 
+Normal backend development uses the `cadtech` database. The backend validates that `MONGODB_URI` targets the `cadtech` database and refuses other names. No local MongoDB service is currently assumed; configure the `cadtech` target in ignored `backend/.env` before using `npm run dev`.
+
 Run each application from its own folder in a separate terminal.
 ```bash
 # Terminal 1 - Frontend (http://localhost:5173)
@@ -81,6 +83,12 @@ npm run dev
 cd backend
 npm run dev
 ```
+
+For the already configured isolated E2E database, start the backend with `cd backend && npm run start:e2e`. This command verifies `backend/.env.e2e.local` targets exactly `cadtech_e2e`, ignores the normal `.env` MongoDB value, and binds the API to `127.0.0.1`. Run the frontend on `127.0.0.1:5173` or `localhost:5173`; both exact loopback origins are permitted by E2E CORS.
+
+`GET /health` reports the current MongoDB connection and actual database name. `GET /ready` additionally checks the required CAD order reservation indexes and returns 503 unless both the connection and indexes are valid.
+
+For local email testing, configure the backend with `EMAIL_PROVIDER=mock` and `EMAIL_FROM=CadTech <no-reply@localhost>`. Transactional messages stay in memory and can be inspected on the loopback-only development endpoint at `/__dev/email-preview`; the preview may contain local authentication tokens. The separately invoked `cd backend && npm run email:smoke` sends only a fixed Resend provider-delivery test to Resend's simulated recipient. See [DEPLOYMENT.md](./DEPLOYMENT.md#local-email-development-and-testing) for complete local and production email configuration.
 
 ### Building for Production
 

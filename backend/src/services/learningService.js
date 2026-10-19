@@ -206,7 +206,7 @@ export const updateLessonProgress = async ({ userId, courseSlug, lessonId, paylo
         completedAt: nextStatusValue === 'completed' ? new Date() : null
       }
     },
-    { new: true }
+    { returnDocument: 'after' }
   )
 
   return {
@@ -254,7 +254,7 @@ export const updateLessonPosition = async ({ userId, courseSlug, lessonId, paylo
         progressPercentage: Number(enrollment.progressPercentage || 0)
       }
     },
-    { new: true }
+    { returnDocument: 'after' }
   )
 
   return {

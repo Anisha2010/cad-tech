@@ -34,7 +34,7 @@
   align-items: center;
   gap: 0.45rem;
   margin-bottom: clamp(0.8rem, 2vw, 1.35rem);
-  color: var(--color-primary);
+  color: var(--color-accent);
   font-size: clamp(0.7rem, 1.2vw, 0.78rem);
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -57,13 +57,13 @@
 }
 
 .hero-copy h1 span {
-  color: var(--color-primary);
+  color: var(--color-accent);
   display: block;
 }
 
 .hero-copy p {
   margin: clamp(0.8rem, 1.5vw, 1.5rem) 0 clamp(1.5rem, 2.5vw, 2.5rem) 0;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: clamp(0.95rem, 1.5vw, 1.15rem);
   line-height: 1.7;
   overflow: visible;
@@ -82,6 +82,17 @@
   min-height: clamp(44px, 5vh, 48px);
   padding-inline: clamp(1rem, 2vw, 1.15rem);
   flex-shrink: 0;
+}
+
+.hero-actions .button-outline {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.hero-actions .button-outline:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 
 .hero-visual {
@@ -108,7 +119,7 @@
   width: clamp(250px, 70%, 600px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   filter: blur(65px);
   pointer-events: none;
   z-index: 0;
@@ -138,10 +149,10 @@
   align-items: center;
   justify-content: center;
   gap: clamp(0.5rem, 1vw, 0.6rem);
-  border: 1px dashed color-mix(in srgb, var(--color-primary) 55%, transparent);
+  border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface-elevated);
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-align: center;
   padding: clamp(1rem, 2vw, 2rem);
   overflow: visible;

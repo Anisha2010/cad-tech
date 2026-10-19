@@ -3,6 +3,7 @@ import * as db from '../repositories/userRepository.js'
 import config from '../config/environment.js'
 import { getSafeSmtpErrorDetails, sendLoginOtpEmail, sendVerificationEmail } from './emailService.js'
 import { AppError } from '../utils/AppError.js'
+import { buildEmailVerificationUrl } from '../utils/emailVerificationUrl.js'
 
 const OTP_LENGTH = 6
 const boundedInteger = (value, fallback, minimum, maximum) => Number.isInteger(value) && value >= minimum && value <= maximum ? value : fallback
@@ -20,6 +21,7 @@ export const createEmailAuthService = ({
   otpMailer = sendLoginOtpEmail,
   verificationMailer = sendVerificationEmail,
   frontendUrl = config.frontend_url,
+  isProduction = config.node_env === 'production',
   secret = config.session_secret,
   now = () => new Date(),
   generateOtp = () => crypto.randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, '0'),
@@ -89,17 +91,21 @@ export const createEmailAuthService = ({
     const expiresAt = new Date(currentTime.getTime() + verificationTtlMs)
     const cooldownCutoff = ignoreCooldown ? null : new Date(currentTime.getTime() - resendCooldownMs)
     const userId = user._id || user.id
+    const verificationUrl = buildEmailVerificationUrl(frontendUrl, token, { production: isProduction })
     const issued = await repository.issueEmailVerification(userId, tokenHash, expiresAt, currentTime, cooldownCutoff)
     if (!issued) return false
 
-    const verificationUrl = `${frontendUrl.replace(/\/+$/, '')}/verify-email?token=${encodeURIComponent(token)}`
     try {
       const sent = await verificationMailer(user.email, verificationUrl)
       if (!sent) await repository.clearEmailVerification(userId, tokenHash)
       return sent
     } catch (error) {
       await repository.clearEmailVerification(userId, tokenHash)
-      logger.error('[Auth] Email verification delivery failed.', getSafeSmtpErrorDetails(error))
+      logger.error('[Auth] Email verification delivery failed.', {
+        provider: config.email_provider,
+        operation: 'email_verification',
+        ...(typeof error?.code === 'string' ? { code: error.code } : {})
+      })
       return false
     }
   }

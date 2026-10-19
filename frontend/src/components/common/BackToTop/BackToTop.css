@@ -7,20 +7,24 @@
   width: 56px;
   height: 56px;
   place-items: center;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-accent);
   border-radius: 14px;
-  background: var(--color-surface);
+  background: var(--color-accent);
   box-shadow: var(--shadow-card);
-  color: var(--color-primary);
+  color: #292B33;
   cursor: pointer;
   transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
 }
 
 .back-to-top:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #fff;
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+  color: #292B33;
   transform: translateY(-2px);
+}
+
+.back-to-top svg {
+  color: #292B33;
 }
 
 .back-to-top:focus-visible {

@@ -131,7 +131,7 @@ export const updateInstructorCourse = async ({ instructorId, courseId, payload =
     return serializeCourse(course)
   }
 
-  const nextCourse = await Course.findByIdAndUpdate(courseId, { $set: { ...updates, updatedBy: instructorId, reviewStatus: course.reviewStatus === 'changes_requested' ? 'changes_requested' : 'not_submitted' } }, { new: true, runValidators: true }).lean()
+  const nextCourse = await Course.findByIdAndUpdate(courseId, { $set: { ...updates, updatedBy: instructorId, reviewStatus: course.reviewStatus === 'changes_requested' ? 'changes_requested' : 'not_submitted' } }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeCourse(nextCourse)
 }
 
@@ -168,7 +168,7 @@ export const submitCourseForReview = async ({ instructorId, courseId }) => {
       reviewFeedback: null,
       updatedBy: instructorId
     }
-  }, { new: true }).lean()
+  }, { returnDocument: 'after' }).lean()
 
   return serializeCourse(updated)
 }
@@ -194,7 +194,7 @@ export const assignInstructorToCourse = async ({ courseId, instructorId, actorId
       updatedBy: actorId,
       reviewStatus: instructorId ? course.reviewStatus : 'not_submitted'
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeCourse(updated)
 }
@@ -210,7 +210,7 @@ export const approveCourseReview = async ({ courseId, adminId, feedback = null }
       reviewFeedback: null,
       updatedBy: adminId
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeCourse(updated)
 }
 
@@ -228,7 +228,7 @@ export const requestCourseChanges = async ({ courseId, adminId, feedback }) => {
       reviewFeedback: cleanFeedback,
       updatedBy: adminId
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeCourse(updated)
 }
 

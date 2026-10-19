@@ -32,7 +32,7 @@ img {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(6, 182, 212, 0.55);
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
   outline-offset: 3px;
 }
 
@@ -73,7 +73,7 @@ body,
 .section-description { color: var(--color-text-secondary); line-height: 1.7; }
 .surface-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-card); }
 .primary-button, .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: var(--radius-sm); padding: 0.7rem 1rem; font-weight: 700; }
-.primary-button { background: var(--color-primary); color: var(--color-bg); }
+.primary-button { background: var(--color-accent); color: var(--color-primary); }
 .secondary-button { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
 .form-control { border-color: var(--color-input-border); background: var(--color-input-bg); color: var(--color-text); }
 .page-section { padding-block: var(--section-spacing); }
@@ -113,3 +113,26 @@ body,
 .surface-dark .button-primary, [data-surface="dark"] .button-primary { background-color: var(--surface-dark-button-bg); color: var(--surface-dark-button-text); }
 .surface-dark .button-primary:hover, [data-surface="dark"] .button-primary:hover { background-color: var(--surface-dark-button-hover); color: var(--surface-dark-button-text); }
 .surface-dark .button-secondary, [data-surface="dark"] .button-secondary { background: transparent; border-color: var(--surface-dark-border); color: var(--surface-dark-text); }
+
+.auth-brand-panel .auth-brand,
+.auth-brand-panel .auth-brand-copy h1,
+.about-final-cta .about-final-cta-inner h2,
+.services-final-cta .services-cta-inner h2,
+.service-details .service-detail-cta h2,
+.site-footer .footer-brand,
+.site-footer .footer-column h2 { color: var(--surface-dark-heading); }
+
+.about-hero .about-hero-copy h1,
+.services-hero .services-hero-copy h1 { color: var(--color-text); }
+
+.about-hero .about-hero-copy p,
+.services-hero .services-hero-copy p { color: var(--color-text-secondary); }
+
+.course-pagination button:hover:not(:disabled),
+.course-pagination button.is-current,
+.model-pagination button:hover:not(:disabled),
+.model-pagination button.is-current {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-primary);
+}

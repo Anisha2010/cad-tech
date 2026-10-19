@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, FileText, Save, Send } from 'lucide-react'
 import { createStudentSubmissionDraft, getStudentAssignment, removeStudentSubmissionAttachment, submitStudentSubmission, updateStudentSubmission, uploadStudentSubmissionAttachment } from '../../../services/studentAssignmentService.js'
 import './AssignmentDetails.css'
@@ -26,7 +26,6 @@ function statusLabel(value) {
 
 function AssignmentDetails() {
   const { assignmentId } = useParams()
-  const navigate = useNavigate()
   const [assignment, setAssignment] = useState(null)
   const [submission, setSubmission] = useState(null)
   const [textAnswer, setTextAnswer] = useState('')

@@ -11,13 +11,13 @@
 .level-intermediate { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)); color: var(--color-accent); }
 .level-advanced { border-color: #fb923c; background: color-mix(in srgb, #f97316 15%, var(--color-surface)); color: #ea580c; }
 .model-card-content { display: flex; min-height: 278px; flex: 1; flex-direction: column; padding: 1.25rem; }
-.model-category { margin-bottom: 0.55rem; color: var(--color-primary); font-size: 0.73rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.model-category { margin-bottom: 0.55rem; color: var(--color-text-secondary); font-size: 0.73rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .model-card h3 { margin: 0; color: var(--color-text); font-size: 1.2rem; font-weight: 800; }
 .model-card p { margin: 0.7rem 0 1rem; color: var(--color-text-muted); font-size: 0.88rem; line-height: 1.6; }
 .model-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: auto; }
 .format-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .format-list span { border: 1px solid var(--color-border); border-radius: 5px; padding: 0.25rem 0.4rem; color: var(--color-text-secondary); font-size: 0.68rem; font-weight: 700; }
 .download-indicator { color: var(--color-text-muted); }
-.model-details-link { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 1.2rem; color: var(--color-primary); font-size: 0.86rem; font-weight: 800; transition: gap var(--transition), color var(--transition); }
-.model-details-link:hover { gap: 0.7rem; color: var(--color-primary-hover); }
+.model-details-link { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 1.2rem; color: var(--color-secondary); font-size: 0.86rem; font-weight: 800; transition: gap var(--transition), color var(--transition); }
+.model-details-link:hover { gap: 0.7rem; color: var(--color-accent-hover); }
 @media (prefers-reduced-motion: reduce) { .model-card, .model-card-image, .model-details-link { transition: none; } }

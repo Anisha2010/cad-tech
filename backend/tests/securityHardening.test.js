@@ -16,7 +16,8 @@ test('app includes production security headers', async () => {
     assert.equal(response.headers.get('x-frame-options'), 'DENY')
     assert.equal(response.headers.get('x-powered-by'), null)
   } finally {
-    server.close()
+    server.closeAllConnections()
+    await new Promise((resolve) => server.close(resolve))
   }
 })
 
@@ -29,7 +30,7 @@ test('auth login endpoint rate limits repeated requests', async () => {
     const requests = Array.from({ length: 11 }, () => fetch(`http://127.0.0.1:${port}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'user@example.com', password: 'password' })
+      body: JSON.stringify({ email: 'invalid', password: 'password' })
     }))
 
     const responses = await Promise.all(requests)
@@ -37,6 +38,7 @@ test('auth login endpoint rate limits repeated requests', async () => {
 
     assert.equal(tooManyRequests, true)
   } finally {
-    server.close()
+    server.closeAllConnections()
+    await new Promise((resolve) => server.close(resolve))
   }
 })

@@ -1,13 +1,13 @@
 import multer from 'multer'
 import asyncHandler from '../utils/asyncHandler.js'
 import { sendError, sendSuccess } from '../utils/response.js'
-import { AppError } from '../utils/AppError.js'
 import * as cadProductService from '../services/cadProductService.js'
+import { getCadSecureStorageMaxBytes } from '../config/storage.js'
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: Number(process.env.CAD_FILE_UPLOAD_MAX_BYTES || 52428800),
+    fileSize: getCadSecureStorageMaxBytes(),
     files: 1
   }
 })
@@ -18,19 +18,12 @@ export const uploadCadSecureProductFile = [
     const file = req.file
     if (!file) return sendError(res, 'No CAD file was provided.', 400)
 
-    try {
-      const result = await cadProductService.uploadCadSecureFile({
-        userId: req.user.id,
-        productId: req.params.productId,
-        file
-      })
-      return sendSuccess(res, { product: result }, 'CAD secure file uploaded successfully.')
-    } catch (error) {
-      if (error instanceof AppError && error.statusCode === 503) {
-        return sendError(res, 'Secure CAD file storage is temporarily unavailable.', 503)
-      }
-      throw error
-    }
+    const result = await cadProductService.uploadCadSecureFile({
+      userId: req.user.id,
+      productId: req.params.productId,
+      file
+    })
+    return sendSuccess(res, { product: result }, 'CAD secure file uploaded successfully.')
   })
 ]
 

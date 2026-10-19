@@ -125,8 +125,8 @@
 .instructor-field select:focus,
 .instructor-field textarea:focus {
   outline: none;
-  border-color: var(--color-primary, #2563eb);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 28%, transparent);
 }
 
 .instructor-field input:disabled,

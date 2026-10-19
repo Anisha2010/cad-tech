@@ -58,7 +58,7 @@ function Footer() {
       <div className="site-container">
         <div className="footer-grid">
           <div className="footer-brand-column">
-            <Link className="footer-brand" to="/"><span className="footer-brand-icon"><Cpu size={19} /></span><span>{brandName}</span></Link>
+            <Link className="footer-brand" to="/"><span className="footer-brand-icon"><Cpu size={19} /></span><span className="footer-brand-name">{brandName}</span></Link>
             <p>{tagline}</p>
             {socialLinks.length > 0 && <nav className="footer-social-links" aria-label="Social media">
               {socialLinks.map(([key, label, Icon]) => <a key={key} href={settings.socialLinks[key]} target="_blank" rel="noreferrer" aria-label={label} title={label}><Icon size={18} aria-hidden="true" /></a>)}

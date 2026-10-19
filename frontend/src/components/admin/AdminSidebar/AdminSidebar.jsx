@@ -1,4 +1,4 @@
-import { Award, BarChart3, BookOpen, Box, CreditCard, GraduationCap, Settings, UserRound, Users, X } from 'lucide-react'
+import { Award, BarChart3, BookOpen, Box, CreditCard, GraduationCap, Settings, Users, X } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import './AdminSidebar.css'
 

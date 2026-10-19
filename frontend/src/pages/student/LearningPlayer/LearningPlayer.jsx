@@ -92,13 +92,12 @@ function LearningPlayer() {
                   <li key={lesson.id} style={{ marginBottom: '0.5rem' }}>
                     <button
                       type="button"
+                      className={`student-learning-lesson-link${selectedLessonId === lesson.id ? ' is-active' : ''}`}
                       onClick={() => handleLessonSelect(lesson)}
                       style={{
                         width: '100%',
                         textAlign: 'left',
-                        border: selectedLessonId === lesson.id ? '1px solid #2563eb' : '1px solid transparent',
                         borderRadius: '0.75rem',
-                        background: selectedLessonId === lesson.id ? '#e0ecff' : '#f3f4f6',
                         padding: '0.75rem 0.8rem',
                         cursor: 'pointer'
                       }}

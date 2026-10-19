@@ -15,7 +15,13 @@ import {
   unpublishCadProductRecord,
   updateCadProductRecord
 } from '../repositories/cadProductRepository.js'
-import { uploadCadSecureFile as uploadSecureCadFile, deleteCadSecureFile as deleteSecureCadFile, validateCadSecureFileUpload } from '../config/storage.js'
+import {
+  CAD_SECURE_UPLOAD_ERROR_CODES,
+  getCadSecureFileResourceType,
+  uploadCadSecureFile as uploadSecureCadFile,
+  deleteCadSecureFile as deleteSecureCadFile,
+  validateCadSecureFileUpload
+} from '../config/storage.js'
 
 const normalizeString = (value, fallback = '') => {
   if (typeof value !== 'string') return fallback
@@ -433,12 +439,18 @@ export const uploadCadSecureFile = async ({ userId, productId, file }) => {
       mimeType: file.mimetype || 'application/octet-stream'
     })
   } catch (error) {
-    if (error instanceof AppError && error.statusCode === 503) throw error
-    throw new AppError('Secure CAD file upload failed.', 400)
+    if (error instanceof AppError && Object.values(CAD_SECURE_UPLOAD_ERROR_CODES).includes(error.code)) throw error
+    throw new AppError(
+      'Secure CAD upload failed.',
+      503,
+      null,
+      CAD_SECURE_UPLOAD_ERROR_CODES.PROVIDER_UPLOAD_FAILED
+    )
   }
 
   const safeSecureFile = {
     provider: uploadMetadata.provider,
+    resourceType: uploadMetadata.resourceType || 'raw',
     publicId: uploadMetadata.publicId,
     storageKey: uploadMetadata.storageKey,
     originalName: uploadMetadata.originalName,
@@ -451,17 +463,23 @@ export const uploadCadSecureFile = async ({ userId, productId, file }) => {
   const product = await updateCadProductRecord(productId, {
     secureFile: safeSecureFile,
     updatedBy: userId
-  })
+  }, { includeSecureFile: true })
 
   if (!product) {
     if (uploadMetadata?.publicId) {
-      await deleteSecureCadFile({ publicId: uploadMetadata.publicId })
+      await deleteSecureCadFile({
+        publicId: uploadMetadata.publicId,
+        resourceType: getCadSecureFileResourceType(uploadMetadata)
+      })
     }
     throw new AppError('Unable to save secure CAD file metadata.', 500)
   }
 
   if (previousPublicId && previousPublicId !== uploadMetadata.publicId) {
-    await deleteSecureCadFile({ publicId: previousPublicId })
+    await deleteSecureCadFile({
+      publicId: previousPublicId,
+      resourceType: getCadSecureFileResourceType(existing.secureFile)
+    })
   }
 
   return product
@@ -474,9 +492,13 @@ export const deleteCadSecureFile = async ({ userId, productId }) => {
   const existing = await findCadProductById(productId)
   if (!existing) return null
 
-  const publicId = existing.secureFile?.publicId
+  const secureFile = existing.secureFile
+  const publicId = secureFile?.publicId
   if (publicId) {
-    await deleteSecureCadFile({ publicId })
+    await deleteSecureCadFile({
+      publicId,
+      resourceType: getCadSecureFileResourceType(secureFile)
+    })
   }
 
   const product = await updateCadProductRecord(productId, {

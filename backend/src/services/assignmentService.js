@@ -86,7 +86,7 @@ export const updateAssignment = async ({ courseId, instructorId, assignmentId, p
       resources: sanitized.resources,
       updatedBy: new mongoose.Types.ObjectId(instructorId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeAssignment(updated)
 }
@@ -118,7 +118,7 @@ export const submitAssignmentForReview = async ({ courseId, instructorId, assign
       reviewedBy: null,
       updatedBy: new mongoose.Types.ObjectId(instructorId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeAssignment(updated)
 }
@@ -136,7 +136,7 @@ export const archiveAssignment = async ({ courseId, instructorId, assignmentId }
       archivedAt: new Date(),
       updatedBy: new mongoose.Types.ObjectId(instructorId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeAssignment(updated)
 }
@@ -159,7 +159,7 @@ export const approveAssignment = async ({ assignmentId, adminId }) => {
       reviewFeedback: null,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeAssignment(updated)
 }
 
@@ -176,7 +176,7 @@ export const requestAssignmentChanges = async ({ assignmentId, adminId, feedback
       reviewFeedback: clean,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeAssignment(updated)
 }
 
@@ -195,7 +195,7 @@ export const publishAssignment = async ({ assignmentId, adminId }) => {
       publishedBy: new mongoose.Types.ObjectId(adminId),
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeAssignment(updated)
 }
 
@@ -210,7 +210,7 @@ export const unpublishAssignment = async ({ assignmentId, adminId }) => {
       publishedBy: null,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeAssignment(updated)
 }
 
@@ -223,7 +223,7 @@ export const archiveAssignmentAsAdmin = async ({ assignmentId, adminId }) => {
       archivedAt: new Date(),
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeAssignment(updated)
 }
 

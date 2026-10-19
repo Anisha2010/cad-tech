@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import AuthLayout from '../../../components/auth/AuthLayout/AuthLayout.jsx'
 import { resendVerificationEmail, verifyEmail } from '../../../services/authService.js'
-
-const verificationRequests = new Map()
+import { isValidVerificationToken, verifyEmailOnce } from '../../../utils/emailVerification.js'
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const token = searchParams.get('token') || ''
-  const [state, setState] = useState(token ? 'checking' : 'invalid')
+  const [verificationResult, setVerificationResult] = useState({
+    token,
+    state: token && isValidVerificationToken(token) ? 'checking' : 'invalid',
+    message: ''
+  })
+  const isCurrentResult = !token || verificationResult.token === token
+  const state = isCurrentResult
+    ? verificationResult.state
+    : isValidVerificationToken(token) ? 'checking' : 'invalid'
+  const verificationMessage = isCurrentResult ? verificationResult.message : ''
   const [email, setEmail] = useState('')
   const [isResending, setIsResending] = useState(false)
   const [status, setStatus] = useState('')
@@ -23,17 +32,27 @@ function VerifyEmail() {
   useEffect(() => {
     if (!token) return undefined
     let active = true
-    if (!verificationRequests.has(token)) verificationRequests.set(token, verifyEmail(token))
-    const verificationRequest = verificationRequests.get(token)
-    verificationRequest.then(() => {
-      if (active) setState('success')
-    }).catch(() => {
-      if (active) setState('invalid')
-    }).finally(() => {
-      if (verificationRequests.get(token) === verificationRequest) verificationRequests.delete(token)
+    const finishVerification = (nextState, message = '') => {
+      if (!active) return
+      setVerificationResult({ token, state: nextState, message })
+      navigate('/verify-email', { replace: true })
+    }
+
+    if (!isValidVerificationToken(token)) {
+      navigate('/verify-email', { replace: true })
+      return () => { active = false }
+    }
+
+    verifyEmailOnce(token, verifyEmail).then(() => {
+      finishVerification('success')
+    }).catch((error) => {
+      const message = error.response?.status === 400
+        ? error.response?.data?.message || 'This link is invalid, expired, or already used.'
+        : 'We could not confirm your email right now. Check your connection and request another verification email if needed.'
+      finishVerification('invalid', `${message} You can request another verification email.`)
     })
     return () => { active = false }
-  }, [token])
+  }, [token, navigate])
 
   const resend = async (event) => {
     event.preventDefault()
@@ -60,7 +79,7 @@ function VerifyEmail() {
     {state === 'checking' && <p className="auth-form-description" role="status">Please wait while we confirm your email address.</p>}
     {state === 'success' && <><p className="auth-form-description">Your email address is verified. You can now sign in to your CadTech account.</p><Link className="button button-primary auth-submit" to="/login">Go to sign in</Link></>}
     {state === 'invalid' && <>
-      <p className="auth-form-description">This link is invalid, expired, or already used. You can request another verification email.</p>
+      <p className="auth-form-description">{verificationMessage || (token ? 'This link is invalid, expired, or already used. You can request another verification email.' : 'This verification link is missing or malformed. You can request another verification email.')}</p>
       {status && <div className="auth-notice" role="status" aria-live="polite">{status}</div>}
       <form onSubmit={resend} noValidate>
         <div className="auth-field"><label htmlFor="resend-verification-email">Account email <span aria-hidden="true">*</span></label><input id="resend-verification-email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); setStatus('') }} autoComplete="email" placeholder="you@example.com" /></div>

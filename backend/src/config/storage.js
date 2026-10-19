@@ -51,6 +51,13 @@ const CAD_PREVIEW_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 const CAD_PREVIEW_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const FOUNDER_IMAGE_EXTENSIONS = CAD_PREVIEW_IMAGE_EXTENSIONS
 const FOUNDER_IMAGE_MIME_TYPES = CAD_PREVIEW_IMAGE_MIME_TYPES
+const CLOUDINARY_NON_CHUNKED_UPLOAD_MAX_BYTES = 100 * 1000 * 1000
+
+export const CAD_SECURE_UPLOAD_ERROR_CODES = Object.freeze({
+  STORAGE_NOT_CONFIGURED: 'CAD_STORAGE_NOT_CONFIGURED',
+  PROVIDER_UPLOAD_FAILED: 'CAD_PROVIDER_UPLOAD_FAILED',
+  PROVIDER_REJECTED: 'CAD_PROVIDER_REJECTED'
+})
 
 const storageConfig = {
   cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
@@ -151,7 +158,10 @@ export const validateFounderImageUpload = ({ originalName, mimeType, sizeBytes }
 }
 
 export const getAssignmentUploadMaxBytes = () => Number.isFinite(storageConfig.maxBytes) && storageConfig.maxBytes > 0 ? storageConfig.maxBytes : 10485760
-export const getCadSecureStorageMaxBytes = () => Number.isFinite(storageConfig.cadMaxBytes) && storageConfig.cadMaxBytes > 0 ? storageConfig.cadMaxBytes : 52428800
+export const getCadSecureStorageMaxBytes = () => Math.min(
+  Number.isFinite(storageConfig.cadMaxBytes) && storageConfig.cadMaxBytes > 0 ? storageConfig.cadMaxBytes : 52428800,
+  CLOUDINARY_NON_CHUNKED_UPLOAD_MAX_BYTES
+)
 
 export const isAssignmentStorageConfigured = () => Boolean(
   storageConfig.cloudinaryCloudName &&
@@ -165,12 +175,61 @@ export const isCadSecureStorageConfigured = () => Boolean(
   storageConfig.cloudinaryApiSecret
 )
 
+export const getCadSecureStorageConfigurationError = () => new AppError(
+  'Secure CAD uploads are temporarily unavailable.',
+  503,
+  null,
+  CAD_SECURE_UPLOAD_ERROR_CODES.STORAGE_NOT_CONFIGURED
+)
+
 export const assertCadSecureStorageAvailable = () => {
-  if (!isCadSecureStorageConfigured()) {
-    throw new AppError('Secure CAD downloads are temporarily unavailable.', 503)
-  }
+  if (!isCadSecureStorageConfigured()) throw getCadSecureStorageConfigurationError()
   return true
 }
+
+export const getCadSecureUploadProviderDiagnostics = (providerError) => {
+  const statusCode = Number(providerError?.http_code ?? providerError?.statusCode)
+  const hasHttpStatus = Number.isInteger(statusCode) && statusCode >= 100 && statusCode <= 599
+  return {
+    code: hasHttpStatus && statusCode >= 400 && statusCode < 500
+      ? CAD_SECURE_UPLOAD_ERROR_CODES.PROVIDER_REJECTED
+      : CAD_SECURE_UPLOAD_ERROR_CODES.PROVIDER_UPLOAD_FAILED,
+    ...(hasHttpStatus ? { httpStatus: statusCode } : {})
+  }
+}
+
+export const getCadSecureUploadProviderError = (providerError) => {
+  const { code } = getCadSecureUploadProviderDiagnostics(providerError)
+  if (code === CAD_SECURE_UPLOAD_ERROR_CODES.PROVIDER_REJECTED) {
+    return new AppError(
+      'Secure CAD provider rejected the upload.',
+      503,
+      null,
+      code
+    )
+  }
+
+  return new AppError(
+    'Secure CAD upload failed.',
+    503,
+    null,
+    code
+  )
+}
+
+export const getCadSecureFileResourceType = (secureFile) => {
+  if (secureFile?.resourceType === 'image' || secureFile?.resourceType === 'raw') {
+    return secureFile.resourceType
+  }
+  return typeof secureFile?.mimeType === 'string' && secureFile.mimeType.startsWith('image/') ? 'image' : 'raw'
+}
+
+export const buildCadSecureUploadOptions = ({ publicId }) => ({
+  resource_type: 'raw',
+  folder: 'cadtech/cad-files',
+  public_id: publicId,
+  type: 'private'
+})
 
 export const configureCloudinary = () => {
   if (!isAssignmentStorageConfigured()) return false
@@ -214,6 +273,7 @@ export const uploadAssignmentFile = async ({ buffer, originalName, mimeType }) =
 
       resolve({
         provider: 'cloudinary',
+        resourceType: 'raw',
         publicId: result?.public_id || null,
         storageKey: result?.secure_url || result?.url || '',
         url: result?.secure_url || result?.url || '',
@@ -240,23 +300,21 @@ export const deleteAssignmentFile = async ({ publicId }) => {
 
 export const uploadCadSecureFile = async ({ buffer, originalName, mimeType }) => {
   if (!isCadSecureStorageConfigured()) {
-    throw new AppError('Secure CAD uploads are temporarily unavailable.', 503)
+    throw getCadSecureStorageConfigurationError()
   }
 
   const safeName = sanitizeOriginalFilename(originalName)
   const safeMimeType = typeof mimeType === 'string' ? mimeType.trim() : ''
+  const options = buildCadSecureUploadOptions({
+    publicId: `${Date.now()}-${safeName}`
+  })
 
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream({
-      resource_type: 'auto',
-      folder: 'cadtech/cad-files',
-      public_id: `${Date.now()}-${safeName}`,
-      type: 'private',
-      access_mode: 'private',
-      metadata: { originalName: safeName, mimeType: safeMimeType }
-    }, (error, result) => {
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
       if (error) {
-        reject(new AppError('Secure CAD uploads are temporarily unavailable.', 503))
+        const diagnostics = getCadSecureUploadProviderDiagnostics(error)
+        console.error('[CAD secure upload] Cloudinary upload failed.', diagnostics)
+        reject(getCadSecureUploadProviderError(error))
         return
       }
 
@@ -328,11 +386,11 @@ export const uploadProfileImageFile = ({ buffer, originalName, mimeType }) => up
   resourceType: 'image'
 })
 
-export const deleteCadSecureFile = async ({ publicId }) => {
+export const deleteCadSecureFile = async ({ publicId, resourceType = 'raw' }) => {
   if (!publicId || !isCadSecureStorageConfigured()) return true
 
   try {
-    await cloudinary.uploader.destroy(publicId, { resource_type: 'auto', type: 'private' })
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, type: 'private' })
     return true
   } catch {
     return false
@@ -347,16 +405,13 @@ export const buildPrivateCadDownloadUrl = ({ publicId, resourceType = 'raw', ori
   const safeTtl = Number.isInteger(Number(expiresInSeconds)) && Number(expiresInSeconds) > 0 ? Number(expiresInSeconds) : 3600
   const timeStamp = Math.floor(Date.now() / 1000) + safeTtl
   const fileName = sanitizeOriginalFilename(originalName)
+  const format = path.extname(fileName).replace(/^\./, '').toLowerCase()
 
-  return cloudinary.url(publicId, {
+  return cloudinary.utils.private_download_url(publicId, format, {
     resource_type: resourceType,
     type: 'private',
-    secure: true,
-    sign_url: true,
-    attachment: false,
     expires_at: timeStamp,
-    transformation: [{ fetch_format: 'auto' }],
-    filename: fileName
+    attachment: true
   })
 }
 
@@ -366,6 +421,9 @@ export default {
   getCadSecureStorageMaxBytes,
   isAssignmentStorageConfigured,
   isCadSecureStorageConfigured,
+  getCadSecureUploadProviderDiagnostics,
+  getCadSecureFileResourceType,
+  buildCadSecureUploadOptions,
   assertCadSecureStorageAvailable,
   configureCloudinary,
   fileUploadStatus,

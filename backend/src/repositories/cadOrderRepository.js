@@ -4,7 +4,7 @@ import { CadOrder, serializeCadOrder } from '../models/CadOrder.js'
 const validId = (value) => mongoose.isValidObjectId(value)
 
 export const createCadOrder = async (fields, options = {}) => {
-  const allowedFields = ['userId', 'productId', 'productSnapshot', 'provider', 'providerOrderId', 'providerPaymentId', 'receipt', 'amountInPaise', 'currency', 'status', 'requiresReview', 'legacyId', 'verifiedAt', 'failedAt', 'refundedAt', 'failureCode', 'failureDescription']
+  const allowedFields = ['userId', 'productId', 'productSnapshot', 'provider', 'providerOrderId', 'providerPaymentId', 'idempotencyKey', 'reservationKey', 'receipt', 'amountInPaise', 'currency', 'status', 'requiresReview', 'legacyId', 'verifiedAt', 'failedAt', 'refundedAt', 'failureCode', 'failureDescription']
   const safeFields = Object.fromEntries(allowedFields.filter((field) => Object.hasOwn(fields, field)).map((field) => [field, fields[field]]))
   const order = await CadOrder.create([safeFields], options.session ? { session: options.session } : undefined)
   return order[0]
@@ -13,31 +13,51 @@ export const createCadOrder = async (fields, options = {}) => {
 export const getCadOrderById = async (id, options = {}) => validId(id) ? CadOrder.findById(id).session(options.session || null).lean() : null
 export const getCadOrderByProviderOrderId = async (providerOrderId, options = {}) => CadOrder.findOne({ providerOrderId }).session(options.session || null).lean()
 export const getCadOrderByProviderPaymentId = async (providerPaymentId, options = {}) => CadOrder.findOne({ providerPaymentId }).session(options.session || null).lean()
+export const getCadOrderByIdempotencyKey = async (userId, idempotencyKey, options = {}) => CadOrder.findOne({ userId, idempotencyKey }).session(options.session || null).lean()
+export const getCadOrderByReservationKey = async (reservationKey, options = {}) => CadOrder.findOne({ reservationKey }).session(options.session || null).lean()
 
 export const getReusablePendingCadOrder = async (userId, productId, options = {}) => {
   if (!validId(userId) || !validId(productId)) return null
   return CadOrder.findOne({ userId, productId, status: { $in: ['created', 'pending'] } }).sort({ createdAt: -1 }).session(options.session || null).lean()
 }
 
+export const updateCadOrderProviderOrder = async (id, providerOrderId, options = {}) => CadOrder.findOneAndUpdate(
+  { _id: id, status: 'creating' },
+  { $set: { providerOrderId, status: 'pending' } },
+  { returnDocument: 'after', session: options.session }
+).lean()
+
+export const markCadOrderReservationFailed = async (id, failureCode, options = {}) => CadOrder.findOneAndUpdate(
+  { _id: id, status: 'creating' },
+  { $set: { status: 'failed', failedAt: new Date(), failureCode, failureDescription: 'Provider rejected order creation.' }, $unset: { reservationKey: 1 } },
+  { returnDocument: 'after', session: options.session }
+).lean()
+
+export const markCadOrderReservationForReview = async (id, options = {}) => CadOrder.findOneAndUpdate(
+  { _id: id, status: 'creating' },
+  { $set: { requiresReview: true } },
+  { returnDocument: 'after', session: options.session }
+).lean()
+
 export const markCadOrderPaid = async (id, providerPaymentId, options = {}) => {
   const order = await CadOrder.findOneAndUpdate(
-    { _id: id, status: { $in: ['created', 'pending', 'paid'] } },
-    { $set: { status: 'paid', providerPaymentId, verifiedAt: new Date(), failedAt: null, failureCode: null, failureDescription: null } },
-    { new: true, session: options.session }
+    { _id: id, status: { $in: ['creating', 'created', 'pending', 'paid'] } },
+    { $set: { status: 'paid', providerPaymentId, verifiedAt: new Date(), failedAt: null, failureCode: null, failureDescription: null }, $unset: { reservationKey: 1 } },
+    { returnDocument: 'after', session: options.session }
   ).lean()
   return order
 }
 
 export const markCadOrderFailed = async (id, failure = {}, options = {}) => CadOrder.findOneAndUpdate(
-  { _id: id, status: { $in: ['created', 'pending', 'failed'] } },
-  { $set: { status: 'failed', failedAt: new Date(), failureCode: failure.code || null, failureDescription: failure.description || null } },
-  { new: true, session: options.session }
+  { _id: id, status: { $in: ['creating', 'created', 'pending', 'failed'] } },
+  { $set: { status: 'failed', failedAt: new Date(), failureCode: failure.code || null, failureDescription: failure.description || null }, $unset: { reservationKey: 1 } },
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const markCadOrderRefunded = async (id, options = {}) => CadOrder.findOneAndUpdate(
   { _id: id, status: 'paid' },
-  { $set: { status: 'refunded', refundedAt: new Date() } },
-  { new: true, session: options.session }
+  { $set: { status: 'refunded', refundedAt: new Date() }, $unset: { reservationKey: 1 } },
+  { returnDocument: 'after', session: options.session }
 ).lean()
 
 export const getStudentCadOrders = async ({ userId, page = 1, limit = 12 } = {}) => {

@@ -15,7 +15,12 @@ import cadPaymentRoutes from './routes/cadPaymentRoutes.js'
 import { notFoundMiddleware } from './middleware/notFound.js'
 import { errorHandlerMiddleware } from './middleware/errorHandler.js'
 import { getDatabaseName, getDatabaseStatus } from './config/database.js'
+import config from './config/environment.js'
 import { configureCloudinary } from './config/storage.js'
+import { verifyCadOrderReservationIndexes } from './utils/cadOrderReservationIndexes.js'
+import { CadOrder } from './models/CadOrder.js'
+import { mockEmailProvider } from './services/emailProvider.js'
+import { createDevEmailPreviewRouter, isDevEmailPreviewEnabled } from './routes/devEmailPreviewRoutes.js'
 
 const app = express()
 configureCloudinary()
@@ -43,15 +48,51 @@ app.use('/cad-payments/webhook', express.raw({ type: 'application/json' }))
 app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: true }))
 
+if (isDevEmailPreviewEnabled(config)) {
+  app.use('/__dev/email-preview', createDevEmailPreviewRouter({
+    nodeEnv: config.node_env,
+    provider: mockEmailProvider
+  }))
+}
+
 app.get('/health', (req, res) => {
   const database = getDatabaseStatus()
-  const isE2E = process.env.E2E_MODE === 'true'
   res.status(database === 'connected' ? 200 : 503).json({
     status: database === 'connected' ? 'ok' : 'unavailable',
     service: 'CadTech API',
-    database: isE2E && database === 'connected' ? getDatabaseName() : database,
-    ...(isE2E ? { databaseStatus: database } : {})
+    database: getDatabaseName() || null,
+    databaseStatus: database
   })
+})
+
+app.get('/ready', async (req, res) => {
+  const database = getDatabaseStatus()
+  if (database !== 'connected') {
+    res.status(503).json({
+      status: 'not_ready',
+      database: null,
+      databaseStatus: database,
+      cadOrderReservationIndexes: 'not_checked'
+    })
+    return
+  }
+
+  try {
+    await verifyCadOrderReservationIndexes(CadOrder.collection)
+    res.status(200).json({
+      status: 'ready',
+      database: getDatabaseName(),
+      databaseStatus: 'connected',
+      cadOrderReservationIndexes: 'valid'
+    })
+  } catch {
+    res.status(503).json({
+      status: 'not_ready',
+      database: getDatabaseName(),
+      databaseStatus: 'connected',
+      cadOrderReservationIndexes: 'invalid'
+    })
+  }
 })
 
 // Session middleware

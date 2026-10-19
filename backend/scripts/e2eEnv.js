@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { extractDatabaseName } from '../src/utils/e2eDatabase.js'
+import { assertCadTechE2EDatabase } from '../src/utils/e2eDatabase.js'
 
 const backendDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const allowedKeys = [
@@ -33,6 +33,21 @@ export const loadE2EEnvironment = () => {
     }
   }
 
+  const localE2EPath = path.join(backendDirectory, '.env.e2e.local')
+  if (!fs.existsSync(localE2EPath)) {
+    throw new Error('backend/.env.e2e.local is required for isolated E2E startup.')
+  }
+  const localE2E = dotenv.parse(fs.readFileSync(localE2EPath))
+  const localMongoUri = localE2E.E2E_MONGODB_URI?.trim()
+  if (!localMongoUri) {
+    throw new Error('E2E_MONGODB_URI must be set in backend/.env.e2e.local.')
+  }
+  assertCadTechE2EDatabase(localMongoUri)
+  if (process.env.E2E_MONGODB_URI?.trim() && process.env.E2E_MONGODB_URI.trim() !== localMongoUri) {
+    throw new Error('The process E2E_MONGODB_URI does not match the verified local E2E configuration.')
+  }
+  loaded.E2E_MONGODB_URI = localMongoUri
+
   for (const key of [
     'MONGODB_URI',
     'RAZORPAY_KEY_ID',
@@ -58,7 +73,9 @@ export const loadE2EEnvironment = () => {
   }
 
   for (const key of allowedKeys) {
-    if (!process.env[key]?.trim() && loaded[key] !== undefined) {
+    if (key === 'E2E_MONGODB_URI') {
+      process.env[key] = loaded[key]
+    } else if (!process.env[key]?.trim() && loaded[key] !== undefined) {
       process.env[key] = loaded[key]
     }
   }
@@ -87,8 +104,7 @@ export const loadE2EEnvironment = () => {
     process.env[key] = expected
   }
 
-  const mongoUri = process.env.E2E_MONGODB_URI
-  if (!mongoUri) throw new Error('E2E_MONGODB_URI is required; no database fallback is allowed.')
+  const mongoUri = localMongoUri
 
   process.env.E2E_MODE = 'true'
   process.env.NODE_ENV = 'test'
@@ -115,10 +131,7 @@ export const assertE2EUrls = () => {
 
 export const assertE2EFixtureEnvironment = () => {
   const mongoUri = process.env.E2E_MONGODB_URI?.trim()
-  if (!mongoUri) throw new Error('E2E_MONGODB_URI is required.')
-  if (extractDatabaseName(mongoUri) !== 'cadtech_e2e') {
-    throw new Error('E2E_MONGODB_URI must target the isolated cadtech_e2e database.')
-  }
+  assertCadTechE2EDatabase(mongoUri)
 
   const runId = process.env.E2E_RUN_ID?.trim() ?? ''
   if (!/^E2E-\d{10,}-\d+-[a-f\d]{8}$/i.test(runId)) {

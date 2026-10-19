@@ -5,9 +5,30 @@ import { createPaymentOrder, getCoursePaymentStatus, verifyPayment } from '../..
 import './CourseCheckoutButton.css'
 
 let checkoutPromise
+const sanitizeDiagnosticText = (value) => String(value || '')
+  .replace(/[\r\n\t]/g, ' ')
+  .replace(/bearer\s+[^\s,;]+/gi, 'Bearer [redacted]')
+  .replace(/\b(cookie|authorization|secret|token|password)\s*[:=]\s*[^\s,;]+/gi, '$1=[redacted]')
+  .slice(0, 240)
+
+const getPaymentErrorDetails = (error) => {
+  const responseData = error?.response?.data
+  const code = responseData?.code || error?.code
+  return {
+    status: Number.isInteger(error?.response?.status) ? error.response.status : null,
+    code: typeof code === 'string' ? sanitizeDiagnosticText(code) : null,
+    message: sanitizeDiagnosticText(responseData?.message || error?.message)
+  }
+}
+
+const reportPaymentError = (operation, error) => {
+  const { status, code, message } = getPaymentErrorDetails(error)
+  console.warn('[Payment]', { operation, status, code, message })
+}
+
 function loadCheckout() {
   if (window.Razorpay) return Promise.resolve()
-  if (!checkoutPromise) checkoutPromise = new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = 'https://checkout.razorpay.com/v1/checkout.js'; script.onload = resolve; script.onerror = () => reject(new Error('Unable to load payment checkout.')); document.body.appendChild(script) })
+  if (!checkoutPromise) checkoutPromise = new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = 'https://checkout.razorpay.com/v1/checkout.js'; script.onload = resolve; script.onerror = () => { checkoutPromise = undefined; script.remove(); reject(new Error('Unable to load payment checkout.')) }; document.body.appendChild(script) })
   return checkoutPromise
 }
 
@@ -23,7 +44,7 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
   const mountedRef = useRef(false)
   const checkoutPendingRef = useRef(false)
   const statusPendingRef = useRef(false)
-  const unavailable = !Number.isInteger(course?.priceInPaise) || course.priceInPaise <= 0 || !course.enrollmentOpen || course.status !== 'published'
+  const unavailable = !Number.isInteger(course?.priceInPaise) || course.priceInPaise <= 0 || !course.enrollmentOpen || (course.status !== undefined && course.status !== 'published')
   const identity = `${user?.id || ''}:${courseSlug}`
 
   useEffect(() => {
@@ -66,11 +87,15 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
       .then((response) => {
         if (active) applyBackendStatus(response)
       })
-      .catch(() => {
+      .catch((error) => {
         if (!active) return
+        const { message: errorMessage } = getPaymentErrorDetails(error)
+        reportPaymentError('load payment status', error)
         setConfirmedIdentity(identity)
         setState('verification_pending')
-        setMessage('Unable to confirm enrollment status. Please check again before retrying checkout.')
+        setMessage(errorMessage
+          ? `Unable to confirm enrollment status: ${errorMessage}`
+          : 'Unable to confirm enrollment status. Please check again before retrying checkout.')
       })
     return () => { active = false }
   }, [applyBackendStatus, courseSlug, identity, isAuthenticated, isAuthLoading, unavailable, user?.role])
@@ -82,10 +107,12 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
     try {
       const response = await getCoursePaymentStatus(courseSlug, pendingOrderId)
       applyBackendStatus(response, Boolean(pendingOrderId))
-    } catch {
+    } catch (error) {
       if (mountedRef.current) {
+        const { message: errorMessage } = getPaymentErrorDetails(error)
+        reportPaymentError('check payment status', error)
         setState('verification_pending')
-        setMessage('Payment verification pending')
+        setMessage(errorMessage ? `Payment status check failed: ${errorMessage}` : 'Payment verification pending')
       }
     } finally {
       statusPendingRef.current = false
@@ -98,6 +125,7 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
     checkoutPendingRef.current = true
     setState('creating')
     setMessage('')
+    let operation = 'create payment order'
     try {
       const order = (await createPaymentOrder(course.slug)).data?.data
       if (order?.status === 'pending') {
@@ -108,8 +136,10 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
         return
       }
       if (!order?.providerOrderId) throw new Error('Payment order was not returned.')
+      operation = 'load Razorpay Checkout script'
       await loadCheckout()
       setPendingOrderId(order.providerOrderId)
+      operation = 'open Razorpay Checkout'
       await new Promise((resolve) => {
         let responseReceived = false
         const checkout = new window.Razorpay({
@@ -134,13 +164,15 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
               } else if (mountedRef.current) {
                 setConfirmedIdentity(identity)
                 setState('verification_pending')
-                setMessage('Payment verification pending')
+                setMessage('Payment verification pending: the server did not return an enrollment.')
               }
-            } catch {
+            } catch (error) {
               if (mountedRef.current) {
+                const { message: errorMessage } = getPaymentErrorDetails(error)
+                reportPaymentError('verify payment', error)
                 setConfirmedIdentity(identity)
                 setState('verification_pending')
-                setMessage('Payment verification pending')
+                setMessage(errorMessage ? `Payment verification pending: ${errorMessage}` : 'Payment verification pending')
               }
             } finally {
               resolve()
@@ -169,9 +201,11 @@ function CourseCheckoutButton({ course, courseSlug = course?.slug }) {
       })
     } catch (error) {
       if (mountedRef.current) {
+        const { message: errorMessage } = getPaymentErrorDetails(error)
+        reportPaymentError(operation, error)
         setConfirmedIdentity(identity)
         setState('failed')
-        setMessage(error?.response?.data?.message || error?.message || 'Payment could not be started. Please try again.')
+        setMessage(errorMessage || 'Payment could not be started. Please try again.')
       }
     } finally {
       checkoutPendingRef.current = false

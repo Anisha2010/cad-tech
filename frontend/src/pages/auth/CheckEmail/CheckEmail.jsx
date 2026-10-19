@@ -8,8 +8,9 @@ const DEFAULT_COOLDOWN_SECONDS = 60
 function CheckEmail() {
   const location = useLocation()
   const initialEmail = typeof location.state?.email === 'string' ? location.state.email : ''
+  const emailSent = location.state?.emailSent !== false
   const [email, setEmail] = useState(initialEmail)
-  const [cooldown, setCooldown] = useState(initialEmail ? (location.state?.resendAfterSeconds || DEFAULT_COOLDOWN_SECONDS) : 0)
+  const [cooldown, setCooldown] = useState(initialEmail && emailSent ? (location.state?.resendAfterSeconds || DEFAULT_COOLDOWN_SECONDS) : 0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
@@ -44,7 +45,7 @@ function CheckEmail() {
   return <AuthLayout><section className="auth-form-card" aria-labelledby="check-email-heading">
     <span className="categories-eyebrow">ACCOUNT VERIFICATION</span>
     <h2 id="check-email-heading">Check your email</h2>
-    <p className="auth-form-description">Your account is almost ready. Open the verification link we sent to {initialEmail ? <strong>{initialEmail}</strong> : 'your email address'} to finish creating your CadTech account.</p>
+    <p className="auth-form-description">{emailSent ? <>Your account is almost ready. Open the verification link sent to {initialEmail ? <strong>{initialEmail}</strong> : 'your email address'} to finish creating your CadTech account.</> : <>Your account was created, but the verification email could not be sent. You can request another email below.</>}</p>
     {status && <div className="auth-notice" role="status" aria-live="polite">{status}</div>}
     {error && <div className="auth-status-error" role="alert">{error}</div>}
     <form onSubmit={resend} noValidate>

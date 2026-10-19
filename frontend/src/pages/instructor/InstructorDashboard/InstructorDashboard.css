@@ -22,7 +22,7 @@
 
 .instructor-kicker {
   margin: 0;
-  color: var(--color-primary, #2563eb);
+  color: var(--color-accent);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -71,7 +71,7 @@
 .instructor-summary-card:hover,
 .instructor-summary-card:focus-within {
   transform: translateY(-2px);
-  border-color: rgba(37, 99, 235, 0.32);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
   box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
 }
 
@@ -83,8 +83,8 @@
   height: 2.6rem;
   padding: 0.6rem;
   border-radius: 0.8rem;
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--color-primary, #2563eb);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  color: var(--color-primary);
 }
 
 .instructor-summary-card span {

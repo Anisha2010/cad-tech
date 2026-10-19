@@ -63,7 +63,7 @@ export const updateCadEntitlementStatus = async ({ entitlementId, status, revoke
     if (expiresAt) updates.expiresAt = new Date(expiresAt)
   }
 
-  const document = await CadDownloadEntitlement.findByIdAndUpdate(entitlementId, { $set: updates }, { new: true, runValidators: true }).lean()
+  const document = await CadDownloadEntitlement.findByIdAndUpdate(entitlementId, { $set: updates }, { returnDocument: 'after', runValidators: true }).lean()
   return document ? serializeCadDownloadEntitlement(document) : null
 }
 

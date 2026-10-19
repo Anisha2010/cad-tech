@@ -1,4 +1,4 @@
-import { Award, RefreshCw, ShieldCheck, ShieldX } from 'lucide-react'
+import { RefreshCw, ShieldCheck, ShieldX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchAdminCertificates, revokeAdminCertificate, reissueAdminCertificate } from '../../services/certificateService.js'
 

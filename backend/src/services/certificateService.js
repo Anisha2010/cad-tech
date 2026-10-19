@@ -230,7 +230,7 @@ export const reissueCertificate = async ({ certificateId, adminId, reason = 'Adm
       pdfUrl: storage.pdfUrl || certificate.pdfUrl || null,
       updatedAt: now
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return { certificate: updated, reason }
 }

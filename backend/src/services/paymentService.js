@@ -63,7 +63,7 @@ export const createOrderService = ({
 
   const course = await getCourseBySlug(courseSlug.trim())
   if (!course) throw new AppError('Course not found.', 404)
-  if (course.status !== 'published') throw new AppError('This course is not currently available for enrollment.', 400)
+  if (course.status !== undefined && course.status !== 'published') throw new AppError('This course is not currently available for enrollment.', 400)
   if (!course.enrollmentOpen) throw new AppError('Enrollment is currently closed for this course.', 400)
   if (!validPrice(course.priceInPaise) || course.currency !== 'INR') throw new AppError('This course is not priced for enrollment.', 422)
   if (await getActiveEnrollment(userId, course.slug)) throw new AppError('You are already enrolled in this course.', 409)

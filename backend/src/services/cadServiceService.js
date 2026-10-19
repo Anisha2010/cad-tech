@@ -343,7 +343,7 @@ export const cancelEnquiry = async ({ userId, enquiryId }) => {
 
   if (['completed', 'cancelled'].includes(enquiry.status)) return { enquiry: await findEnquiryById(enquiryId) }
 
-  const updated = await CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { status: 'cancelled', updatedAt: new Date() } }, { new: true }).lean()
+  const updated = await CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { status: 'cancelled', updatedAt: new Date() } }, { returnDocument: 'after' }).lean()
   return { enquiry: updated }
 }
 
@@ -371,7 +371,7 @@ export const updateEnquiryStatus = async ({ adminUserId, enquiryId, status }) =>
   if (!allowedEnquiryStatuses.includes(status)) throw new AppError('Invalid enquiry status.', 400)
   if (!statusTransitions[enquiry.status]?.includes(status)) throw new AppError('This status transition is not allowed.', 400)
 
-  const updated = await CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { status, updatedAt: new Date() } }, { new: true }).lean()
+  const updated = await CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { status, updatedAt: new Date() } }, { returnDocument: 'after' }).lean()
   return updated
 }
 
@@ -383,7 +383,7 @@ export const assignEnquiry = async ({ adminUserId, enquiryId, assigneeId }) => {
   if (!enquiry) return null
 
   const validAssignee = assigneeId && mongoose.isValidObjectId(assigneeId) ? assigneeId : null
-  return CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { adminAssignedTo: validAssignee, updatedAt: new Date() } }, { new: true }).lean()
+  return CadServiceEnquiry.findByIdAndUpdate(enquiryId, { $set: { adminAssignedTo: validAssignee, updatedAt: new Date() } }, { returnDocument: 'after' }).lean()
 }
 
 export const createQuotation = async ({ adminUserId, enquiryId, payload = {} }) => {

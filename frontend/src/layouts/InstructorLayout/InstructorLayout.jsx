@@ -62,7 +62,7 @@ function InstructorLayout() {
             >
               <Menu size={18} aria-hidden="true" />
             </button>
-            <p className="instructor-topbar-title">CadTech Instructor Portal</p>
+            <p className="instructor-topbar-title">CADTECH Instructor Portal</p>
           </div>
 
           <div className="instructor-topbar-actions">

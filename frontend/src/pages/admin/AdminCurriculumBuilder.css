@@ -135,8 +135,8 @@
   gap: 0.35rem;
   width: fit-content;
   border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+  color: var(--color-primary);
   padding: 0.25rem 0.5rem;
   font-size: 0.7rem;
   font-weight: 700;
@@ -164,7 +164,7 @@
 
 .button:hover { opacity: 0.96; }
 .button:disabled { opacity: 0.6; cursor: not-allowed; }
-.button-primary { background: #2563eb; color: white; }
+.button-primary { background: var(--color-accent); color: var(--color-primary); }
 .button-outline { background: #fff; color: #1e293b; border-color: #cbd5e1; }
 .button-danger { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
 

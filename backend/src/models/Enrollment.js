@@ -26,7 +26,7 @@ enrollmentSchema.index({ userId: 1, enrolledAt: -1 })
 
 export const serializeEnrollment = (enrollment) => {
   const value = typeof enrollment.toObject === 'function' ? enrollment.toObject() : enrollment
-  const course = value.courseId && typeof value.courseId === 'object' ? value.courseId : null
+  const course = value.course || (value.courseId && typeof value.courseId === 'object' ? value.courseId : null)
   return {
     id: String(value._id || value.id),
     courseSlug: course?.slug,

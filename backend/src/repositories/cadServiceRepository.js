@@ -99,7 +99,7 @@ export const createCadServiceRecord = async (payload) => {
 }
 
 export const updateCadServiceRecord = async (serviceId, updates) => {
-  const service = await CadService.findByIdAndUpdate(serviceId, { $set: updates }, { new: true, runValidators: true }).lean()
+  const service = await CadService.findByIdAndUpdate(serviceId, { $set: updates }, { returnDocument: 'after', runValidators: true }).lean()
   return service ? serializeCadService(service) : null
 }
 
@@ -177,7 +177,7 @@ export const createCadServiceQuotationRecord = async (payload) => {
 }
 
 export const updateCadServiceQuotationRecord = async (quotationId, updates) => {
-  const quotation = await CadServiceQuotation.findByIdAndUpdate(quotationId, { $set: updates }, { new: true, runValidators: true }).lean()
+  const quotation = await CadServiceQuotation.findByIdAndUpdate(quotationId, { $set: updates }, { returnDocument: 'after', runValidators: true }).lean()
   return quotation
 }
 

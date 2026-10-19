@@ -28,7 +28,7 @@
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #2563eb;
+  color: var(--color-accent);
   font-weight: 800;
 }
 
@@ -55,7 +55,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: #eff6ff;
+  background: color-mix(in srgb, var(--color-accent) 16%, var(--color-surface));
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
 }
@@ -83,7 +83,7 @@
 .student-palette-item {
   width: 2.2rem;
   height: 2.2rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   background: #f8fafc;
   cursor: pointer;
@@ -91,9 +91,10 @@
 }
 
 .student-palette-item.active {
-  background: #2563eb;
+  background: var(--color-accent);
   color: white;
-  border-color: #2563eb;
+  border-color: var(--color-accent);
+  color: var(--color-primary);
 }
 
 .student-palette-item.answered {
@@ -144,7 +145,7 @@
 
 .student-short-answer-field { display: grid; gap: .5rem; color: var(--color-text, #1e293b); font-size: .85rem; font-weight: 700; }
 .student-short-answer-field textarea { width: 100%; min-height: 112px; padding: .75rem; border: 1px solid var(--color-border, #e2e8f0); border-radius: 7px; background: var(--color-input-bg, #fff); color: var(--color-text, #1e293b); font: inherit; font-weight: 500; line-height: 1.5; resize: vertical; }
-.student-short-answer-field textarea:focus-visible { border-color: var(--color-primary, #2563eb); outline: 3px solid rgba(37, 99, 235, .16); outline-offset: 1px; }
+.student-short-answer-field textarea:focus-visible { border-color: var(--color-accent); outline: 3px solid color-mix(in srgb, var(--color-accent) 28%, transparent); outline-offset: 1px; }
 
 .student-option {
   display: flex;
@@ -159,15 +160,15 @@
 }
 
 .student-option:hover {
-  border-color: #93c5fd;
+  border-color: var(--color-light-accent);
 }
 
 .student-option.selected {
-  background: #eff6ff;
-  border-color: #60a5fa;
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  border-color: var(--color-accent);
 }
 
-.student-option input { accent-color: #2563eb; }
+.student-option input { accent-color: var(--color-accent); }
 
 .student-question-actions {
   display: flex;

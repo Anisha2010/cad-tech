@@ -2,7 +2,11 @@ import asyncHandler from '../utils/asyncHandler.js'
 import { sendSuccess } from '../utils/response.js'
 import * as cadOrderService from '../services/cadOrderService.js'
 
-export const createCadOrder = asyncHandler(async (req, res) => sendSuccess(res, await cadOrderService.createOrder(req.user.id, req.body?.productSlug), 'CAD order created.'))
+export const createCadOrder = asyncHandler(async (req, res) => sendSuccess(
+  res,
+  await cadOrderService.createOrder(req.user.id, req.body?.productSlug, req.get('Idempotency-Key')),
+  'CAD order created.'
+))
 
 export const verifyCadPayment = asyncHandler(async (req, res) => sendSuccess(res, { order: await cadOrderService.verifyPayment({ userId: req.user.id, orderId: req.body?.razorpay_order_id, paymentId: req.body?.razorpay_payment_id, signature: req.body?.razorpay_signature }) }, 'CAD payment verified.'))
 

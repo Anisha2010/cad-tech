@@ -43,7 +43,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--color-accent);
 }
 
 .student-history-empty,

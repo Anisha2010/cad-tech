@@ -19,10 +19,9 @@ function MyDownloads() {
 
     try {
       const response = await fetchMyCadDownloads()
-      const items = Array.isArray(response?.data?.entitlements) ? response.data.entitlements : []
-      setDownloads(items)
+      setDownloads(response.entitlements)
     } catch (requestError) {
-      setError(requestError.response?.data?.message || 'Unable to load your CAD downloads.')
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to load your CAD downloads.')
       setDownloads([])
     } finally {
       setLoading(false)
@@ -41,7 +40,7 @@ function MyDownloads() {
 
     try {
       const response = await requestCadDownload(item.productId)
-      const payload = response?.data || {}
+      const payload = response || {}
       const url = payload.downloadUrl || payload.url || null
       const fileName = payload.fileName || item.title || 'cad-download'
 
@@ -56,7 +55,7 @@ function MyDownloads() {
       anchor.click()
       anchor.remove()
     } catch (requestError) {
-      setError(requestError.response?.data?.message || 'Unable to prepare your secure download.')
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to prepare your secure download.')
     } finally {
       setDownloadingId('')
     }
@@ -121,14 +120,18 @@ function MyDownloads() {
                       </div>
                     </div>
                     <div className="download-actions">
-                      <button
-                        type="button"
-                        className="button button-primary"
-                        disabled={isBusy}
-                        onClick={() => handleDownload(item)}
-                      >
-                        {isBusy ? <><RefreshCw size={16} className="spin" /> Preparing Download...</> : <><Download size={16} /> Download File</>}
-                      </button>
+                      {item.downloadAvailable
+                        ? (
+                          <button
+                            type="button"
+                            className="button button-primary"
+                            disabled={isBusy}
+                            onClick={() => handleDownload(item)}
+                          >
+                            {isBusy ? <><RefreshCw size={16} className="spin" /> Preparing Download...</> : <><Download size={16} /> Download File</>}
+                          </button>
+                        )
+                        : <p role="status">File currently unavailable. Please contact support.</p>}
                       <Link className="button button-outline" to={`/model/${item.productSlug}`}>View Product</Link>
                     </div>
                   </article>

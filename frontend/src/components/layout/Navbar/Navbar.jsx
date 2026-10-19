@@ -64,8 +64,8 @@ function Navbar() {
     <header className={`site-navbar ${isScrolled ? 'is-scrolled' : ''}`}>
       <div className="site-container navbar-inner">
         <NavLink className="brand" to="/" onClick={() => setIsOpen(false)} aria-label={`${brandName} home`}>
-          <span className="brand-mark" aria-hidden="true"><img src="/fevicon.png" alt="" /></span>
-          <span>{brandName}</span>
+          <span className="brand-mark" aria-hidden="true"><img src="/favicon.jpg" alt="" /></span>
+          <span className="brand-name">{brandName}</span>
         </NavLink>
 
         <nav className={`desktop-nav ${isOpen ? 'is-open' : ''}`} aria-label="Main navigation">

@@ -61,7 +61,7 @@
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  background: rgba(37, 99, 235, 0.12);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
   color: var(--color-primary);
   font-size: 0.78rem;
   font-weight: 800;
@@ -125,7 +125,7 @@
 
 .student-dropdown-link:hover,
 .student-dropdown-link:focus-visible {
-  background: rgba(37, 99, 235, 0.08);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
   color: var(--color-primary);
 }
 

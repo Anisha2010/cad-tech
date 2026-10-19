@@ -3,6 +3,7 @@
  * Allows local frontend development while keeping credentials enabled
  */
 import config from './environment.js'
+import { normalizeFrontendOrigin } from '../utils/emailVerificationUrl.js'
 
 const allowedLocalOrigins = new Set([
   'http://localhost:5173',
@@ -15,10 +16,17 @@ const allowedLocalOrigins = new Set([
 
 const resolveAllowedOrigin = (origin) => {
   if (!origin) return true
-
-  const configuredOrigin = process.env.FRONTEND_URL || config.frontend_url
   if (process.env.E2E_MODE === 'true') {
-    return origin === 'http://127.0.0.1:5173' ? origin : false
+    return ['http://127.0.0.1:5173', 'http://localhost:5173'].includes(origin) ? origin : false
+  }
+
+  let configuredOrigin = ''
+  try {
+    configuredOrigin = normalizeFrontendOrigin(process.env.FRONTEND_URL || config.frontend_url, {
+      production: config.node_env === 'production'
+    })
+  } catch {
+    return false
   }
 
   if (configuredOrigin && origin === configuredOrigin) return configuredOrigin
@@ -46,11 +54,11 @@ const corsConfig = {
       return
     }
 
-    callback(null, process.env.FRONTEND_URL || config.frontend_url || 'http://localhost:5173')
+    callback(null, false)
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Idempotency-Key'],
   optionsSuccessStatus: 204
 }
 

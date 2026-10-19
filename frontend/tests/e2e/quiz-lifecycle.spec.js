@@ -15,14 +15,13 @@ function redactFixtureError(error) {
   return message
 }
 
-test('instructor, admin, and student complete a quiz lifecycle', async ({ page, request }, testInfo) => {
+test('instructor, admin, and student complete a quiz lifecycle', async ({ page }, testInfo) => {
   const runId = createRunId(testInfo)
   const courseTitle = `E2E Quiz Course ${runId}`
   const courseSlug = `e2e-quiz-course-${runId.toLowerCase()}`
   const quizTitle = `E2E Quiz ${runId}`
   let courseId = ''
   let quizId = ''
-  let enrollmentId = ''
   const attemptIds = []
   let fixtureSetupStatus = 'RUNNING'
   let testBodyStatus = 'SKIPPED'
@@ -97,7 +96,6 @@ test('instructor, admin, and student complete a quiz lifecycle', async ({ page, 
     expect((await coursePublicationResponse.json()).data?.course?.status).toBe('published')
 
     const enrollment = createStudentEnrollmentFixture(runId, courseId)
-    enrollmentId = enrollment.enrollmentId
     expect(enrollment.courseId).toBe(courseId)
     fixtureSetupStatus = 'PASS'
     testBodyStatus = 'RUNNING'

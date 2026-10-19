@@ -1,65 +1,94 @@
-const DEFAULT_PROVIDER = 'smtp'
+import { getEmailConfiguration } from '../config/email.js'
 
-const safeProviderError = (error) => ({
-  provider: 'resend',
-  name: error?.name,
-  code: typeof error?.code === 'string' ? error.code : undefined,
-  status: typeof error?.status === 'number' ? error.status : undefined,
-  message: error?.message
-})
+const sanitizeProviderError = (status) => {
+  if (status === 403) return 'Provider rejected the sender/domain or API-key permissions; verify the sending domain and key access.'
+  if (status === 429) return 'Provider rate limit reached.'
+  if (typeof status === 'number' && status >= 500) return 'Email provider is temporarily unavailable.'
+  if (typeof status === 'number') return 'Email provider rejected the request.'
+  return 'Email provider request failed before acceptance.'
+}
 
-export const getEmailProviderConfig = () => {
-  const provider = String(process.env.EMAIL_PROVIDER || DEFAULT_PROVIDER).toLowerCase()
-  const apiKey = String(process.env.RESEND_API_KEY || '').trim()
-  const from = String(process.env.RESEND_FROM || '').trim()
-
+export const getEmailProviderConfig = (env = process.env) => {
+  const { provider, apiKey, from, missing, configured } = getEmailConfiguration(env)
   return {
     provider,
-    configured: provider === 'resend' ? Boolean(apiKey && from) : false,
-    missing: provider === 'resend' ? ['RESEND_API_KEY', 'RESEND_FROM'].filter((name) => {
-      if (name === 'RESEND_API_KEY') return !apiKey
-      return !from
-    }) : []
+    configured,
+    missing,
+    hasApiKey: Boolean(apiKey),
+    from
   }
 }
 
-export const createEmailProvider = ({ fetchImpl = globalThis.fetch } = {}) => ({
-  async send({ to, subject, text, html }) {
-    const config = getEmailProviderConfig()
-    if (!config.configured) return false
+export const createEmailProvider = ({
+  fetchImpl = globalThis.fetch,
+  getConfig = getEmailConfiguration,
+  logger = console
+} = {}) => ({
+  async send({ to, subject, text, html, operation = 'transactional_email' }) {
+    const config = getConfig()
+    if (config.provider !== 'resend' || !config.configured) {
+      logger.error('[Email] Delivery unavailable.', {
+        provider: config.provider,
+        operation,
+        status: null,
+        message: `Configure: ${config.missing.join(', ') || 'EMAIL_PROVIDER=resend'}.`
+      })
+      return false
+    }
 
+    let status
     try {
       const response = await fetchImpl('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${String(process.env.RESEND_API_KEY || '').trim()}`,
+          Authorization: `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          from: String(process.env.RESEND_FROM || '').trim(),
-          to,
-          subject,
-          text,
-          html
-        })
+        body: JSON.stringify({ from: config.from, to, subject, text, html })
       })
-
-      const payload = response.ok ? await response.json() : await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw Object.assign(new Error(payload?.message || 'Resend email delivery failed'), {
-          code: 'RESEND_HTTP_ERROR',
-          status: response.status
+      status = response.status
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.id) {
+        logger.error('[Email] Provider delivery failed.', {
+          provider: 'resend',
+          operation,
+          status,
+          message: sanitizeProviderError(status)
         })
+        return false
       }
 
-      return Boolean(payload?.id)
-    } catch (error) {
-      console.error('[Email] Resend delivery failed.', safeProviderError(error))
+      return true
+    } catch {
+      logger.error('[Email] Provider delivery failed.', {
+        provider: 'resend',
+        operation,
+        status: status ?? null,
+        message: sanitizeProviderError(status)
+      })
       return false
     }
   }
 })
 
+export const createMockEmailProvider = () => {
+  const messages = []
+
+  return {
+    async send(message) {
+      messages.push({ ...message, createdAt: new Date().toISOString() })
+      return true
+    },
+    getMessages() {
+      return messages.map((message) => ({ ...message }))
+    },
+    clearMessages() {
+      messages.length = 0
+    }
+  }
+}
+
 const provider = createEmailProvider()
+export const mockEmailProvider = createMockEmailProvider()
 
 export default provider

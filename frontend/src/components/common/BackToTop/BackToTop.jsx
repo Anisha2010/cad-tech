@@ -8,8 +8,8 @@ const VISIBILITY_THRESHOLD = 400
 function BackToTop() {
   const [isVisible, setIsVisible] = useState(false)
   const [isInFooter, setIsInFooter] = useState(false)
+  const [footerTop, setFooterTop] = useState(null)
   const buttonRef = useRef(null)
-  const footerTopRef = useRef(null)
   const location = useLocation()
 
   useEffect(() => {
@@ -26,7 +26,7 @@ function BackToTop() {
 
       setIsVisible((previous) => previous === nextIsVisible ? previous : nextIsVisible)
       setIsInFooter((previous) => previous === nextIsInFooter ? previous : nextIsInFooter)
-      footerTopRef.current = footerTop
+      setFooterTop((previous) => previous === footerTop ? previous : footerTop)
       if (footerTop !== null) buttonRef.current?.style.setProperty('--back-to-top-top', `${footerTop}px`)
     }
 
@@ -49,7 +49,7 @@ function BackToTop() {
 
   const positionClass = isInFooter ? ' back-to-top--footer-top' : ''
   const button = (
-    <button ref={buttonRef} className={`back-to-top${positionClass}`} style={{ '--back-to-top-top': `${footerTopRef.current ?? 16}px` }} type="button" onClick={handleClick} aria-label="Back to top">
+    <button ref={buttonRef} className={`back-to-top${positionClass}`} style={{ '--back-to-top-top': `${footerTop ?? 16}px` }} type="button" onClick={handleClick} aria-label="Back to top">
       <ArrowUp size={22} aria-hidden="true" focusable="false" />
     </button>
   )

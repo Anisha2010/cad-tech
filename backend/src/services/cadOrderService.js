@@ -3,10 +3,11 @@ import mongoose from 'mongoose'
 import { AppError } from '../utils/AppError.js'
 import { CadOrder, serializeCadOrder } from '../models/CadOrder.js'
 import { CadProduct } from '../models/CadProduct.js'
-import { createCadOrder as createCadOrderRecord, getCadOrderById, getCadOrderByProviderOrderId, getReusablePendingCadOrder, getStudentCadOrders, getAdminCadOrders, markCadOrderFailed, markCadOrderPaid } from '../repositories/cadOrderRepository.js'
+import { createCadOrder as createCadOrderRecord, getCadOrderById, getCadOrderByIdempotencyKey, getCadOrderByProviderOrderId, getCadOrderByReservationKey, getReusablePendingCadOrder, getStudentCadOrders, getAdminCadOrders, markCadOrderFailed, markCadOrderPaid, markCadOrderReservationFailed, markCadOrderReservationForReview, updateCadOrderProviderOrder } from '../repositories/cadOrderRepository.js'
 import { claimWebhookEvent, markWebhookEventFailed, markWebhookEventProcessed } from '../repositories/webhookEventRepository.js'
 import { ensurePaidCadOrderEntitlement } from './cadDownloadEntitlementService.js'
 import { razorpay, razorpayConfigured, razorpayKeyId, razorpayWebhookSecret } from '../config/razorpay.js'
+import { verifyCadOrderReservationIndexes } from '../utils/cadOrderReservationIndexes.js'
 
 const requireRazorpay = () => {
   if (!razorpayConfigured) {
@@ -26,7 +27,46 @@ const safeEqual = (received, expected) => {
   return receivedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(receivedBuffer, expectedBuffer)
 }
 const sameId = (left, right) => String(left) === String(right)
+const validIdempotencyKey = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]{16,128}$/.test(value)
+const reservationKeyFor = (userId, productId) => crypto.createHash('sha256').update(`${userId}:${productId}`).digest('hex')
 const isTransactionUnsupported = (error) => /transaction numbers are only allowed|replica set|transaction is not supported|transactions are not supported/i.test(error?.message || '')
+const duplicateIndexNames = {
+  idempotency: 'cadorder_user_idempotency_unique',
+  reservation: 'cadorder_active_order_unique',
+  providerOrder: 'providerOrderId_1'
+}
+const duplicateIndexName = (error) => {
+  if (typeof error?.indexName === 'string') return error.indexName
+  if (typeof error?.index === 'string') return error.index
+  return typeof error?.message === 'string'
+    ? error.message.match(/\bindex:\s*([A-Za-z0-9_.$-]{1,127})\s+dup key:/)?.[1]
+    : null
+}
+const isDuplicateFor = (error, fields, indexName) => {
+  if (error?.code !== 11000) return false
+  const keyPatternFields = error?.keyPattern && typeof error.keyPattern === 'object'
+    ? Object.keys(error.keyPattern).sort()
+    : []
+  if (keyPatternFields.length) {
+    const expectedFields = [...fields].sort()
+    return keyPatternFields.length === expectedFields.length &&
+      expectedFields.every((field, index) => keyPatternFields[index] === field)
+  }
+  return duplicateIndexName(error) === indexName
+}
+const isReservationInsertConflict = (error) =>
+  isDuplicateFor(error, ['userId', 'idempotencyKey'], duplicateIndexNames.idempotency) ||
+  isDuplicateFor(error, ['reservationKey'], duplicateIndexNames.reservation)
+let reservationIndexesPromise
+const assertCadOrderReservationIndexes = () => {
+  if (!reservationIndexesPromise) {
+    reservationIndexesPromise = verifyCadOrderReservationIndexes(CadOrder.collection).catch((error) => {
+      reservationIndexesPromise = null
+      throw error
+    })
+  }
+  return reservationIndexesPromise
+}
 
 const runWithOptionalTransaction = async (operation) => {
   const session = await mongoose.startSession()
@@ -47,30 +87,108 @@ const verifySignature = ({ orderId, paymentId, signature }) => {
   return safeEqual(signature, expected)
 }
 
-export const createOrder = async (userId, productSlug) => {
-  requireRazorpay()
-  if (!mongoose.isValidObjectId(userId) || typeof productSlug !== 'string' || !productSlug.trim()) throw new AppError('A valid CAD product is required.', 400)
+export const createCadOrderCreator = ({
+  assertRazorpayConfigured = requireRazorpay,
+  isValidObjectId = mongoose.isValidObjectId,
+  assertReservationIndexes = assertCadOrderReservationIndexes,
+  findProduct = (slug) => CadProduct.findOne({ slug, status: 'published' }).lean(),
+  findReusableOrder = getReusablePendingCadOrder,
+  findByIdempotencyKey = getCadOrderByIdempotencyKey,
+  findActiveReservation = getCadOrderByReservationKey,
+  reserveOrder = createCadOrderRecord,
+  updateProviderOrder = updateCadOrderProviderOrder,
+  markReservationFailed = markCadOrderReservationFailed,
+  markReservationForReview = markCadOrderReservationForReview,
+  createProviderOrder = (fields) => razorpay.orders.create(fields),
+  findProviderOrdersByReceipt = (receipt) => razorpay.orders.all({ receipt, count: 10 }),
+  paymentKeyId = razorpayKeyId
+} = {}) => async (userId, productSlug, idempotencyKey) => {
+  assertRazorpayConfigured()
+  if (!isValidObjectId(userId) || typeof productSlug !== 'string' || !productSlug.trim()) throw new AppError('A valid CAD product is required.', 400)
+  if (!validIdempotencyKey(idempotencyKey)) throw new AppError('A valid order idempotency key is required.', 400, null, 'CAD_ORDER_IDEMPOTENCY_KEY_REQUIRED')
+  await assertReservationIndexes()
 
-  const product = await CadProduct.findOne({ slug: productSlug.trim().toLowerCase(), status: 'published' }).lean()
+  const product = await findProduct(productSlug.trim().toLowerCase())
   if (!product) throw new AppError('CAD product not found.', 404)
   if (product.isFree || !validPrice(product.salePriceInPaise) || product.currency !== 'INR') throw new AppError('This CAD product is not available for purchase.', 400)
 
-  const pending = await getReusablePendingCadOrder(userId, product._id)
-  if (pending) return { keyId: razorpayKeyId, providerOrderId: pending.providerOrderId, amount: pending.amountInPaise, currency: pending.currency, productSlug: product.slug, productTitle: product.title }
+  const buildCheckout = (order) => ({
+    keyId: paymentKeyId,
+    providerOrderId: order.providerOrderId,
+    amount: order.amountInPaise,
+    currency: order.currency,
+    productSlug: product.slug,
+    productTitle: product.title
+  })
+  const isMatchingOrder = (order) => order &&
+    sameId(order.userId, userId) &&
+    sameId(order.productId, product._id)
+  const checkoutable = (order) => isMatchingOrder(order) &&
+    ['created', 'pending'].includes(order.status) &&
+    typeof order.providerOrderId === 'string' &&
+    order.providerOrderId.length > 0
 
-  const receipt = `cad_${product.slug}_${crypto.randomBytes(8).toString('hex')}`
-  let order
-  try {
-    order = await razorpay.orders.create({ amount: product.salePriceInPaise, currency: product.currency, receipt })
-  } catch (error) {
-    console.error('[Razorpay] CAD order creation failed.', {
-      code: error?.error?.code || error?.code || 'razorpay_order_error',
-      description: error?.error?.description || error?.message || 'Razorpay order creation failed.'
-    })
-    throw new AppError('Payment service is temporarily unavailable.', 503, null, 'PAYMENT_PROVIDER_UNAVAILABLE')
+  const createInProgressError = () => new AppError('CAD checkout is still being prepared. Retry with the same idempotency key shortly.', 503, null, 'CAD_ORDER_PENDING')
+  const reviewRequiredError = () => new AppError('CAD checkout requires reconciliation before another order can be created.', 503, null, 'CAD_ORDER_REVIEW_REQUIRED')
+  const retryRequiredError = () => new AppError('This checkout attempt ended. Start a new checkout attempt.', 409, null, 'CAD_ORDER_RETRY_REQUIRED')
+
+  const checkoutOrError = async (reservation) => {
+    if (!isMatchingOrder(reservation)) throw new AppError('The idempotency key is already associated with a different purchase.', 409, null, 'CAD_ORDER_IDEMPOTENCY_KEY_REUSED')
+    if (checkoutable(reservation)) return buildCheckout(reservation)
+    if (reservation.status === 'failed') throw retryRequiredError()
+    if (['paid', 'refunded'].includes(reservation.status)) throw new AppError('This CAD order has already been completed.', 409, null, 'CAD_ORDER_ALREADY_COMPLETED')
+    if (reservation.status !== 'creating' || reservation.requiresReview) throw reviewRequiredError()
+
+    let providerOrders
+    try {
+      providerOrders = await findProviderOrdersByReceipt(reservation.receipt)
+    } catch {
+      throw createInProgressError()
+    }
+    const receiptMatches = Array.isArray(providerOrders?.items)
+      ? providerOrders.items.filter((candidate) => candidate?.receipt === reservation.receipt)
+      : []
+
+    if (receiptMatches.length === 0) throw createInProgressError()
+    if (receiptMatches.length !== 1) {
+      await markReservationForReview(reservation._id)
+      throw reviewRequiredError()
+    }
+
+    const providerMatch = receiptMatches[0]
+    if (
+      providerMatch?.amount !== reservation.amountInPaise ||
+      providerMatch?.currency !== reservation.currency ||
+      typeof providerMatch?.id !== 'string' ||
+      !providerMatch.id
+    ) {
+      await markReservationForReview(reservation._id)
+      throw reviewRequiredError()
+    }
+
+    let reconciled
+    try {
+      reconciled = await updateProviderOrder(reservation._id, providerMatch.id)
+    } catch (error) {
+      if (!isDuplicateFor(error, ['providerOrderId'], duplicateIndexNames.providerOrder)) throw error
+      await markReservationForReview(reservation._id)
+      throw reviewRequiredError()
+    }
+    if (checkoutable(reconciled)) return buildCheckout(reconciled)
+    const current = await findByIdempotencyKey(userId, idempotencyKey)
+    if (checkoutable(current)) return buildCheckout(current)
+    throw createInProgressError()
   }
 
-  const cadOrder = await createCadOrderRecord({
+  const existingByKey = await findByIdempotencyKey(userId, idempotencyKey)
+  if (existingByKey) return checkoutOrError(existingByKey)
+
+  const pending = await findReusableOrder(userId, product._id)
+  if (checkoutable(pending)) return buildCheckout(pending)
+
+  const reservationKey = reservationKeyFor(userId, product._id)
+  const receipt = `cad_${crypto.randomUUID().replaceAll('-', '')}`
+  const reservationFields = {
     userId,
     productId: product._id,
     productSnapshot: {
@@ -80,17 +198,75 @@ export const createOrder = async (userId, productSlug) => {
       imageUrl: Array.isArray(product.previewImages) && product.previewImages[0]?.url ? product.previewImages[0].url : null
     },
     provider: 'razorpay',
-    providerOrderId: order.id,
-    providerPaymentId: null,
+    providerOrderId: `reservation_${crypto.randomUUID()}`,
+    idempotencyKey,
+    reservationKey,
     receipt,
     amountInPaise: product.salePriceInPaise,
     currency: product.currency,
-    status: 'pending',
+    status: 'creating',
     requiresReview: false
-  })
+  }
 
-  return { keyId: razorpayKeyId, providerOrderId: cadOrder.providerOrderId, amount: cadOrder.amountInPaise, currency: cadOrder.currency, productSlug: product.slug, productTitle: product.title }
+  let reservation
+  try {
+    reservation = await reserveOrder(reservationFields)
+  } catch (error) {
+    if (!isReservationInsertConflict(error)) throw error
+    const byKey = await findByIdempotencyKey(userId, idempotencyKey)
+    if (byKey) return checkoutOrError(byKey)
+    const active = await findActiveReservation(reservationKey)
+    if (active && isMatchingOrder(active)) return checkoutOrError(active)
+    const reusable = await findReusableOrder(userId, product._id)
+    if (checkoutable(reusable)) return buildCheckout(reusable)
+    throw error
+  }
+
+  let providerOrder
+  try {
+    providerOrder = await createProviderOrder({
+      amount: product.salePriceInPaise,
+      currency: product.currency,
+      receipt
+    })
+  } catch (error) {
+    const providerStatus = Number(error?.statusCode || error?.response?.status)
+    const definitelyRejected = providerStatus >= 400 && providerStatus < 500 && ![408, 409, 425, 429].includes(providerStatus)
+    console.error('[Razorpay] CAD order creation failed.', {
+      errorName: /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(error?.name || '') ? error.name : 'Error',
+      statusCode: Number.isInteger(providerStatus) ? providerStatus : undefined,
+      outcome: definitelyRejected ? 'REJECTED' : 'UNKNOWN'
+    })
+    if (definitelyRejected) {
+      await markReservationFailed(reservation._id, 'provider_rejected')
+      throw retryRequiredError()
+    }
+    throw createInProgressError()
+  }
+
+  if (typeof providerOrder?.id !== 'string' || !providerOrder.id) {
+    await markReservationForReview(reservation._id)
+    throw reviewRequiredError()
+  }
+
+  let readyOrder
+  try {
+    readyOrder = await updateProviderOrder(reservation._id, providerOrder.id)
+  } catch (error) {
+    if (!isDuplicateFor(error, ['providerOrderId'], duplicateIndexNames.providerOrder)) throw error
+    await markReservationForReview(reservation._id)
+    throw reviewRequiredError()
+  }
+  if (!checkoutable(readyOrder)) {
+    const current = await findByIdempotencyKey(userId, idempotencyKey)
+    if (checkoutable(current)) return buildCheckout(current)
+    throw createInProgressError()
+  }
+
+  return buildCheckout(readyOrder)
 }
+
+export const createOrder = createCadOrderCreator()
 
 export const finalizeVerifiedCadOrder = async ({ orderId, providerPaymentId }) => runWithOptionalTransaction(async (session) => {
   const storedOrder = await getCadOrderById(orderId, { session })

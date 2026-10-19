@@ -1,5 +1,7 @@
 import { Box, Globe2, ShieldCheck, Users } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
+import useCountUp from '../../../hooks/useCountUp.js'
+import { formatCountValue } from '../../../utils/countAnimation.js'
 import './Stats.css'
 
 const statistics = [
@@ -8,6 +10,12 @@ const statistics = [
   { value: '7+', label: 'Years of Trust', icon: ShieldCheck },
   { value: '120+', label: 'Countries Served', icon: Globe2 },
 ]
+
+function CountValue({ value }) {
+  const { ref, count } = useCountUp(value)
+
+  return <strong ref={ref}>{formatCountValue(value, count)}</strong>
+}
 
 function Stats() {
   const reduceMotion = useReducedMotion()
@@ -18,7 +26,7 @@ function Stats() {
           {statistics.map(({ value, label, icon: Icon }) => (
             <div className="stat-item" key={label}>
               <div className="stat-icon"><Icon size={22} /></div>
-              <div><strong>{value}</strong><span>{label}</span></div>
+              <div><CountValue value={value} /><span>{label}</span></div>
             </div>
           ))}
         </div>

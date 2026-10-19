@@ -10,7 +10,11 @@ import {
   listCadEntitlementsForStudent,
   updateCadEntitlementStatus
 } from '../repositories/cadDownloadEntitlementRepository.js'
-import { buildPrivateCadDownloadUrl, assertCadSecureStorageAvailable } from '../config/storage.js'
+import {
+  buildPrivateCadDownloadUrl,
+  assertCadSecureStorageAvailable,
+  getCadSecureFileResourceType
+} from '../config/storage.js'
 
 const getProductSnapshot = (product) => ({
   title: product?.title || null,
@@ -75,35 +79,49 @@ export const ensurePaidCadOrderEntitlement = async ({ userId, productId, orderId
   })
 }
 
-export const listStudentCadDownloads = async ({ userId }) => {
-  if (!mongoose.isValidObjectId(userId)) return []
-  const entitlements = await listCadEntitlementsForStudent(userId)
+export const serializeStudentCadDownloads = (entitlements, products = []) => {
+  const productsById = new Map(products.map((product) => [String(product._id || product.id), product]))
 
   return entitlements.map((entitlement) => {
-    const product = entitlement.product || {}
     const productId = entitlement.productId || null
-    const productTitle = product.title || 'CAD Product'
-    const productSlug = product.slug || null
-    const fileSize = Number(entitlement.fileSize || 0)
+    const currentProduct = productId ? productsById.get(String(productId)) : null
+    const productSnapshot = entitlement.product || {}
+    const secureFile = currentProduct?.secureFile
+    const sizeInBytes = Number(secureFile?.sizeInBytes || 0)
 
     return {
       entitlementId: entitlement.id,
       id: entitlement.id,
       userId: entitlement.userId,
       productId,
-      productSlug,
-      title: productTitle,
-      thumbnail: product.thumbnailUrl || null,
-      category: entitlement.category || null,
-      software: entitlement.software || [],
-      fileFormat: entitlement.fileFormat || null,
-      fileSize: Number.isFinite(fileSize) && fileSize > 0 ? fileSize : null,
+      productSlug: currentProduct?.slug || productSnapshot.slug || null,
+      title: currentProduct?.title || productSnapshot.title || 'CAD Product',
+      thumbnail: currentProduct?.previewImages?.[0]?.url || productSnapshot.thumbnailUrl || null,
+      category: currentProduct?.categoryId?.name || null,
+      software: Array.isArray(currentProduct?.software) ? currentProduct.software : [],
+      fileFormat: Array.isArray(currentProduct?.fileFormats) && currentProduct.fileFormats.length
+        ? currentProduct.fileFormats.join(', ')
+        : null,
+      fileSize: Number.isFinite(sizeInBytes) && sizeInBytes > 0 ? sizeInBytes : null,
       entitlementSource: entitlement.source || 'paid_order',
       grantedAt: entitlement.grantedAt,
-      downloadAvailable: Boolean(entitlement.id && productId),
-      ...entitlement
+      downloadAvailable: Boolean(secureFile?.publicId)
     }
   })
+}
+
+export const listStudentCadDownloads = async ({ userId }) => {
+  if (!mongoose.isValidObjectId(userId)) return []
+  const entitlements = await listCadEntitlementsForStudent(userId)
+  const productIds = entitlements.map((entitlement) => entitlement.productId).filter(mongoose.isValidObjectId)
+  const products = productIds.length
+    ? await CadProduct.find({ _id: { $in: productIds } })
+      .select('title slug categoryId previewImages software fileFormats secureFile.publicId secureFile.sizeInBytes')
+      .populate('categoryId', 'name')
+      .lean()
+    : []
+
+  return serializeStudentCadDownloads(entitlements, products)
 }
 
 export const canUserAccessCadProduct = async ({ userId, productId }) => {
@@ -127,31 +145,32 @@ export const getCadProductAccessDetails = async ({ userId, productId }) => {
   }
 }
 
-export const requestCadDownload = async ({ userId, entitlementId, productId }) => {
-  const entitlement = entitlementId ? await findCadEntitlementById(entitlementId) : null
+export const createCadDownloadRequester = ({
+  findEntitlementById = findCadEntitlementById,
+  findActiveEntitlement = getActiveCadEntitlementForUserProduct,
+  findProductById = (id) => CadProduct.findById(id).lean(),
+  assertStorageAvailable = assertCadSecureStorageAvailable,
+  buildDownloadUrl = buildPrivateCadDownloadUrl
+} = {}) => async ({ userId, entitlementId, productId }) => {
+  const entitlement = entitlementId ? await findEntitlementById(entitlementId) : null
   if (entitlementId && !entitlement) throw new AppError('CAD download was not found.', 404)
 
-  if (!entitlementId && productId) {
-    const active = await getActiveCadEntitlementForUserProduct({ userId, productId })
-    if (!active) throw new AppError('You do not have access to this CAD product.', 403)
-  }
-
-  const activeEntitlement = entitlement || await getActiveCadEntitlementForUserProduct({ userId, productId })
+  const activeEntitlement = entitlement || await findActiveEntitlement({ userId, productId })
   if (!activeEntitlement) throw new AppError('You do not have access to this CAD product.', 403)
   if (String(activeEntitlement.userId) !== String(userId)) throw new AppError('You do not have access to this CAD product.', 403)
 
-  const product = await CadProduct.findById(activeEntitlement.productId).lean()
+  const product = await findProductById(activeEntitlement.productId)
   if (!product) throw new AppError('CAD product not found.', 404)
 
   if (!product.secureFile || !product.secureFile.publicId) {
     throw new AppError('This CAD file is not available for secure download yet.', 503)
   }
 
-  assertCadSecureStorageAvailable()
+  assertStorageAvailable()
 
-  const url = buildPrivateCadDownloadUrl({
+  const url = buildDownloadUrl({
     publicId: product.secureFile.publicId,
-    resourceType: product.secureFile.mimeType && product.secureFile.mimeType.startsWith('image/') ? 'image' : 'raw',
+    resourceType: getCadSecureFileResourceType(product.secureFile),
     originalName: product.secureFile.originalName || product.title,
     expiresInSeconds: Number(product.secureFile.signedUrlTtlSeconds || 3600)
   })
@@ -166,6 +185,8 @@ export const requestCadDownload = async ({ userId, entitlementId, productId }) =
     provider: product.secureFile.provider || 'cloudinary'
   }
 }
+
+export const requestCadDownload = createCadDownloadRequester()
 
 export const reconcilePaidCadOrderEntitlements = async () => {
   const paidOrders = await CadOrder.find({ status: 'paid' }).sort({ updatedAt: -1 }).lean()

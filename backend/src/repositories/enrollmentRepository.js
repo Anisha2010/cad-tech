@@ -15,7 +15,7 @@ export const createVerifiedEnrollment = async ({ userId, courseId, paymentId = n
     return await Enrollment.findOneAndUpdate(
       { userId, courseId },
       { $setOnInsert: { userId, courseId, paymentId: safePaymentId, status: 'active', progressPercentage: 0, enrolledAt: new Date(), lastAccessedAt: null, completedAt: null } },
-      { new: true, upsert: true, setDefaultsOnInsert: true, session: options.session }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true, session: options.session }
     ).lean()
   } catch (error) {
     if (error?.code === 11000) return Enrollment.findOne({ userId, courseId }).lean()

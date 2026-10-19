@@ -54,6 +54,25 @@ const listActiveLessons = (section = {}) => {
   return lessons.filter((lesson) => !lesson.archivedAt && !lesson.isArchived)
 }
 
+const optionalBoolean = (value, fieldName) => {
+  if (value === undefined) return undefined
+  if (typeof value !== 'boolean') throw new AppError(`${fieldName} must be a boolean.`, 400)
+  return value
+}
+
+const validatePublishedLesson = (lesson) => {
+  if (!normalizeText(lesson.title)) throw new AppError('Every published lesson must have a title.', 400)
+  if (lesson.type === 'video' && !isSafeUrl(lesson.videoUrl, { allowLocalhost: true })) {
+    throw new AppError('Video lessons must include a valid video URL before publishing.', 400)
+  }
+  if (lesson.type === 'article' && !normalizeText(lesson.articleContent)) {
+    throw new AppError('Article lessons must include content before publishing.', 400)
+  }
+  if (lesson.type === 'pdf' && !isSafeUrl(lesson.pdfUrl, { allowLocalhost: true })) {
+    throw new AppError('PDF lessons must include a valid PDF URL before publishing.', 400)
+  }
+}
+
 const ensureSectionExists = (curriculum, sectionId) => {
   const section = toArray(curriculum.sections).find((entry) => String(entry.id || entry._id) === String(sectionId))
   if (!section) throw new AppError('Section not found.', 404)
@@ -115,7 +134,7 @@ const buildLessonPayload = (payload = {}) => {
     pdfUrl: null,
     captionsUrl: null,
     resources,
-    isPublished: Boolean(payload.isPublished),
+    isPublished: optionalBoolean(payload.isPublished, 'isPublished') ?? false,
     archivedAt: null
   }
 
@@ -141,6 +160,8 @@ const buildLessonPayload = (payload = {}) => {
     lesson.pdfUrl = pdfUrl
   }
 
+  if (lesson.isPublished) validatePublishedLesson(lesson)
+
   return lesson
 }
 
@@ -165,18 +186,7 @@ const validatePublishedCurriculum = (curriculum) => {
     throw new AppError('At least one published lesson is required before publishing.', 400)
   }
 
-  for (const lesson of publishedLessons) {
-    if (!normalizeText(lesson.title)) throw new AppError('Every published lesson must have a title.', 400)
-    if (lesson.type === 'video' && !isSafeUrl(lesson.videoUrl, { allowLocalhost: true })) {
-      throw new AppError('Video lessons must include a valid video URL before publishing.', 400)
-    }
-    if (lesson.type === 'article' && !normalizeText(lesson.articleContent)) {
-      throw new AppError('Article lessons must include content before publishing.', 400)
-    }
-    if (lesson.type === 'pdf' && !isSafeUrl(lesson.pdfUrl, { allowLocalhost: true })) {
-      throw new AppError('PDF lessons must include a valid PDF URL before publishing.', 400)
-    }
-  }
+  for (const lesson of publishedLessons) validatePublishedLesson(lesson)
 }
 
 export const getAdminCurriculum = async ({ courseId }) => {
@@ -209,7 +219,7 @@ export const createSection = async ({ courseId, payload = {} }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { courseSlug: course.slug, sections: nextCurriculum.sections, isPublished: false, status: 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -231,7 +241,7 @@ export const updateSection = async ({ courseId, sectionId, payload = {} }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections), updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -249,7 +259,7 @@ export const archiveSection = async ({ courseId, sectionId }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections), isPublished: false, status: 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return { archived: true, sectionId, curriculum: serializeCourseCurriculum(updated) }
@@ -278,7 +288,7 @@ export const reorderSections = async ({ courseId, orderedSectionIds = [] }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(merged), updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -297,7 +307,7 @@ export const createLesson = async ({ courseId, sectionId, payload = {} }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections).map((entry) => entry.id === section.id ? { ...entry, lessons: normalizeLessonOrder(entry.lessons || []) } : entry), isPublished: false, status: 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -311,17 +321,21 @@ export const updateLesson = async ({ courseId, sectionId, lessonId, payload = {}
   const lesson = ensureLessonExists(section, lessonId)
 
   const nextType = payload.type || lesson.type || 'video'
+  const isPublished = optionalBoolean(payload.isPublished, 'isPublished')
   const nextTitle = normalizeText(payload.title)
   if (nextTitle) lesson.title = nextTitle
   if (payload.description !== undefined) lesson.description = normalizeText(payload.description)
 
   if (payload.type) {
     if (!['video', 'article', 'pdf'].includes(payload.type)) throw new AppError('Unsupported lesson type.', 400)
+    const typeChanged = payload.type !== (lesson.type || 'video')
     lesson.type = payload.type
-    lesson.videoUrl = null
-    lesson.articleContent = null
-    lesson.pdfUrl = null
-    lesson.captionsUrl = null
+    if (typeChanged) {
+      lesson.videoUrl = null
+      lesson.articleContent = null
+      lesson.pdfUrl = null
+      lesson.captionsUrl = null
+    }
   }
 
   if (payload.durationSeconds !== undefined) {
@@ -332,7 +346,6 @@ export const updateLesson = async ({ courseId, sectionId, lessonId, payload = {}
     lesson.durationSeconds = durationSeconds
   }
 
-  if (payload.isPublished !== undefined) lesson.isPublished = Boolean(payload.isPublished)
   if (payload.resources !== undefined) lesson.resources = toArray(payload.resources).map((resource) => ({
     title: normalizeText(resource?.title || 'Resource'),
     url: normalizeText(resource?.url || '')
@@ -366,10 +379,15 @@ export const updateLesson = async ({ courseId, sectionId, lessonId, payload = {}
     }
   }
 
+  if (isPublished !== undefined) {
+    if (isPublished) validatePublishedLesson(lesson)
+    lesson.isPublished = isPublished
+  }
+
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections).map((entry) => entry.id === section.id ? { ...entry, lessons: normalizeLessonOrder(entry.lessons || []) } : entry), isPublished: false, status: 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -387,7 +405,7 @@ export const archiveLesson = async ({ courseId, sectionId, lessonId }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections).map((entry) => entry.id === section.id ? { ...entry, lessons: normalizeLessonOrder(entry.lessons || []) } : entry), isPublished: false, status: 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return { archived: true, lessonId, curriculum: serializeCourseCurriculum(updated) }
@@ -418,7 +436,7 @@ export const reorderLessons = async ({ courseId, sectionId, orderedLessonIds = [
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { sections: normalizeSectionOrder(curriculum.sections), updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)
@@ -434,7 +452,7 @@ export const publishCurriculum = async ({ courseId, payload = {} }) => {
   const updated = await CourseCurriculum.findOneAndUpdate(
     { courseId: course._id },
     { $set: { isPublished: nextPublished, status: nextPublished ? 'published' : 'draft', updatedAt: new Date() } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
 
   return serializeCourseCurriculum(updated)

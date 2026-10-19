@@ -2,6 +2,7 @@ import { ArrowLeft, Save, Trash2, UploadCloud } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { createAdminCadProduct, deleteCadSecureFile, fetchAdminCadCategories, fetchAdminCadProductById, updateAdminCadProduct, uploadCadPreviewImage, uploadCadSecureFile } from '../../services/adminCadService.js'
+import { getCadSecureUploadErrorMessage, getCadStorageStatus } from '../../utils/cadStorageStatus.js'
 import './AdminCadProductForm.css'
 
 const initialForm = {
@@ -44,6 +45,7 @@ function AdminCadProductForm() {
   const [error, setError] = useState('')
   const [secureFile, setSecureFile] = useState(null)
   const [secureFileStatus, setSecureFileStatus] = useState('idle')
+  const [secureErrorCode, setSecureErrorCode] = useState('')
   const [secureError, setSecureError] = useState('')
   const [secureSuccess, setSecureSuccess] = useState('')
   const [selectedFileName, setSelectedFileName] = useState('')
@@ -140,6 +142,7 @@ function AdminCadProductForm() {
     }
 
     setSecureFileStatus('uploading')
+    setSecureErrorCode('')
     setSecureError('')
     setSecureSuccess('')
     setSelectedFileName(file.name)
@@ -154,7 +157,11 @@ function AdminCadProductForm() {
       event.target.value = ''
       setSelectedFileName('')
     } catch (requestError) {
-      const message = requestError.response?.data?.message || 'Unable to upload the secure CAD file.'
+      const errorCode = requestError.response?.data?.code || ''
+      const message = getCadSecureUploadErrorMessage(errorCode) ||
+        requestError.response?.data?.message ||
+        'Unable to upload the secure CAD file.'
+      setSecureErrorCode(errorCode)
       setSecureError(message)
       setSecureFileStatus('error')
     } finally {
@@ -167,6 +174,7 @@ function AdminCadProductForm() {
     if (!window.confirm('Delete the secure CAD file and revoke access to the private download?')) return
 
     setSecureFileStatus('deleting')
+    setSecureErrorCode('')
     setSecureError('')
     setSecureSuccess('')
     setDeleting(true)
@@ -370,7 +378,7 @@ function AdminCadProductForm() {
                 <p className="admin-kicker">Secure Download File</p>
                 <h3>Secure CAD File</h3>
               </div>
-              <span className="admin-storage-badge">{secureFile ? 'Storage Ready' : 'Storage Unavailable'}</span>
+              <span className="admin-storage-badge">{getCadStorageStatus({ secureFile, errorCode: secureErrorCode })}</span>
             </div>
 
             <div className="admin-secure-details">

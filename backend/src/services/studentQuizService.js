@@ -146,7 +146,7 @@ const finalizeExpiredAttempt = async ({ attempt, quiz }) => {
     const finalized = await QuizAttempt.findOneAndUpdate(
       { _id: current._id, status: 'in_progress', updatedAt: current.updatedAt, expiresAt: { $lte: finalizedAt } },
       { $set: { status: 'expired', submittedAt: finalizedAt, ...grade, updatedAt: finalizedAt } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean()
     if (finalized) return finalized
     current = await QuizAttempt.findById(current._id).lean()
@@ -447,7 +447,7 @@ export const saveQuizAnswer = async ({ studentId, attemptId, questionId, selecte
         updatedAt: savedAt
       }
     }],
-    { new: true }
+    { returnDocument: 'after' }
   ).lean()
   if (!updated) throw new AppError('This attempt is no longer active.', 409)
 
@@ -476,7 +476,7 @@ export const submitQuizAttempt = async ({ studentId, attemptId }) => {
     const updated = await QuizAttempt.findOneAndUpdate(
       { _id: attempt._id, studentId: new mongoose.Types.ObjectId(String(studentId)), status: 'in_progress', updatedAt: attempt.updatedAt },
       { $set: { status: 'submitted', submittedAt: now, ...grade, updatedAt: now } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean()
     if (updated) return buildSubmissionResult(updated, quiz, course)
   }

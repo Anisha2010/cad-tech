@@ -32,13 +32,14 @@ function OAuthCallback() {
         if (status === 'error' && reason === 'cancelled') {
           setMessage('Social sign-in was cancelled.')
         } else {
-          setMessage('Social sign-in could not be completed. Please try again.')
+          const providerLabel = provider === 'google' || provider === 'github' ? provider.toUpperCase() : 'OAuth'
+          setMessage(`Social sign-in failed (${providerLabel}${reason ? `: ${reason}` : ''}). Please try again.`)
         }
 
         callbackAttempt.handled = true
         window.setTimeout(() => {
           if (active) navigate('/login', { replace: true })
-        }, 1200)
+        }, 2200)
         return
       }
 

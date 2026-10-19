@@ -120,7 +120,7 @@ test('email status reports only setting names and never their values', () => {
   assert.equal(typeof status.configured, 'boolean')
   assert.ok(Array.isArray(status.missing))
   assert.ok(status.missing.every((name) => typeof name === 'string'))
-  assert.ok(status.missing.every((name) => /SMTP_|FRONTEND_URL/.test(name)))
+  assert.ok(status.missing.every((name) => /SMTP_|RESEND_|EMAIL_|FRONTEND_URL/.test(name)))
   assert.equal(JSON.stringify(status).toLowerCase().includes('password'), false)
   assert.equal(JSON.stringify(status).toLowerCase().includes('secret'), false)
   assert.equal(JSON.stringify(status).toLowerCase().includes('smtp_password'), false)

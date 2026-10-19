@@ -108,7 +108,7 @@ function AdminCourseForm() {
         if (nextCourseId && instructorId) {
           try {
             await assignInstructor(nextCourseId, instructorId)
-          } catch (assignmentError) {
+          } catch {
             setError('Course was created, but the instructor could not be assigned.')
             setSaving(false)
             return

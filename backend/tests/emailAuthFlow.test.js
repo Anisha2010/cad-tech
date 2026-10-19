@@ -6,7 +6,7 @@ import { createEmailAuthService } from '../src/services/emailAuthService.js'
 const start = new Date('2026-10-01T12:00:00.000Z')
 const userId = '507f1f77bcf86cd799439011'
 
-function createHarness({ registered = true, emailVerified = true } = {}) {
+function createHarness({ registered = true, emailVerified = true, frontendUrl = 'https://cadtech.example', verificationMailer } = {}) {
   const user = { _id: userId, email: 'person@example.com', emailVerified }
   const state = { user, otpHash: null, otpExpiresAt: null, otpSentAt: null, otpAttempts: 0, verificationHash: null, verificationExpiresAt: null, verificationSentAt: null, deliveredOtps: [], verificationUrls: [] }
   let current = new Date(start)
@@ -72,8 +72,8 @@ function createHarness({ registered = true, emailVerified = true } = {}) {
   const service = createEmailAuthService({
     repository,
     otpMailer: async (email, otp) => { state.deliveredOtps.push({ email, otp }); return true },
-    verificationMailer: async (email, url) => { state.verificationUrls.push({ email, url }); return true },
-    frontendUrl: 'https://cadtech.example',
+    verificationMailer: verificationMailer || (async (email, url) => { state.verificationUrls.push({ email, url }); return true }),
+    frontendUrl,
     secret: 'a-test-secret-with-enough-entropy',
     now: () => new Date(current),
     generateOtp: () => String(++otpNumber).padStart(6, '0'),
@@ -142,13 +142,62 @@ test('verification link is hashed, expires, and can only be consumed once', asyn
   const { service, state } = createHarness({ emailVerified: false })
   await service.sendVerificationForUser(state.user, { ignoreCooldown: true })
   assert.equal(state.verificationUrls.length, 1)
-  const token = new URL(state.verificationUrls[0].url).searchParams.get('token')
+  const generatedUrl = new URL(state.verificationUrls[0].url)
+  assert.equal(generatedUrl.origin, 'https://cadtech.example')
+  assert.equal(generatedUrl.pathname, '/verify-email')
+  const token = generatedUrl.searchParams.get('token')
   assert.equal(token, 'v'.repeat(43))
   assert.equal(state.verificationHash, crypto.createHash('sha256').update(token).digest('hex'))
   assert.notEqual(state.verificationHash, token)
   assert.equal((await service.verifyEmail(token)).emailVerified, true)
   await assert.rejects(service.verifyEmail(token), /already used/)
   await assert.rejects(service.verifyEmail('invalid'), /invalid or expired/)
+})
+
+test('local mock verification mail contains the generated frontend link without logging its token', async () => {
+  const { createEmailService } = await import('../src/services/emailService.js')
+  const { createMockEmailProvider } = await import('../src/services/emailProvider.js')
+  const mockProvider = createMockEmailProvider()
+  const emailService = createEmailService({
+    configuration: {
+      node_env: 'development',
+      email_provider: 'mock',
+      email_from: 'CadTech <no-reply@localhost>',
+      email_configuration: { configured: true, missing: [] },
+      frontend_url: 'http://localhost:5173',
+      email_verification_ttl_hours: 24
+    },
+    mockProvider
+  })
+  const logs = []
+  const { service, state } = createHarness({
+    emailVerified: false,
+    frontendUrl: 'http://localhost:5173',
+    verificationMailer: emailService.sendVerificationEmail,
+    logger: { error: (...values) => logs.push(values) }
+  })
+
+  await service.sendVerificationForUser(state.user, { ignoreCooldown: true })
+  const message = mockProvider.getMessages()[0]
+  const generatedUrl = new URL(message.text.match(/https?:\/\/\S+/)[0])
+  assert.equal(generatedUrl.origin, 'http://localhost:5173')
+  assert.equal(generatedUrl.pathname, '/verify-email')
+  assert.equal(generatedUrl.searchParams.get('token'), 'v'.repeat(43))
+  assert.deepEqual(logs, [])
+  assert.doesNotMatch(JSON.stringify(logs), /v{43}/)
+})
+
+test('verification delivery failures clear issued tokens and never log raw token values', async () => {
+  const logs = []
+  const { service, state } = createHarness({
+    emailVerified: false,
+    verificationMailer: async () => { throw new Error(`provider failure ${'v'.repeat(43)}`) },
+    logger: { error: (...values) => logs.push(values) }
+  })
+
+  assert.equal(await service.sendVerificationForUser(state.user, { ignoreCooldown: true }), false)
+  assert.equal(state.verificationHash, null)
+  assert.doesNotMatch(JSON.stringify(logs), /v{43}/)
 })
 
 test('verification token expiry and resend cooldown are enforced', async () => {

@@ -138,7 +138,7 @@ export const createAdminUserService = ({
       role,
       deletedAt: null,
       accountStatus: { $ne: 'deleted' }
-    }, { $set: { accountStatus: status }, $inc: { authVersion: 1 } }, { new: true, runValidators: true }).select(SAFE_USER_FIELDS).lean()
+    }, { $set: { accountStatus: status }, $inc: { authVersion: 1 } }, { returnDocument: 'after', runValidators: true }).select(SAFE_USER_FIELDS).lean()
     return updated ? serializeManagedUser(updated) : null
   }
 
@@ -151,7 +151,7 @@ export const createAdminUserService = ({
       role,
       deletedAt: null,
       accountStatus: { $ne: 'deleted' }
-    }, { $set: { accountStatus: 'deleted', deletedAt: new Date() }, $inc: { authVersion: 1 } }, { new: true, runValidators: true }).select(SAFE_USER_FIELDS).lean()
+    }, { $set: { accountStatus: 'deleted', deletedAt: new Date() }, $inc: { authVersion: 1 } }, { returnDocument: 'after', runValidators: true }).select(SAFE_USER_FIELDS).lean()
     return updated ? serializeManagedUser(updated) : null
   }
 

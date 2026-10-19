@@ -113,7 +113,7 @@ export const updateQuiz = async ({ courseId, instructorId, quizId, payload = {} 
     if (Object.prototype.hasOwnProperty.call(sanitized, 'shuffleQuestions')) sanitized.shuffleQuestions = Boolean(sanitized.shuffleQuestions)
 
     validateQuizSettings({ ...quiz, ...sanitized })
-    await Quiz.findByIdAndUpdate(quiz._id, { $set: { ...sanitized, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { new: true, runValidators: true })
+    await Quiz.findByIdAndUpdate(quiz._id, { $set: { ...sanitized, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { returnDocument: 'after', runValidators: true })
   }
 
   const refreshed = await Quiz.findById(quiz._id).lean()
@@ -136,7 +136,7 @@ export const createQuestion = async ({ courseId, instructorId, quizId, payload =
     // no-op
   }
   const totalMarks = calculateQuizTotalMarks(nextQuestions)
-  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions, totalMarks, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { new: true, runValidators: true }).lean()
+  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions, totalMarks, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -156,7 +156,7 @@ export const updateQuestion = async ({ courseId, instructorId, quizId, questionI
   const nextQuestion = validateQuizQuestions([mergedQuestion])[0]
   const nextQuestions = (quiz.questions || []).map((entry) => String(entry._id) === String(questionId) ? nextQuestion : entry)
   const totalMarks = calculateQuizTotalMarks(nextQuestions)
-  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions, totalMarks, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { new: true, runValidators: true }).lean()
+  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions, totalMarks, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -180,7 +180,7 @@ export const reorderQuestions = async ({ courseId, instructorId, quizId, ordered
   })
 
   const sorted = ordered.map((question, index) => ({ ...question, order: index }))
-  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: sorted, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { new: true, runValidators: true }).lean()
+  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: sorted, updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -192,7 +192,7 @@ export const archiveQuestion = async ({ courseId, instructorId, quizId, question
 
   const nextQuestions = (quiz.questions || []).filter((entry) => String(entry._id) !== String(questionId))
   if (nextQuestions.length === quiz.questions.length) throw new AppError('Question not found.', 404)
-  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions.map((entry, index) => ({ ...entry, order: index })), totalMarks: calculateQuizTotalMarks(nextQuestions.map((entry, index) => ({ ...entry, order: index }))), updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { new: true, runValidators: true }).lean()
+  const updated = await Quiz.findByIdAndUpdate(quiz._id, { $set: { questions: nextQuestions.map((entry, index) => ({ ...entry, order: index })), totalMarks: calculateQuizTotalMarks(nextQuestions.map((entry, index) => ({ ...entry, order: index }))), updatedBy: new mongoose.Types.ObjectId(instructorId) } }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -227,7 +227,7 @@ export const submitQuizForReview = async ({ courseId, instructorId, quizId }) =>
       reviewFeedback: null,
       updatedBy: new mongoose.Types.ObjectId(instructorId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeQuiz(updated)
 }
@@ -245,7 +245,7 @@ export const archiveQuiz = async ({ courseId, instructorId, quizId }) => {
       archivedAt: new Date(),
       updatedBy: new mongoose.Types.ObjectId(instructorId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
 
   return serializeQuiz(updated)
 }
@@ -268,7 +268,7 @@ export const approveQuiz = async ({ quizId, adminId }) => {
       reviewFeedback: null,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -285,7 +285,7 @@ export const requestQuizChanges = async ({ quizId, adminId, feedback }) => {
       reviewFeedback: clean,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -308,7 +308,7 @@ export const publishQuiz = async ({ quizId, adminId }) => {
       publishedBy: new mongoose.Types.ObjectId(adminId),
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -323,7 +323,7 @@ export const unpublishQuiz = async ({ quizId, adminId }) => {
       publishedBy: null,
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 
@@ -336,7 +336,7 @@ export const archiveQuizAsAdmin = async ({ quizId, adminId }) => {
       archivedAt: new Date(),
       updatedBy: new mongoose.Types.ObjectId(adminId)
     }
-  }, { new: true, runValidators: true }).lean()
+  }, { returnDocument: 'after', runValidators: true }).lean()
   return serializeQuiz(updated)
 }
 

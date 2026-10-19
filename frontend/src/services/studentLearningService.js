@@ -1,10 +1,12 @@
 import axios from 'axios'
 import apiBaseUrl from '../config/api.js'
+import { requireCourseSlug } from '../utils/courseSlug.js'
 
 const getBaseUrl = () => apiBaseUrl
 
 export async function getStudentLearning(courseSlug) {
-  const response = await axios.get(`${getBaseUrl()}/student/learning/${courseSlug}`, {
+  const slug = requireCourseSlug(courseSlug)
+  const response = await axios.get(`${getBaseUrl()}/student/learning/${slug}`, {
     withCredentials: true,
     timeout: 15000
   })
@@ -13,7 +15,8 @@ export async function getStudentLearning(courseSlug) {
 }
 
 export async function updateStudentLessonProgress(courseSlug, lessonId, payload = {}) {
-  const response = await axios.put(`${getBaseUrl()}/student/learning/${courseSlug}/lessons/${lessonId}/progress`, payload, {
+  const slug = requireCourseSlug(courseSlug)
+  const response = await axios.put(`${getBaseUrl()}/student/learning/${slug}/lessons/${lessonId}/progress`, payload, {
     withCredentials: true,
     timeout: 15000
   })
@@ -22,7 +25,8 @@ export async function updateStudentLessonProgress(courseSlug, lessonId, payload 
 }
 
 export async function updateStudentLessonPosition(courseSlug, lessonId, payload = {}) {
-  const response = await axios.put(`${getBaseUrl()}/student/learning/${courseSlug}/lessons/${lessonId}/position`, payload, {
+  const slug = requireCourseSlug(courseSlug)
+  const response = await axios.put(`${getBaseUrl()}/student/learning/${slug}/lessons/${lessonId}/position`, payload, {
     withCredentials: true,
     timeout: 15000
   })

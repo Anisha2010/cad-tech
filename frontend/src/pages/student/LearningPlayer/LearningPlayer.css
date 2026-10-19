@@ -11,6 +11,19 @@
   padding: 1.25rem;
 }
 
+.student-learning-lesson-link {
+  border: 1px solid transparent;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.student-learning-lesson-link.is-active {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+}
+
 .student-learning-video,
 .student-learning-video-embed {
   display: block;

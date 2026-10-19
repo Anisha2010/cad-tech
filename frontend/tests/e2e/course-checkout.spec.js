@@ -17,7 +17,7 @@ const course = {
   status: 'published'
 }
 
-const setupCheckoutPage = async (page, { role = 'student', statusHandler } = {}) => {
+const setupCheckoutPage = async (page, { role = 'student', statusHandler, courseData = course } = {}) => {
   await page.addInitScript(() => {
     window.__checkoutMode = 'success'
     window.Razorpay = class {
@@ -39,7 +39,7 @@ const setupCheckoutPage = async (page, { role = 'student', statusHandler } = {})
   await page.route('**/auth/me', (route) => route.fulfill({
     json: { success: true, data: { user: { id: '507f1f77bcf86cd799439011', role } } }
   }))
-  await page.route('**/courses/cad-essentials', (route) => route.fulfill({ json: { success: true, data: { course } } }))
+  await page.route('**/courses/cad-essentials', (route) => route.fulfill({ json: { success: true, data: { course: courseData } } }))
   await page.route('**/courses?*', (route) => route.fulfill({ json: { success: true, data: { courses: [] } } }))
   await page.route('**/payments/status**', statusHandler || ((route) => route.fulfill({ json: { success: true, data: { status: 'not_enrolled', enrollment: null } } })))
   await page.goto('/courses/cad-essentials')
@@ -83,6 +83,24 @@ test('order creation shows a disabled processing button', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Start Learning' })).toBeVisible()
 })
 
+test('order creation failures show a safe message and diagnostic context', async ({ page }) => {
+  const diagnostics = []
+  page.on('console', (message) => {
+    if (message.type() === 'warning') diagnostics.push(message.text())
+  })
+  await setupCheckoutPage(page)
+  await page.route('**/payments/orders', (route) => route.fulfill({
+    status: 503,
+    json: { success: false, code: 'PAYMENT_SERVICE_NOT_CONFIGURED', message: 'Payment service is not configured.' }
+  }))
+
+  await page.getByRole('button', { name: 'Buy Course' }).click()
+  await expect(page.getByRole('alert')).toContainText('Payment service is not configured.')
+  await expect.poll(() => diagnostics.join('\n')).toContain('create payment order')
+  expect(diagnostics.join('\n')).toContain('503')
+  expect(diagnostics.join('\n')).toContain('PAYMENT_SERVICE_NOT_CONFIGURED')
+})
+
 test('pending verification keeps Buy Course hidden and offers status check', async ({ page }) => {
   await setupCheckoutPage(page, { statusHandler: (route) => route.fulfill({ json: { success: true, data: { status: 'pending', enrollment: null } } }) })
   await page.route('**/payments/orders', mockOrder)
@@ -91,6 +109,7 @@ test('pending verification keeps Buy Course hidden and offers status check', asy
   await expect(page.getByRole('button', { name: 'Buy Course' })).toBeVisible()
   await page.getByRole('button', { name: 'Buy Course' }).click()
   await expect(page.getByText('Payment verification pending')).toBeVisible()
+  await expect(page.getByText('Temporary verification outage.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Check Payment Status' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Buy Course' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Check Payment Status' }).click()
@@ -123,6 +142,21 @@ test('non-student account cannot start checkout', async ({ page }) => {
   await setupCheckoutPage(page, { role: 'instructor' })
 
   await expect(page.getByText('Sign in with a student account to enroll.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Buy Course' })).toHaveCount(0)
+})
+
+test('published public course without serialized status remains purchasable', async ({ page }) => {
+  const publicCourse = { ...course }
+  delete publicCourse.status
+  await setupCheckoutPage(page, { courseData: publicCourse })
+
+  await expect(page.getByRole('button', { name: 'Buy Course' })).toBeVisible()
+})
+
+test('course with an explicit unpublished status remains unavailable', async ({ page }) => {
+  await setupCheckoutPage(page, { courseData: { ...course, status: 'draft' } })
+
+  await expect(page.getByText('Enrollment currently unavailable.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Buy Course' })).toHaveCount(0)
 })
 

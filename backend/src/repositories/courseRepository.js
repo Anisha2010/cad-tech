@@ -109,7 +109,7 @@ export const createCourseRecord = async (payload) => {
 }
 
 export const updateCourseRecord = async (courseId, updates, options = {}) => {
-  const course = await Course.findOneAndUpdate({ _id: courseId }, { $set: updates }, { new: true, runValidators: true, ...options }).lean()
+  const course = await Course.findOneAndUpdate({ _id: courseId }, { $set: updates }, { returnDocument: 'after', runValidators: true, ...options }).lean()
   return course ? serializeCourse(course) : null
 }
 
@@ -120,12 +120,12 @@ export const findCourseById = async (courseId) => {
 }
 
 export const updateCourseStatusRecord = async (courseId, status, enrollmentOpen, updatedBy) => {
-  const course = await Course.findByIdAndUpdate(courseId, { $set: { status, enrollmentOpen, updatedBy } }, { new: true, runValidators: true }).lean()
+  const course = await Course.findByIdAndUpdate(courseId, { $set: { status, enrollmentOpen, updatedBy } }, { returnDocument: 'after', runValidators: true }).lean()
   return course ? serializeCourse(course) : null
 }
 
 export const archiveCourseRecord = async (courseId, updatedBy) => {
-  const course = await Course.findByIdAndUpdate(courseId, { $set: { status: 'archived', enrollmentOpen: false, updatedBy } }, { new: true, runValidators: true }).lean()
+  const course = await Course.findByIdAndUpdate(courseId, { $set: { status: 'archived', enrollmentOpen: false, updatedBy } }, { returnDocument: 'after', runValidators: true }).lean()
   return course ? serializeCourse(course) : null
 }
 

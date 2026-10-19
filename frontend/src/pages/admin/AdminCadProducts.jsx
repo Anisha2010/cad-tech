@@ -1,4 +1,4 @@
-import { Archive, CheckCircle2, Edit3, Eye, Plus, Search, XCircle } from 'lucide-react'
+import { Archive, CheckCircle2, Edit3, Plus, Search, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { archiveAdminCadProduct, fetchAdminCadCategories, fetchAdminCadProducts, publishAdminCadProduct, unpublishAdminCadProduct } from '../../services/adminCadService.js'

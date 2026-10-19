@@ -142,9 +142,9 @@ export const createCadProductRecord = async (payload) => {
   return serializeCadProduct(populated)
 }
 
-export const updateCadProductRecord = async (productId, updates) => {
-  const product = await CadProduct.findByIdAndUpdate(productId, { $set: updates }, { new: true, runValidators: true }).populate('categoryId', 'name slug isActive').lean()
-  return product ? serializeCadProduct(product) : null
+export const updateCadProductRecord = async (productId, updates, { includeSecureFile = false } = {}) => {
+  const product = await CadProduct.findByIdAndUpdate(productId, { $set: updates }, { returnDocument: 'after', runValidators: true }).populate('categoryId', 'name slug isActive').lean()
+  return product ? serializeCadProduct(product, { includeSecureFile }) : null
 }
 
 export const productSlugExists = async (slug, excludeId = null) => {
@@ -169,7 +169,7 @@ export const archiveCadProductRecord = async (productId, updatedBy) => {
       updatedBy,
       publishedAt: null
     }
-  }, { new: true, runValidators: true }).populate('categoryId', 'name slug isActive').lean()
+  }, { returnDocument: 'after', runValidators: true }).populate('categoryId', 'name slug isActive').lean()
   return product ? serializeCadProduct(product) : null
 }
 
@@ -181,7 +181,7 @@ export const publishCadProductRecord = async (productId, updatedBy) => {
       archivedAt: null,
       updatedBy
     }
-  }, { new: true, runValidators: true }).populate('categoryId', 'name slug isActive').lean()
+  }, { returnDocument: 'after', runValidators: true }).populate('categoryId', 'name slug isActive').lean()
   return product ? serializeCadProduct(product) : null
 }
 
@@ -192,6 +192,6 @@ export const unpublishCadProductRecord = async (productId, updatedBy) => {
       publishedAt: null,
       updatedBy
     }
-  }, { new: true, runValidators: true }).populate('categoryId', 'name slug isActive').lean()
+  }, { returnDocument: 'after', runValidators: true }).populate('categoryId', 'name slug isActive').lean()
   return product ? serializeCadProduct(product) : null
 }

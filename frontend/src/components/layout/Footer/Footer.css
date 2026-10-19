@@ -4,6 +4,7 @@
 .footer-grid { display: grid; grid-template-columns: 1.25fr 0.75fr 0.95fr 1fr 1.15fr; gap: 2rem; padding-bottom: 3rem; }
 .footer-brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--color-surface); font-size: 1.05rem; font-weight: 700; }
 .footer-brand strong { color: var(--color-accent); }
+.footer-brand-name { text-transform: uppercase; }
 .footer-brand-icon { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid color-mix(in srgb, var(--color-accent) 55%, transparent); border-radius: 10px; color: var(--color-accent); }
 .footer-brand-column p, .footer-contact-column p { max-width: 290px; margin: 1rem 0 0; color: var(--color-footer-text); font-size: 0.86rem; line-height: 1.7; }
 .footer-social-links { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 1.15rem; }

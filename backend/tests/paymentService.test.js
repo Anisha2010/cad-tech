@@ -63,6 +63,50 @@ test('unpublished or unavailable course is rejected with a safe validation error
   )
 })
 
+test('published course returned by the public lookup can be used for checkout when status is omitted', async () => {
+  const publicCourse = { ...validCourse }
+  delete publicCourse.status
+  const handler = paymentService.createOrderService({
+    getCourseBySlug: async () => publicCourse,
+    getActiveEnrollment: async () => null,
+    getReusablePendingPayment: async () => null,
+    createPayment: async (fields) => ({
+      _id: 'payment_123',
+      providerOrderId: fields.providerOrderId,
+      amountInPaise: fields.amountInPaise,
+      currency: fields.currency
+    }),
+    updatePaymentProviderOrder: async (_id, providerOrderId) => ({ providerOrderId, amountInPaise: validCourse.priceInPaise, currency: validCourse.currency }),
+    razorpayClient: { orders: { create: async () => ({ id: 'order_123' }) } },
+    paymentKeyId: 'rzp_test_key'
+  })
+
+  const response = await handler(validUserId, validCourse.slug)
+
+  assert.equal(response.providerOrderId, 'order_123')
+  assert.equal(response.amount, validCourse.priceInPaise)
+  assert.equal(response.currency, validCourse.currency)
+})
+
+test('course with omitted status is still rejected when enrollment is closed', async () => {
+  const publicCourse = { ...validCourse, enrollmentOpen: false }
+  delete publicCourse.status
+  const handler = paymentService.createOrderService({
+    getCourseBySlug: async () => publicCourse,
+    razorpayClient: { orders: { create: async () => assert.fail('Razorpay must not be called') } },
+    paymentKeyId: 'rzp_test_key'
+  })
+
+  await assert.rejects(
+    () => handler(validUserId, validCourse.slug),
+    (error) => {
+      assert.equal(error.statusCode, 400)
+      assert.match(error.message, /enrollment is currently closed/i)
+      return true
+    }
+  )
+})
+
 test('invalid backend course price is rejected before contacting Razorpay', async () => {
   const handler = paymentService.createOrderService({
     getCourseBySlug: async () => ({ ...validCourse, priceInPaise: 0, enrollmentOpen: true, status: 'published' }),

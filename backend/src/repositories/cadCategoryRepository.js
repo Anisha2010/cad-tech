@@ -35,12 +35,12 @@ export const createCadCategoryRecord = async (payload) => {
 }
 
 export const updateCadCategoryRecord = async (categoryId, updates) => {
-  const category = await CadCategory.findByIdAndUpdate(categoryId, { $set: updates }, { new: true, runValidators: true }).lean()
+  const category = await CadCategory.findByIdAndUpdate(categoryId, { $set: updates }, { returnDocument: 'after', runValidators: true }).lean()
   return category ? serializeCadCategory(category) : null
 }
 
 export const deactivateCadCategoryRecord = async (categoryId) => {
-  const category = await CadCategory.findByIdAndUpdate(categoryId, { $set: { isActive: false } }, { new: true, runValidators: true }).lean()
+  const category = await CadCategory.findByIdAndUpdate(categoryId, { $set: { isActive: false } }, { returnDocument: 'after', runValidators: true }).lean()
   return category ? serializeCadCategory(category) : null
 }
 

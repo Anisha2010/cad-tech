@@ -26,6 +26,7 @@ const previewImageSchema = new mongoose.Schema({
 
 const secureFileSchema = new mongoose.Schema({
   provider: { type: String, enum: ['cloudinary'], default: 'cloudinary', trim: true },
+  resourceType: { type: String, enum: ['image', 'raw'], default: null },
   publicId: { type: String, default: null, trim: true },
   storageKey: { type: String, default: null, trim: true },
   originalName: { type: String, default: null, trim: true },
@@ -80,6 +81,7 @@ export const serializeCadProduct = (product, { includeSecureFile = false } = {})
 
   const secureFile = value.secureFile && includeSecureFile ? {
     provider: value.secureFile.provider || 'cloudinary',
+    resourceType: value.secureFile.resourceType || null,
     publicId: value.secureFile.publicId || null,
     storageKey: value.secureFile.storageKey || null,
     originalName: value.secureFile.originalName || null,

@@ -201,7 +201,7 @@ export const upsertAdminSiteSettings = asyncHandler(async (req, res) => {
     isActive: payload.isActive !== false
   }
 
-  const settings = await SiteSettings.findOneAndUpdate({}, updates, { upsert: true, new: true, setDefaultsOnInsert: true }).lean()
+  const settings = await SiteSettings.findOneAndUpdate({}, updates, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }).lean()
   return sendSuccess(res, { settings: formatSettings(settings) }, 'Site settings updated successfully.')
 })
 
@@ -219,7 +219,7 @@ export const uploadFounderImage = asyncHandler(async (req, res) => {
   })
   if (!image.url) throw new AppError('Cloudinary did not return an image URL.', 503)
 
-  const settings = await SiteSettings.findOneAndUpdate({}, { founderImageUrl: image.url }, { upsert: true, new: true, setDefaultsOnInsert: true }).lean()
+  const settings = await SiteSettings.findOneAndUpdate({}, { founderImageUrl: image.url }, { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }).lean()
   return sendSuccess(res, { image, settings: formatSettings(settings) }, 'Founder image uploaded successfully.')
 })
 
@@ -258,7 +258,7 @@ export const updateAdminHomepageContent = asyncHandler(async (req, res) => {
     featureHighlights: normalizeCmsListItem(payload.featureHighlights, 12),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!item) return sendError(res, 'Homepage content not found.', 404)
   return sendSuccess(res, { item }, 'Homepage content updated successfully.')
@@ -303,7 +303,7 @@ export const updateAdminAboutContent = asyncHandler(async (req, res) => {
     finalCta: normalizeCmsText(payload.finalCta, 'Ready to start your CAD journey?'),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!item) return sendError(res, 'About content not found.', 404)
   return sendSuccess(res, { item }, 'About content updated successfully.')
@@ -344,7 +344,7 @@ export const updateAdminTestimonial = asyncHandler(async (req, res) => {
     initials: normalizeCmsText(payload.initials, 'LT'),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!item) return sendError(res, 'Testimonial not found.', 404)
   return sendSuccess(res, { item }, 'Testimonial updated successfully.')
@@ -381,7 +381,7 @@ export const updateAdminFaq = asyncHandler(async (req, res) => {
     category: normalizeCmsText(payload.category, 'general'),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!item) return sendError(res, 'FAQ not found.', 404)
   return sendSuccess(res, { item }, 'FAQ updated successfully.')
@@ -432,7 +432,7 @@ export const updateAdminPortfolioProject = asyncHandler(async (req, res) => {
     technologies: normalizeCmsListItem(payload.technologies, 12),
     isPublished: payload.isPublished !== false,
     displayOrder: Number(payload.displayOrder || 0)
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!item) return sendError(res, 'Portfolio project not found.', 404)
   return sendSuccess(res, { item }, 'Portfolio project updated successfully.')
@@ -481,7 +481,7 @@ export const updateAdminContactEnquiryStatus = asyncHandler(async (req, res) => 
   const enquiry = await ContactEnquiry.findByIdAndUpdate(req.params.enquiryId, {
     status: allowed.includes(status) ? status : 'new',
     isRead: true
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!enquiry) return sendError(res, 'Contact enquiry not found.', 404)
   return sendSuccess(res, { enquiry }, 'Contact enquiry status updated successfully.')
@@ -492,7 +492,7 @@ export const assignAdminContactEnquiry = asyncHandler(async (req, res) => {
   const enquiry = await ContactEnquiry.findByIdAndUpdate(req.params.enquiryId, {
     assignedAdminId: assignmentId || null,
     isRead: true
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!enquiry) return sendError(res, 'Contact enquiry not found.', 404)
   return sendSuccess(res, { enquiry }, 'Contact enquiry assignment updated successfully.')
@@ -503,7 +503,7 @@ export const updateAdminContactEnquiryNotes = asyncHandler(async (req, res) => {
   const enquiry = await ContactEnquiry.findByIdAndUpdate(req.params.enquiryId, {
     adminNotes: notes,
     isRead: true
-  }, { new: true })
+  }, { returnDocument: 'after' })
 
   if (!enquiry) return sendError(res, 'Contact enquiry not found.', 404)
   return sendSuccess(res, { enquiry }, 'Contact enquiry notes updated successfully.')
