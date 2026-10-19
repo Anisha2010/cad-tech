@@ -91,6 +91,7 @@ export const createAdminCourse = async ({ userId, payload = {} }) => {
     learningOutcomes: Array.isArray(payload.learningOutcomes) ? payload.learningOutcomes.map((value) => String(value).trim()).filter(Boolean).slice(0, 12) : [],
     requirements: Array.isArray(payload.requirements) ? payload.requirements.map((value) => String(value).trim()).filter(Boolean).slice(0, 12) : [],
     priceInPaise: payload.priceInPaise === '' || payload.priceInPaise === null || payload.priceInPaise === undefined ? null : Number(payload.priceInPaise),
+    originalPriceInPaise: payload.originalPriceInPaise === '' || payload.originalPriceInPaise === null || payload.originalPriceInPaise === undefined ? null : Number(payload.originalPriceInPaise),
     currency: 'INR',
     enrollmentOpen: Boolean(payload.enrollmentOpen),
     status: 'draft',
@@ -104,6 +105,8 @@ export const createAdminCourse = async ({ userId, payload = {} }) => {
   if (requiredErrors.length) throw new AppError(requiredErrors[0], 400)
   if (input.enrollmentOpen && !isValidCoursePrice(input.priceInPaise)) throw new AppError('A valid price is required before opening enrollment.', 400)
   if (input.priceInPaise !== null && (!Number.isInteger(input.priceInPaise) || input.priceInPaise <= 0)) throw new AppError('Enter a valid course price.', 400)
+  if (input.originalPriceInPaise !== null && (!Number.isInteger(input.originalPriceInPaise) || input.originalPriceInPaise <= 0)) throw new AppError('Enter a valid original price.', 400)
+  if (input.originalPriceInPaise !== null && input.priceInPaise !== null && input.originalPriceInPaise <= input.priceInPaise) throw new AppError('Original price must be greater than the course price.', 400)
 
   const slug = slugify(input.slug || input.title)
   if (!slug) throw new AppError('Course title is required.', 400)
@@ -123,6 +126,7 @@ export const createAdminCourse = async ({ userId, payload = {} }) => {
     learningOutcomes: input.learningOutcomes,
     requirements: input.requirements,
     priceInPaise: input.priceInPaise,
+    originalPriceInPaise: input.originalPriceInPaise,
     currency: 'INR',
     enrollmentOpen: Boolean(input.enrollmentOpen) && isValidCoursePrice(input.priceInPaise),
     status: 'draft',
@@ -155,6 +159,7 @@ export const updateAdminCourse = async ({ courseId, userId, payload = {} }) => {
   const learningOutcomes = payload.learningOutcomes !== undefined ? (Array.isArray(payload.learningOutcomes) ? payload.learningOutcomes.map((value) => String(value).trim()).filter(Boolean).slice(0, 12) : []) : (Array.isArray(existing.learningOutcomes) ? existing.learningOutcomes : [])
   const requirements = payload.requirements !== undefined ? (Array.isArray(payload.requirements) ? payload.requirements.map((value) => String(value).trim()).filter(Boolean).slice(0, 12) : []) : (Array.isArray(existing.requirements) ? existing.requirements : [])
   const priceInPaise = payload.priceInPaise !== undefined ? (payload.priceInPaise === '' || payload.priceInPaise === null ? null : Number(payload.priceInPaise)) : existing.priceInPaise
+  const originalPriceInPaise = payload.originalPriceInPaise !== undefined ? (payload.originalPriceInPaise === '' || payload.originalPriceInPaise === null ? null : Number(payload.originalPriceInPaise)) : existing.originalPriceInPaise
   const enrollmentOpen = payload.enrollmentOpen !== undefined ? Boolean(payload.enrollmentOpen) : existing.enrollmentOpen
   const status = payload.status !== undefined && COURSE_STATUSES.includes(payload.status) ? payload.status : existing.status
   const instructorId = payload.instructorId !== undefined ? (payload.instructorId === null || payload.instructorId === '' ? null : normalizeObjectId(payload.instructorId)) : existing.instructorId ? new mongoose.Types.ObjectId(existing.instructorId) : null
@@ -170,6 +175,8 @@ export const updateAdminCourse = async ({ courseId, userId, payload = {} }) => {
   const requiredErrors = ensureRequiredFields({ title, software, level, category, shortDescription, description, enrollmentOpen, priceInPaise })
   if (status === 'published' && requiredErrors.length) throw new AppError(requiredErrors[0], 400)
   if (priceInPaise !== null && (!Number.isInteger(priceInPaise) || priceInPaise <= 0)) throw new AppError('Enter a valid course price.', 400)
+  if (originalPriceInPaise !== null && (!Number.isInteger(originalPriceInPaise) || originalPriceInPaise <= 0)) throw new AppError('Enter a valid original price.', 400)
+  if (originalPriceInPaise !== null && priceInPaise !== null && originalPriceInPaise <= priceInPaise) throw new AppError('Original price must be greater than the course price.', 400)
   if (enrollmentOpen && !isValidCoursePrice(priceInPaise)) throw new AppError('A valid price is required before opening enrollment.', 400)
 
   const generatedSlug = slugify(slug || title)
@@ -193,6 +200,7 @@ export const updateAdminCourse = async ({ courseId, userId, payload = {} }) => {
     learningOutcomes,
     requirements,
     priceInPaise,
+    originalPriceInPaise,
     currency: 'INR',
     enrollmentOpen: status === 'published' && Boolean(enrollmentOpen) && isValidCoursePrice(priceInPaise),
     status,

@@ -7,7 +7,7 @@ import './AdminCourseForm.css'
 
 const initial = {
   title: '', slug: '', shortDescription: '', description: '', category: '', software: '',
-  level: '', duration: '', thumbnailUrl: '', priceInRupees: '', enrollmentOpen: false, status: 'draft'
+  level: '', duration: '', thumbnailUrl: '', priceInRupees: '', originalPriceInRupees: '', enrollmentOpen: false, status: 'draft'
 }
 
 const toPaise = (value) => {
@@ -53,7 +53,12 @@ function AdminCourseForm() {
     fetchAdminCourseById(courseId)
       .then(({ course }) => {
         const selectedInstructorId = course?.instructorId?._id ?? course?.instructorId?.id ?? course?.instructorId ?? course?.instructor?._id ?? course?.instructor?.id ?? ''
-        setForm({ ...initial, ...course, priceInRupees: Number.isInteger(course.priceInPaise) ? (course.priceInPaise / 100).toFixed(2) : '' })
+        setForm({
+          ...initial,
+          ...course,
+          priceInRupees: Number.isInteger(course.priceInPaise) ? (course.priceInPaise / 100).toFixed(2) : '',
+          originalPriceInRupees: Number.isInteger(course.originalPriceInPaise) ? (course.originalPriceInPaise / 100).toFixed(2) : ''
+        })
         setInstructorId(String(selectedInstructorId || ''))
         setInitialInstructorId(String(selectedInstructorId || ''))
       })
@@ -85,16 +90,20 @@ function AdminCourseForm() {
     setFieldError('')
     setError('')
     const priceInPaise = toPaise(form.priceInRupees)
+    const originalPriceInPaise = toPaise(form.originalPriceInRupees)
     if (!form.title.trim()) return setFieldError('Course title is required.')
     if (!form.software.trim()) return setFieldError('Software is required.')
     if (!form.level) return setFieldError('Please select a course level.')
     if (Number.isNaN(priceInPaise)) return setFieldError('Enter a valid course price.')
+    if (Number.isNaN(originalPriceInPaise)) return setFieldError('Enter a valid original price.')
+    if (originalPriceInPaise !== null && priceInPaise !== null && originalPriceInPaise <= priceInPaise) return setFieldError('Original price must be greater than the course price.')
     if (form.enrollmentOpen && priceInPaise === null) return setFieldError('A valid price is required before opening enrollment.')
 
     setSaving(true)
     try {
-      const payload = { ...form, priceInPaise, instructorId: instructorId || null }
+      const payload = { ...form, priceInPaise, originalPriceInPaise, instructorId: instructorId || null }
       delete payload.priceInRupees
+      delete payload.originalPriceInRupees
 
       if (courseId) {
         await updateAdminCourse(courseId, payload)
@@ -164,6 +173,7 @@ function AdminCourseForm() {
           )}
         </div>
         <label>Price in INR<input inputMode="decimal" value={form.priceInRupees} onChange={(event) => update('priceInRupees', event.target.value)} placeholder="Leave empty when enrollment is closed" /></label>
+        <label>Original / MRP price in INR<input inputMode="decimal" value={form.originalPriceInRupees} onChange={(event) => update('originalPriceInRupees', event.target.value)} placeholder="Optional - shown crossed out on cards" /></label>
         <label className="admin-check"><input type="checkbox" checked={form.enrollmentOpen} onChange={(event) => update('enrollmentOpen', event.target.checked)} /> Enrollment Open</label>
         <div className="admin-form-actions"><Link className="button button-outline" to="/admin/courses">Cancel</Link><button className="button button-primary" disabled={saving} type="submit"><Save size={17} /> {saving ? 'Saving...' : 'Save Course'}</button></div>
       </form>

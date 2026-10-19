@@ -2,6 +2,8 @@ import { ArrowRight, Box, Download } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import './ModelCard.css'
 
+const formatPrice = (paise) => `₹${(Number(paise) / 100).toFixed(2)}`
+
 function ModelCard({ model }) {
   const categoryName = model?.category?.name || model?.category || 'CAD Model'
   const formats = Array.isArray(model?.fileFormats) && model.fileFormats.length
@@ -9,6 +11,10 @@ function ModelCard({ model }) {
     : (Array.isArray(model?.formats) ? model.formats : [])
   const level = model?.level || 'Featured'
   const imageSrc = model?.thumbnailUrl || model?.image || ''
+  const salePrice = !model?.isFree && Number.isInteger(model?.priceInPaise) && model.priceInPaise > 0 ? model.priceInPaise : null
+  const originalPrice = Number.isInteger(model?.originalPriceInPaise) && model.originalPriceInPaise > (salePrice ?? 0)
+    ? model.originalPriceInPaise
+    : null
 
   return (
     <article className="model-card">
@@ -28,6 +34,18 @@ function ModelCard({ model }) {
             {formats.map((format) => <span key={format}>{format}</span>)}
           </div>
           <Download size={17} className="download-indicator" aria-label="Download available later" />
+        </div>
+        <div className="model-price">
+          {model?.isFree ? (
+            <span className="model-price-sale">Free</span>
+          ) : salePrice !== null ? (
+            <>
+              {originalPrice !== null && <span className="model-price-original">{formatPrice(originalPrice)}</span>}
+              <span className="model-price-sale">{formatPrice(salePrice)}</span>
+            </>
+          ) : (
+            <span className="model-price-request">Price on request</span>
+          )}
         </div>
         <Link className="model-details-link" to={`/model/${model.slug}`} aria-label={`View details for ${model.title}`}>View Details <ArrowRight size={16} /></Link>
       </div>

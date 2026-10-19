@@ -56,6 +56,8 @@ const normalizeProduct = (product = {}) => {
     requirements: Array.isArray(product.requirements) ? product.requirements.map((entry) => String(entry).trim()).filter(Boolean) : [],
     isFree: Boolean(product.isFree),
     priceInPaise,
+    salePriceInPaise: Number.isInteger(Number(product.salePriceInPaise)) ? Number(product.salePriceInPaise) : (Number.isInteger(Number(product.priceInPaise)) ? Number(product.priceInPaise) : null),
+    originalPriceInPaise: Number.isInteger(Number(product.originalPriceInPaise)) ? Number(product.originalPriceInPaise) : null,
     currency: typeof product.currency === 'string' ? product.currency.toUpperCase() : 'INR',
     featured: Boolean(product.featured),
     purchaseAvailable,

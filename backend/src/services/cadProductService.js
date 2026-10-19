@@ -102,6 +102,7 @@ const normalizePublicProduct = (product = null) => {
     requirements: includedRequirements,
     isFree,
     priceInPaise,
+    originalPriceInPaise: Number.isInteger(Number(product.originalPriceInPaise)) ? Number(product.originalPriceInPaise) : null,
     currency: String(product.currency || 'INR').toUpperCase(),
     featured: Boolean(product.featured),
     purchaseAvailable,
