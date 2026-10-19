@@ -9,7 +9,7 @@ export function getCountAnimationConfig(value) {
 
   return {
     start: 0,
-    end: numericValue,
+    end: numericValue * scale,
     prefix: '',
     suffix,
     minimumFractionDigits: hasDecimal ? 1 : 0,
