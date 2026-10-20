@@ -1,7 +1,8 @@
-import { BookOpen, Compass, LogOut, MessageSquareText, LayoutDashboard, Settings, X } from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, Compass, LogOut, MessageSquareText, LayoutDashboard, Settings, X } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { fetchInstructorCourses } from '../../../services/instructorService.js'
+import useCollapsedSidebar from '../../../hooks/useCollapsedSidebar.js'
 import './InstructorSidebar.css'
 
 const navigationItems = [
@@ -13,9 +14,10 @@ const navigationItems = [
   { label: 'Account settings', to: '/instructor/profile', Icon: Settings }
 ]
 
-function InstructorSidebar({ isOpen, onNavigate, onRequestLogout }) {
+function InstructorSidebar({ asideRef, isOpen, onNavigate, onRequestLogout }) {
   const location = useLocation()
   const [firstCourseId, setFirstCourseId] = useState('')
+  const [collapsed, toggleCollapsed] = useCollapsedSidebar('cadtech:instructor-sidebar-collapsed')
   const courseId = location.pathname.match(/^\/instructor\/courses\/([^/]+)/)?.[1]
 
   useEffect(() => {
@@ -38,10 +40,20 @@ function InstructorSidebar({ isOpen, onNavigate, onRequestLogout }) {
         onClick={onNavigate}
         aria-hidden="true"
       />
-      <aside className={`instructor-sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Instructor navigation" id="instructor-sidebar-nav">
+      <aside ref={asideRef} className={`instructor-sidebar ${isOpen ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-label="Instructor navigation" id="instructor-sidebar-nav">
         <div className="instructor-sidebar-header">
           <div className="instructor-brand-wrap" aria-label="CadTech Brand">
-            <span className="instructor-brand-mark">C</span>
+            <button
+              type="button"
+              className="instructor-brand-logo"
+              onClick={toggleCollapsed}
+              aria-expanded={!collapsed}
+              aria-label={collapsed ? 'Expand instructor sidebar' : 'Collapse instructor sidebar'}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              <img src="/favicon.jpg" alt="" />
+              <span className="instructor-brand-chevron" aria-hidden="true">{collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}</span>
+            </button>
             <div>
               <span className="instructor-brand-name">CadTech</span>
               <strong>INSTRUCTOR PORTAL</strong>
@@ -72,7 +84,7 @@ function InstructorSidebar({ isOpen, onNavigate, onRequestLogout }) {
 
         <button type="button" className="instructor-sidebar-logout" onClick={() => { onNavigate?.(); onRequestLogout() }}>
           <LogOut size={17} aria-hidden="true" />
-          Logout
+          <span>Logout</span>
         </button>
       </aside>
     </>

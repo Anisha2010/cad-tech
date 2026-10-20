@@ -1,4 +1,4 @@
-import { Menu } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import ThemeToggle from '../../common/ThemeToggle/ThemeToggle.jsx'
 import AccountDropdown from '../../common/AccountDropdown/AccountDropdown.jsx'
 import useAuth from '../../../context/useAuth.jsx'
@@ -17,9 +17,11 @@ function StudentTopbar({ onMenuToggle, isSidebarOpen, pageTitle = 'Student Dashb
           type="button"
           className="student-menu-button"
           aria-label={isSidebarOpen ? 'Close sidebar menu' : 'Open sidebar menu'}
+          aria-controls="student-sidebar-nav"
+          aria-expanded={Boolean(isSidebarOpen)}
           onClick={onMenuToggle}
         >
-          <Menu size={18} aria-hidden="true" />
+          {isSidebarOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
         </button>
         <h1 className="student-page-title">{pageTitle}</h1>
       </div>

@@ -1,4 +1,4 @@
-import { ChevronDown, CircleUserRound, LockKeyhole, LogOut, Menu, Pencil } from 'lucide-react'
+import { ChevronDown, CircleUserRound, LockKeyhole, LogOut, Menu, Pencil, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ThemeToggle from '../../common/ThemeToggle/ThemeToggle.jsx'
@@ -29,7 +29,7 @@ const titles = {
   settings: 'Site Settings'
 }
 
-function AdminHeader({ pathname, onMenu, onLogout }) {
+function AdminHeader({ pathname, isOpen, onMenu, onLogout }) {
   const { user } = useAuth()
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRootRef = useRef(null)
@@ -71,7 +71,7 @@ function AdminHeader({ pathname, onMenu, onLogout }) {
 
   return (
     <header className="admin-header">
-      <button className="admin-menu-button" type="button" onClick={onMenu} aria-label="Open admin navigation"><Menu size={21} /></button>
+      <button className="admin-menu-button" type="button" onClick={onMenu} aria-label={isOpen ? 'Close admin navigation' : 'Open admin navigation'} aria-controls="admin-sidebar-nav" aria-expanded={Boolean(isOpen)}>{isOpen ? <X size={21} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}</button>
       <div className="admin-header-title"><p className="admin-header-kicker">ADMINISTRATION</p><h1>{titles[key] || titles[segments[0]] || 'Admin Dashboard'}</h1></div>
       <div className="admin-header-actions">
         <ThemeToggle />

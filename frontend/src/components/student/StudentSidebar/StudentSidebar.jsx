@@ -1,8 +1,10 @@
-import { Award, BookOpen, Box, ClipboardList, Download, LayoutDashboard, LogOut, MessageCircle, Settings, ShoppingBag, X } from 'lucide-react'
+import { Award, BookOpen, Box, ChevronLeft, ChevronRight, ClipboardList, Download, LayoutDashboard, LogOut, MessageCircle, Settings, ShoppingBag, X } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import LogoutConfirmationDialog from '../../common/LogoutConfirmationDialog/LogoutConfirmationDialog.jsx'
 import useAuth from '../../../context/useAuth.jsx'
+import useSidebarOverlay from '../../../hooks/useSidebarOverlay.js'
+import useCollapsedSidebar from '../../../hooks/useCollapsedSidebar.js'
 import './StudentSidebar.css'
 
 const navItems = [
@@ -22,7 +24,11 @@ function StudentSidebar({ isOpen, onClose, onRequestLogout }) {
   const [logoutOpen, setLogoutOpen] = useState(false)
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const asideRef = useRef(null)
+  const [collapsed, toggleCollapsed] = useCollapsedSidebar('cadtech:student-sidebar-collapsed')
   const hasLogoutCallback = typeof onRequestLogout === 'function'
+
+  useSidebarOverlay(isOpen, onClose, asideRef)
 
   const requestLogout = () => {
     onClose?.()
@@ -45,10 +51,21 @@ function StudentSidebar({ isOpen, onClose, onRequestLogout }) {
 
   return (
     <>
-      <aside className={`student-sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Student portal navigation">
+      <div className={`student-sidebar-backdrop ${isOpen ? 'is-visible' : ''}`} onClick={onClose} aria-hidden="true" />
+      <aside ref={asideRef} className={`student-sidebar ${isOpen ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-label="Student portal navigation" id="student-sidebar-nav">
         <div className="student-sidebar-header">
-          <div className="student-brand" aria-label="CadTech Solution">C</div>
-          <div>
+          <button
+            type="button"
+            className="student-brand"
+            onClick={toggleCollapsed}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? 'Expand student sidebar' : 'Collapse student sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <img src="/favicon.jpg" alt="" />
+            <span className="student-brand-chevron" aria-hidden="true">{collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}</span>
+          </button>
+          <div className="student-brand-copy">
             <p className="student-brand-name">CadTech Solution</p>
             <span className="student-brand-label">Student Portal</span>
           </div>
