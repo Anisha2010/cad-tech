@@ -193,6 +193,16 @@ export const getActiveQuotationForEnquiry = async (enquiryId) => {
   return CadServiceQuotation.findOne({ enquiryId, status: 'sent' }).sort({ version: -1, sentAt: -1 }).lean()
 }
 
+export const countEnquiriesForService = async (serviceId) => {
+  if (!mongoose.isValidObjectId(serviceId)) return 0
+  return CadServiceEnquiry.countDocuments({ serviceId })
+}
+
+export const deleteCadServiceRecord = async (serviceId) => {
+  if (!mongoose.isValidObjectId(serviceId)) return null
+  return CadService.findByIdAndDelete(serviceId).lean()
+}
+
 export default {
   getPublishedCadServices,
   findCadServiceById,
@@ -201,6 +211,8 @@ export default {
   listCadServicesForAdmin,
   createCadServiceRecord,
   updateCadServiceRecord,
+  countEnquiriesForService,
+  deleteCadServiceRecord,
   generateReferenceNumber,
   createCadServiceEnquiryRecord,
   findEnquiryById,

@@ -1,7 +1,7 @@
-import { Archive, CheckCircle2, Eye, Pencil, Plus, Search, XCircle } from 'lucide-react'
+import { Archive, CheckCircle2, Eye, Pencil, Plus, Search, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { fetchAdminCadServices, updateAdminCadServiceStatus } from '../../services/adminCadService.js'
+import { deleteAdminCadService, fetchAdminCadServices, updateAdminCadServiceStatus } from '../../services/adminCadService.js'
 
 function AdminCadServices() {
   const location = useLocation()
@@ -76,6 +76,18 @@ function AdminCadServices() {
     }
   }
 
+  const handleDelete = async (service) => {
+    if (!window.confirm(`Permanently delete ${service.title}? This cannot be undone. Services with customer enquiries must be archived instead.`)) return
+    try {
+      await deleteAdminCadService(service.id)
+      setError('')
+      setNotice('Service deleted successfully.')
+      refreshServices()
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'Unable to delete service.')
+    }
+  }
+
   return (
     <main className="admin-page admin-cad-page">
       <header className="admin-page-header">
@@ -143,6 +155,9 @@ function AdminCadServices() {
                       {service.status !== 'archived' && <button type="button" onClick={() => handleArchive(service)} aria-label={`Archive ${service.title}`}>
                         <Archive size={16} />
                       </button>}
+                      <button type="button" onClick={() => handleDelete(service)} aria-label={`Delete ${service.title}`}>
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}

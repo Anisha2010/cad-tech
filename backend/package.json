@@ -23,7 +23,8 @@
     "email:smoke": "node scripts/email-provider-smoke.js",
     "start:e2e": "npx --yes --package=node@20 node scripts/start-e2e.js",
     "seed:e2e": "npx --yes --package=node@20 node scripts/seed-e2e-users.js",
-    "cleanup:e2e": "npx --yes --package=node@20 node scripts/cleanup-e2e-run.js"
+    "cleanup:e2e": "npx --yes --package=node@20 node scripts/cleanup-e2e-run.js",
+    "cleanup:e2e:services": "npx --yes --package=node@20 node scripts/cleanup-e2e-service-run.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.0",

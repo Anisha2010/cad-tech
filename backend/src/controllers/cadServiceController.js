@@ -1,7 +1,37 @@
-import mongoose from 'mongoose'
+import multer from 'multer'
 import asyncHandler from '../utils/asyncHandler.js'
 import { sendError, sendSuccess } from '../utils/response.js'
+import { AppError } from '../utils/AppError.js'
 import * as cadServiceService from '../services/cadServiceService.js'
+import { uploadCategoryImageFile, validateProfileImageUpload } from '../config/storage.js'
+
+const serviceImageMaxBytes = Number(process.env.CAD_PREVIEW_IMAGE_UPLOAD_MAX_BYTES || 10485760)
+const serviceImageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: serviceImageMaxBytes, files: 1 } })
+
+const receiveServiceImage = (req, res, next) => serviceImageUpload.single('file')(req, res, (error) => {
+  if (error?.code === 'LIMIT_FILE_SIZE') return sendError(res, 'Service image exceeds the upload size limit.', 413)
+  if (error) return next(new AppError('Unable to receive service image.', 400))
+  next()
+})
+
+export const uploadAdminCadServiceImage = [
+  receiveServiceImage,
+  asyncHandler(async (req, res) => {
+    if (!req.file) return sendError(res, 'No service image was provided.', 400)
+    validateProfileImageUpload({
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      sizeBytes: req.file.size
+    })
+    const image = await uploadCategoryImageFile({
+      buffer: req.file.buffer,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype
+    })
+    if (!image.url) throw new AppError('Cloudinary did not return an image URL.', 503)
+    return sendSuccess(res, { image }, 'Service image uploaded successfully.')
+  })
+]
 
 export const listPublicCadServices = asyncHandler(async (req, res) => {
   const result = await cadServiceService.getPublicCadServices({
@@ -61,6 +91,12 @@ export const updateAdminCadService = asyncHandler(async (req, res) => {
   const service = await cadServiceService.updateCadService({ serviceId: req.params.serviceId, userId: req.user.id, payload: req.body })
   if (!service) return sendError(res, 'CAD service not found.', 404)
   return sendSuccess(res, { service }, 'CAD service updated successfully.')
+})
+
+export const deleteAdminCadService = asyncHandler(async (req, res) => {
+  const service = await cadServiceService.deleteCadService({ serviceId: req.params.serviceId, userId: req.user.id })
+  if (!service) return sendError(res, 'CAD service not found.', 404)
+  return sendSuccess(res, { service }, 'CAD service deleted successfully.')
 })
 
 export const updateAdminCadServiceStatus = asyncHandler(async (req, res) => {

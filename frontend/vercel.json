@@ -1,10 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
+  "routes": [
+    { "handle": "filesystem" },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+      "src": "^/(?:about|cad-models(?:/[^/]+)?|cad-services(?:/[^/]+)?|check-email|certificates/verify/[^/]+|contact|courses(?:/[^/]+)?|digital-item-policy|forgot-password|gallery|instructor(?:/.*)?|legal|login|model/[^/]+|privacy-policy|refund-policy|register|reset-password|services(?:/[^/]+)?|student(?:/.*)?|terms|verify-email|auth/callback|admin(?:/.*)?)/?$",
+      "dest": "/index.html"
+    },
+    { "src": "^/$", "dest": "/index.html" },
+    { "src": ".*", "status": 404, "dest": "/404.html" }
   ],
   "headers": [
     {

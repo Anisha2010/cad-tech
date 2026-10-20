@@ -1,0 +1,106 @@
+.services-intro-section {
+  padding: 0 0 var(--section-spacing);
+  background: var(--color-bg);
+}
+
+.services-intro-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  padding: clamp(2rem, 5vw, 3.5rem);
+  background: var(--color-footer-bg);
+}
+
+.services-intro-blueprint {
+  position: absolute;
+  inset: 0;
+  background: url('/images/hero/blueprint-grid.svg') repeat;
+  opacity: 0.25;
+  mask-image: linear-gradient(90deg, transparent, black 25%, black 80%, transparent);
+}
+
+.services-intro-copy,
+.services-intro-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.services-intro-copy h2 {
+  margin: 0;
+  color: var(--color-surface);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: -0.02em;
+}
+
+.services-intro-copy p {
+  max-width: 620px;
+  margin: 0.9rem 0 0;
+  color: var(--color-footer-text);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.services-intro-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  margin-top: 1.3rem;
+}
+
+.services-intro-contact a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-accent);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.services-intro-contact a:hover {
+  color: var(--color-accent-hover);
+}
+
+.services-intro-cta {
+  border-left: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  padding-left: clamp(1rem, 3vw, 2.5rem);
+}
+
+.services-intro-cta h3 {
+  margin: 0;
+  color: var(--color-surface);
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+}
+
+.services-intro-cta p {
+  margin: 0.7rem 0 1.3rem;
+  color: var(--color-footer-text);
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .services-intro-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .services-intro-cta {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+    padding-top: 1.4rem;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .services-intro-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .services-intro-cta .button {
+    width: 100%;
+  }
+}

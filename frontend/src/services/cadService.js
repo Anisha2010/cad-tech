@@ -130,6 +130,8 @@ export const getCadServiceCatalog = async (params = {}) => {
   }
 }
 
+export const getCadServices = async (params = {}) => (await getCadServiceCatalog(params)).services
+
 export const getCadServiceBySlug = async (slug) => {
   const response = await axios.get(`${apiBaseUrl}/cad-services/${encodeURIComponent(String(slug || ''))}`, {
     withCredentials: true,
@@ -203,6 +205,7 @@ export default {
   getCadProducts,
   getCadProductBySlug,
   getCadServiceCatalog,
+  getCadServices,
   getCadServiceBySlug,
   createServiceEnquiry,
   fetchStudentServiceRequests,

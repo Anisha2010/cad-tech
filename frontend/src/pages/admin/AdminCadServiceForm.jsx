@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { createAdminCadService, fetchAdminCadServiceById, updateAdminCadService } from '../../services/adminCadService.js'
-import './AdminCadServiceForm.css'
+import { createAdminCadService, fetchAdminCadServiceById, updateAdminCadService, uploadCadServiceImage } from '../../services/adminCadService.js'
 import './AdminCadServiceForm.css'
 
 const emptyForm = {
@@ -45,6 +44,7 @@ function AdminCadServiceForm() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(location.state?.notice || '')
   const [reload, setReload] = useState(0)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     if (!serviceId) return undefined
@@ -63,6 +63,27 @@ function AdminCadServiceForm() {
   }, [serviceId, reload])
 
   const updateField = (name, value) => setForm((current) => ({ ...current, [name]: value }))
+
+  const handleImageUpload = async (event) => {
+    const input = event.target
+    const file = input.files?.[0]
+    if (!file) return
+    setError('')
+    setSuccess('')
+    setUploadingImage(true)
+    try {
+      const result = await uploadCadServiceImage(file)
+      const imageUrl = result?.image?.url
+      if (!imageUrl) throw new Error('The upload did not return an image URL.')
+      updateField('thumbnail', imageUrl)
+      setSuccess('Image uploaded. Save the service to keep it.')
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to upload service image.')
+    } finally {
+      setUploadingImage(false)
+      input.value = ''
+    }
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -132,6 +153,8 @@ function AdminCadServiceForm() {
           <label className="is-wide">Description *<textarea required rows="5" value={form.description} onChange={(event) => updateField('description', event.target.value)} /></label>
           <label>Category<input maxLength="80" value={form.category} onChange={(event) => updateField('category', event.target.value)} /></label>
           <label>Thumbnail URL<input type="url" value={form.thumbnail} onChange={(event) => updateField('thumbnail', event.target.value)} /></label>
+          <label>Upload thumbnail image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} disabled={uploadingImage} />{uploadingImage && <span role="status">Uploading image...</span>}</label>
+          {form.thumbnail && <div className="admin-service-image-preview is-wide"><img src={form.thumbnail} alt="Service thumbnail preview" /></div>}
           <label>Starting price (INR)<input type="number" min="0" step="0.01" value={form.startingPrice} onChange={(event) => updateField('startingPrice', event.target.value)} /></label>
           <label>Estimated delivery (days)<input type="number" min="1" step="1" value={form.estimatedDeliveryDays} onChange={(event) => updateField('estimatedDeliveryDays', event.target.value)} /></label>
           <label>Display order<input type="number" min="0" step="1" value={form.displayOrder} onChange={(event) => updateField('displayOrder', event.target.value)} /></label>

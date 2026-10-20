@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { founder } from '../../data/about.js'
+import CompanyDetails from '../../components/common/CompanyDetails/CompanyDetails.jsx'
 import { getPublicAboutContent, getPublicSiteSettings } from '../../services/siteContentService.js'
 import './About.css'
 
@@ -23,6 +24,7 @@ const defaultFounderPortrait = '/hero/founder.jpg'
 function About() {
   const reduceMotion = useReducedMotion()
   const [aboutData, setAboutData] = useState(defaultAbout)
+  const [siteSettings, setSiteSettings] = useState(null)
   const [founderPortraitUrl, setFounderPortraitUrl] = useState(defaultFounderPortrait)
   const [founderPortraitLoaded, setFounderPortraitLoaded] = useState(false)
 
@@ -42,10 +44,12 @@ function About() {
       const founderImageUrl = response?.settings?.founderImageUrl?.trim()
       const heroImageUrl = response?.settings?.heroImageUrl?.trim()
       const savedPortraitUrl = founderImageUrl || heroImageUrl || defaultFounderPortrait
+      setSiteSettings(response?.settings || null)
       setFounderPortraitUrl(savedPortraitUrl)
       setFounderPortraitLoaded(false)
     }).catch(() => {
       if (active) {
+        setSiteSettings(null)
         setFounderPortraitUrl(defaultFounderPortrait)
         setFounderPortraitLoaded(false)
       }
@@ -122,6 +126,8 @@ function About() {
       <section className="about-section about-alt-section" aria-labelledby="support-heading"><div className="site-container"><div className="about-section-heading centered-heading"><span className="categories-eyebrow">WHAT WE DO</span><h2 className="section-heading" id="support-heading">How We Support Your Engineering Journey</h2></div><div className="support-grid">{supportAreas.map(({ id, title, description, icon: Icon, path }) => <Link className="about-info-card support-card" to={path} key={id}><div className="about-card-icon"><Icon size={25} /></div><h3>{title}</h3><p>{description}</p><span className="about-inline-link">Explore <ArrowRight size={16} /></span></Link>)}</div></div></section>
 
       <section className="about-section about-alt-section" aria-labelledby="values-heading"><div className="site-container"><div className="about-section-heading centered-heading"><span className="categories-eyebrow">CORE VALUES</span><h2 className="section-heading" id="values-heading">What Guides Us</h2></div><div className="values-grid">{coreValues.map(({ id, title, description, icon: Icon }) => <div className="value-card" key={id}><Icon size={21} className="value-icon" /><h3>{title}</h3><p>{description}</p></div>)}</div></div></section>
+
+      <section className="about-section" aria-labelledby="company-details-heading"><div className="site-container"><div className="about-section-heading centered-heading"><span className="categories-eyebrow">COMPANY INFORMATION</span><h2 className="section-heading" id="company-details-heading">Official Company Details</h2></div><CompanyDetails settings={siteSettings} variant="section" /></div></section>
 
       <section className="about-final-cta" aria-labelledby="about-cta-heading"><div className="site-container about-final-cta-inner"><div className="about-cta-grid" aria-hidden="true" /><div><span className="cta-eyebrow">START WITH CADTECH</span><h2 id="about-cta-heading">{aboutData.finalCta || 'Ready to start your CAD journey?'}</h2><p>Explore our training, discover CAD resources, or contact us about your project.</p></div><div className="about-actions"><Link className="button button-primary" to="/courses">Browse Courses <ArrowRight size={17} /></Link><Link className="button cta-secondary-button" to="/contact">Talk to Us <ArrowRight size={17} /></Link></div></div></section>
     </main>

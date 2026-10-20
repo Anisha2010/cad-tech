@@ -5,6 +5,7 @@ import Categories from '../../components/home/Categories/Categories.jsx'
 import OurWorkGallery from '../../components/home/OurWorkGallery/OurWorkGallery.jsx'
 import FeaturedModels from '../../components/home/FeaturedModels/FeaturedModels.jsx'
 import ServicesPreview from '../../components/home/ServicesPreview/ServicesPreview.jsx'
+import ServicesIntro from '../../components/services/ServicesIntro/ServicesIntro.jsx'
 import CoursesPreview from '../../components/home/CoursesPreview/CoursesPreview.jsx'
 import WhyChooseUs from '../../components/home/WhyChooseUs/WhyChooseUs.jsx'
 import Testimonials from '../../components/home/Testimonials/Testimonials.jsx'
@@ -59,6 +60,7 @@ function Home() {
       <OurWorkGallery />
       <FeaturedModels />
       <ServicesPreview />
+      <ServicesIntro settings={settings} />
       <CoursesPreview />
       <WhyChooseUs features={homeData.featureHighlights || defaultHomeData.featureHighlights} />
       <Testimonials />

@@ -80,6 +80,7 @@ const AdminCadOrders = lazy(() => import('./pages/admin/AdminCadOrders.jsx'))
 const AdminSiteContent = lazy(() => import('./pages/admin/AdminSiteContent.jsx'))
 const AdminContactEnquiries = lazy(() => import('./pages/admin/AdminContactEnquiries.jsx'))
 const AdminLayout = lazy(() => import('./layouts/AdminLayout/AdminLayout.jsx'))
+const NotFound = lazy(() => import('./pages/NotFound/NotFound.jsx'))
 
 function AppLayout() {
   const location = useLocation()
@@ -190,7 +191,7 @@ function AppLayout() {
             <Route path="enrollments" element={<AdminRecords type="enrollments" />} />
             <Route path="payments" element={<AdminRecords type="payments" />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       <BackToTop />

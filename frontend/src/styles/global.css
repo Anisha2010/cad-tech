@@ -69,6 +69,10 @@ body,
   color: var(--color-text-muted);
 }
 
+.page-placeholder > svg { margin: 0 auto 1.25rem; color: var(--color-primary); }
+.not-found-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 1.75rem; }
+.not-found-actions .button { display: inline-flex; align-items: center; gap: 0.45rem; }
+
 .section-heading { margin: 0; color: var(--color-text); font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; }
 .section-description { color: var(--color-text-secondary); line-height: 1.7; }
 .surface-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-card); }
@@ -117,7 +121,6 @@ body,
 .auth-brand-panel .auth-brand,
 .auth-brand-panel .auth-brand-copy h1,
 .about-final-cta .about-final-cta-inner h2,
-.services-final-cta .services-cta-inner h2,
 .service-details .service-detail-cta h2,
 .site-footer .footer-brand,
 .site-footer .footer-column h2 { color: var(--surface-dark-heading); }

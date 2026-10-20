@@ -62,6 +62,15 @@
   flex-wrap: wrap;
 }
 
+.admin-service-image-preview img {
+  width: 160px;
+  height: 110px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
 .admin-service-form-actions {
   margin-top: 18px;
 }

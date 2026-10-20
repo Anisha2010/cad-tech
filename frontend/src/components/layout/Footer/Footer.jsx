@@ -1,6 +1,7 @@
-import { Box, Cpu, Facebook, Instagram, Linkedin, MessageCircle, Youtube } from 'lucide-react'
+import { Cpu, Facebook, Instagram, Linkedin, MessageCircle, Youtube } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import CompanyDetails from '../../common/CompanyDetails/CompanyDetails.jsx'
 import { getCadCategories } from '../../../services/cadService.js'
 import { getPublicSiteSettings } from '../../../services/siteContentService.js'
 import './Footer.css'
@@ -42,8 +43,6 @@ function Footer() {
 
   const brandName = settings?.brandName || settings?.businessName || 'CadTech Solution'
   const tagline = settings?.tagline || 'Professional CAD models, engineering services, and practical training for designers and learners.'
-  const contactEmail = settings?.contactEmail || 'arvind@cadtechsolution.com'
-  const contactPhone = settings?.contactPhone || '+91 88399 89046'
   const socialLinks = socialPlatforms.filter(([key]) => {
     const value = settings?.socialLinks?.[key]
     if (!value) return false
@@ -85,8 +84,7 @@ function Footer() {
           <div className="footer-column footer-contact-column">
             <h2>Have a project in mind?</h2>
             <p>Contact us to discuss CAD design, training, or engineering requirements.</p>
-            <a className="footer-contact-link" href={`mailto:${contactEmail}`}>Contact Us <Box size={16} /></a>
-            {contactPhone && <a className="footer-contact-link" href={`tel:${contactPhone}`}>{contactPhone}</a>}
+            <CompanyDetails settings={settings} variant="footer" />
           </div>
         </div>
         <div className="footer-bottom"><span>© {new Date().getFullYear()} {brandName}. All rights reserved.</span><span>Built for Engineers. Designed for the Future.</span></div>

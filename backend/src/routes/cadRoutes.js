@@ -13,6 +13,8 @@ import {
   getAdminCadServiceDetails,
   updateAdminCadService,
   updateAdminCadServiceStatus,
+  deleteAdminCadService,
+  uploadAdminCadServiceImage,
   createStudentCadServiceEnquiry,
   listStudentCadServiceEnquiries,
   getStudentCadServiceEnquiry,
@@ -69,8 +71,10 @@ router.delete('/admin/cad-products/:productId/secure-file', requireAuthenticatio
 
 router.get('/admin/cad-services', requireAuthentication, allowRoles('admin'), listAdminCadServices)
 router.post('/admin/cad-services', requireAuthentication, allowRoles('admin'), rateLimit, createAdminCadService)
+router.post('/admin/cad-services/image', requireAuthentication, allowRoles('admin'), rateLimit, uploadAdminCadServiceImage)
 router.get('/admin/cad-services/:serviceId', requireAuthentication, allowRoles('admin'), getAdminCadServiceDetails)
 router.patch('/admin/cad-services/:serviceId', requireAuthentication, allowRoles('admin'), rateLimit, updateAdminCadService)
+router.delete('/admin/cad-services/:serviceId', requireAuthentication, allowRoles('admin'), rateLimit, deleteAdminCadService)
 router.post('/admin/cad-services/:serviceId/status', requireAuthentication, allowRoles('admin'), rateLimit, updateAdminCadServiceStatus)
 
 router.get('/admin/service-requests', requireAuthentication, allowRoles('admin'), listAdminCadServiceEnquiries)

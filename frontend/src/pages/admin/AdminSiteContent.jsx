@@ -8,7 +8,8 @@ const defaultForm = {
   tagline: 'Professional CAD models, engineering services, and practical training.',
   contactEmail: 'arvind@cadtechsolution.com',
   contactPhone: '+91 88399 89046',
-  contactAddress: 'Bengaluru, India',
+  contactAddress: 'Shalimar Sterling, Bhopal, Madhya Pradesh, India',
+  contactWorkingHours: 'Monday–Saturday, 9:00 AM–6:00 PM',
   primaryCtaLabel: 'Explore Courses',
   primaryCtaLink: '/courses',
   secondaryCtaLabel: 'Request a Quote',
@@ -154,6 +155,7 @@ function AdminSiteContent() {
             <SiteField label="Contact email" required><input type="email" required value={form.contactEmail} onChange={(event) => updateField('contactEmail', event.target.value)} /></SiteField>
             <SiteField label="Contact phone"><input type="tel" value={form.contactPhone} onChange={(event) => updateField('contactPhone', event.target.value)} /></SiteField>
             <SiteField label="Contact address"><textarea rows="2" value={form.contactAddress} onChange={(event) => updateField('contactAddress', event.target.value)} /></SiteField>
+            <SiteField label="Working hours" helper="Shown on the footer, contact, and about pages."><input value={form.contactWorkingHours} onChange={(event) => updateField('contactWorkingHours', event.target.value)} /></SiteField>
             <SiteField label="Hero image URL" helper="Optional. Use a public HTTPS image URL."><input type="url" value={form.heroImageUrl} onChange={(event) => updateField('heroImageUrl', event.target.value)} /></SiteField>
             <SiteField label="Founder image" helper="Upload a JPG, PNG, or WebP image up to 10 MB."><input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFounderImageUpload} disabled={uploadingFounderImage} />{uploadingFounderImage && <small role="status">Uploading founder image...</small>}{form.founderImageUrl && <img className="site-settings-founder-preview" src={form.founderImageUrl} alt="Founder preview" onError={(event) => { event.currentTarget.hidden = true }} />}</SiteField>
             <SiteField label="Founder image URL" helper="Optional. Use a public HTTPS image URL."><input type="url" value={form.founderImageUrl} onChange={(event) => updateField('founderImageUrl', event.target.value)} /></SiteField>

@@ -5,6 +5,8 @@
 .service-preview-card { display: flex; min-height: 280px; flex-direction: column; align-items: flex-start; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.6rem; background: var(--color-card-bg); box-shadow: var(--shadow-card); color: var(--color-text); transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition); }
 .service-preview-card:hover { border-color: var(--color-light-accent); box-shadow: 0 18px 38px color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-text); transform: translateY(-5px); }
 .service-icon { display: grid; width: 64px; height: 64px; margin-bottom: 1.5rem; place-items: center; border-radius: 18px; color: var(--color-primary); background: color-mix(in srgb, var(--color-accent) 16%, transparent); }
+.service-preview-media { width: 100%; margin-bottom: 1.2rem; overflow: hidden; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-surface); aspect-ratio: 16 / 10; }
+.service-preview-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .service-icon-product-development { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 13%, transparent); }
 .service-preview-card h3 { margin: 0; color: var(--color-text); font-size: 1.2rem; font-weight: 800; }
 .service-preview-card p { margin: 0.75rem 0 1.25rem; color: var(--color-text-muted); font-size: 0.9rem; line-height: 1.65; }

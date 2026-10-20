@@ -11,7 +11,7 @@ if (!/^E2E-\d{10,}-[A-Za-z0-9]{4,}$/.test(runId)) {
 
 const escapedRunId = runId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const fields = ['title', 'name', 'slug', 'reference', 'subject', 'message', 'description', 'shortDescription', 'courseTitle', 'externalReference', 'runId']
-const collections = ['courses', 'faqs', 'testimonials', 'contactenquiries', 'cadproducts', 'cadserviceenquiries', 'cadservicequotations', 'cadservicemessages', 'cadorders']
+const collections = ['courses', 'faqs', 'testimonials', 'contactenquiries', 'cadproducts', 'cadservices', 'cadserviceenquiries', 'cadservicequotations', 'cadservicemessages', 'cadorders']
 
 await mongoose.connect(mongoUri)
 try {

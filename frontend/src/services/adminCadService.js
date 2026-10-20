@@ -53,11 +53,19 @@ export const uploadCadCategoryImage = (file) => {
     .then((response) => response.data?.data || response.data)
 }
 
+export const uploadCadServiceImage = (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return axios({ method: 'post', url: `${apiBaseUrl}/admin/cad-services/image`, data: formData, withCredentials: true, timeout: 120000, headers: { 'Content-Type': 'multipart/form-data' } })
+    .then((response) => response.data?.data || response.data)
+}
+
 export const fetchAdminCadServices = ({ search = '', status = 'all', page = 1, limit = 20 } = {}) => request('get', '/admin/cad-services', null, { search, status, page, limit })
 export const fetchAdminCadServiceById = (serviceId) => request('get', `/admin/cad-services/${serviceId}`)
 export const createAdminCadService = (payload) => request('post', '/admin/cad-services', payload)
 export const updateAdminCadService = (serviceId, payload) => request('patch', `/admin/cad-services/${serviceId}`, payload)
 export const updateAdminCadServiceStatus = (serviceId, status) => request('post', `/admin/cad-services/${serviceId}/status`, { status })
+export const deleteAdminCadService = (serviceId) => request('delete', `/admin/cad-services/${serviceId}`)
 
 export const fetchAdminServiceEnquiries = ({ status = 'all', search = '', page = 1, limit = 20 } = {}) => request('get', '/admin/service-requests', null, { status, search, page, limit })
 export const fetchAdminServiceEnquiryById = (enquiryId) => request('get', `/admin/service-requests/${enquiryId}`)
@@ -83,11 +91,13 @@ export default {
   deleteCadSecureFile,
   uploadCadPreviewImage,
   uploadCadCategoryImage,
+  uploadCadServiceImage,
   fetchAdminCadServices,
   fetchAdminCadServiceById,
   createAdminCadService,
   updateAdminCadService,
   updateAdminCadServiceStatus,
+  deleteAdminCadService,
   fetchAdminServiceEnquiries,
   fetchAdminServiceEnquiryById,
   updateAdminServiceEnquiryStatus,

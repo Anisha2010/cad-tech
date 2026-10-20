@@ -12,6 +12,8 @@ import {
   listCadServicesForAdmin,
   createCadServiceRecord,
   updateCadServiceRecord,
+  countEnquiriesForService,
+  deleteCadServiceRecord,
   generateReferenceNumber,
   createCadServiceEnquiryRecord,
   findEnquiryById,
@@ -191,6 +193,20 @@ export const updateCadServiceStatus = async ({ serviceId, userId, status }) => {
   if (!allowedServiceStatuses.includes(status)) throw new AppError('Invalid status value.', 400)
 
   return updateCadServiceRecord(serviceId, { status, updatedBy: userId })
+}
+
+export const deleteCadService = async ({ serviceId, userId }) => {
+  if (!mongoose.isValidObjectId(serviceId)) return null
+  if (!mongoose.isValidObjectId(userId)) throw new AppError('Authentication required.', 401)
+
+  const current = await findCadServiceById(serviceId)
+  if (!current) return null
+
+  const enquiryCount = await countEnquiriesForService(serviceId)
+  if (enquiryCount > 0) throw new AppError('This service has customer enquiries. Archive it instead of deleting.', 409)
+
+  await deleteCadServiceRecord(serviceId)
+  return current
 }
 
 export const createCadServiceEnquiry = async ({ userId, payload = {} }) => {
@@ -473,6 +489,7 @@ export default {
   getAdminCadService,
   updateCadService,
   updateCadServiceStatus,
+  deleteCadService,
   createCadServiceEnquiry,
   listStudentEnquiries,
   getStudentEnquiry,

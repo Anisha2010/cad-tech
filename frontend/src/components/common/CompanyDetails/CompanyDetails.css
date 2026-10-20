@@ -1,0 +1,148 @@
+.company-details {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.company-details-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.company-details-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.company-details-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.company-details-label {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.company-details-value {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+a.company-details-value {
+  color: var(--color-secondary);
+  font-weight: 750;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a.company-details-value:hover {
+  color: var(--color-secondary-hover);
+  text-decoration: underline;
+}
+
+/* About page section: card grid */
+.company-details-section {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+}
+
+.company-details-section .company-details-item {
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.company-details-section .company-details-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 60%, var(--color-border));
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transform: translateY(-4px);
+}
+
+/* Footer: compact rows on the dark surface */
+.company-details-footer {
+  gap: 0.7rem;
+  margin-top: 1.15rem;
+}
+
+.company-details-footer .company-details-icon {
+  width: 30px;
+  height: 30px;
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
+.company-details-footer .company-details-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.company-details-footer .company-details-label {
+  color: color-mix(in srgb, var(--color-footer-text) 62%, transparent);
+  font-size: 0.64rem;
+}
+
+.company-details-footer .company-details-value {
+  color: var(--color-footer-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.company-details-footer a.company-details-value {
+  color: var(--color-accent);
+}
+
+.company-details-footer a.company-details-value:hover {
+  color: var(--color-accent-hover);
+}
+
+/* Contact panel */
+.company-details-panel .company-details-item {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.9rem;
+}
+
+.company-details-panel .company-details-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+@media (max-width: 767px) {
+  .company-details-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-details-section .company-details-item {
+    transition: none;
+  }
+
+  .company-details-section .company-details-item:hover {
+    transform: none;
+  }
+}
