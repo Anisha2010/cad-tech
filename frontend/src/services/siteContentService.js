@@ -105,6 +105,18 @@ export const uploadTestimonialImage = async (file) => {
   return response.data?.data || response.data || {}
 }
 
+export const uploadPortfolioImage = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await axios.post(`${apiBaseUrl}/admin/portfolio/image`, formData, {
+    withCredentials: true,
+    timeout: 120000,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+
+  return response.data?.data || response.data || {}
+}
+
 export const updateAdminContactEnquiryStatus = async (enquiryId, status) => {
   const response = await axios.patch(`${apiBaseUrl}/admin/contact-enquiries/${enquiryId}/status`, { status }, {
     withCredentials: true,
@@ -137,6 +149,7 @@ export default {
   getAdminContactEnquiry,
   saveAdminSiteSettings,
   uploadTestimonialImage,
+  uploadPortfolioImage,
   updateAdminContactEnquiryStatus,
   updateAdminContactEnquiryNotes
 }

@@ -239,6 +239,22 @@
   cursor: pointer;
 }
 
+.website-content-image-preview.is-rect {
+  width: 168px;
+  height: 112px;
+  border-radius: 12px;
+}
+
+.website-content-image-url {
+  max-width: 460px;
+}
+
+.website-content-image-url span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
 .website-content-actions {
   justify-content: flex-start;
   flex-wrap: wrap;

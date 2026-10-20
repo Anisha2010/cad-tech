@@ -407,6 +407,14 @@ export const uploadCategoryImageFile = ({ buffer, originalName, mimeType }) => u
   resourceType: 'image'
 })
 
+export const uploadPortfolioImageFile = ({ buffer, originalName, mimeType }) => uploadPublicCloudinaryFile({
+  buffer,
+  originalName,
+  mimeType,
+  folder: 'cadtech/portfolio-images',
+  resourceType: 'image'
+})
+
 export const deleteCadSecureFile = async ({ publicId, resourceType = 'raw' }) => {
   if (!publicId || !isCadSecureStorageConfigured()) return true
 

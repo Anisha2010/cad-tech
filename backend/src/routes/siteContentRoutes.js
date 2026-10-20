@@ -27,6 +27,7 @@ import {
   updateAdminTestimonial,
   deleteAdminTestimonial,
   uploadTestimonialImage,
+  uploadPortfolioImage,
   listAdminFaqs,
   createAdminFaq,
   updateAdminFaq,
@@ -45,6 +46,7 @@ import {
 const router = express.Router()
 const founderImageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } })
 const testimonialImageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } })
+const portfolioImageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } })
 
 router.get('/site-settings', getPublicSiteSettings)
 router.get('/homepage', getPublicHomepageContent)
@@ -83,6 +85,7 @@ router.delete('/admin/faqs/:itemId', requireAuthentication, allowRoles('admin'),
 
 router.get('/admin/portfolio', requireAuthentication, allowRoles('admin'), listAdminPortfolio)
 router.post('/admin/portfolio', requireAuthentication, allowRoles('admin'), createAdminPortfolioProject)
+router.post('/admin/portfolio/image', requireAuthentication, allowRoles('admin'), portfolioImageUpload.single('file'), uploadPortfolioImage)
 router.patch('/admin/portfolio/:itemId', requireAuthentication, allowRoles('admin'), updateAdminPortfolioProject)
 router.delete('/admin/portfolio/:itemId', requireAuthentication, allowRoles('admin'), deleteAdminPortfolioProject)
 

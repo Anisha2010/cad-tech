@@ -9,7 +9,7 @@ import PortfolioProject from '../models/PortfolioProject.js'
 import ContactEnquiry from '../models/ContactEnquiry.js'
 import { buildSlugFromTitle, normalizeCmsListItem, normalizeCmsText } from '../utils/siteContent.js'
 import { AppError } from '../utils/AppError.js'
-import { uploadProfileImageFile, validateFounderImageUpload, validateProfileImageUpload } from '../config/storage.js'
+import { uploadProfileImageFile, uploadPortfolioImageFile, validateFounderImageUpload, validateProfileImageUpload } from '../config/storage.js'
 
 const defaultSettings = {
   businessName: 'CadTech Solution',
@@ -382,6 +382,23 @@ export const uploadTestimonialImage = asyncHandler(async (req, res) => {
   return sendSuccess(res, { image }, 'Testimonial image uploaded successfully.', 201)
 })
 
+export const uploadPortfolioImage = asyncHandler(async (req, res) => {
+  if (!req.file) return sendError(res, 'No portfolio image was provided.', 400)
+  validateProfileImageUpload({
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype,
+    sizeBytes: req.file.size
+  })
+  const image = await uploadPortfolioImageFile({
+    buffer: req.file.buffer,
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype
+  })
+  if (!image.url) throw new AppError('Cloudinary did not return an image URL.', 503)
+
+  return sendSuccess(res, { image }, 'Portfolio image uploaded successfully.', 201)
+})
+
 export const listAdminFaqs = asyncHandler(async (req, res) => {
   const items = sortByDisplayOrder(await Faq.find({}).sort({ displayOrder: 1, createdAt: -1 }).lean())
   return sendSuccess(res, { items }, 'FAQs retrieved successfully.')
@@ -566,6 +583,7 @@ export default {
   createAdminPortfolioProject,
   updateAdminPortfolioProject,
   deleteAdminPortfolioProject,
+  uploadPortfolioImage,
   getAdminCmsSummary,
   listAdminContactEnquiries,
   getAdminContactEnquiry,

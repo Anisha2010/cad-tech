@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
-import { createAdminCmsItem, deleteAdminCmsItem, fetchAdminCmsItems, updateAdminCmsItem, uploadTestimonialImage } from '../../services/siteContentService.js'
+import { createAdminCmsItem, deleteAdminCmsItem, fetchAdminCmsItems, updateAdminCmsItem, uploadPortfolioImage, uploadTestimonialImage } from '../../services/siteContentService.js'
 import './AdminWebsiteContent.css'
+
+const imageUploaders = {
+  testimonials: uploadTestimonialImage,
+  portfolio: uploadPortfolioImage
+}
 
 const contentSections = {
   homepage: {
@@ -73,7 +78,7 @@ const contentSections = {
       { name: 'category', label: 'Category' },
       { name: 'summary', label: 'Summary', type: 'textarea' },
       { name: 'description', label: 'Description', type: 'textarea' },
-      { name: 'imageUrl', label: 'Image URL', type: 'url' },
+      { name: 'imageUrl', label: 'Project image', type: 'image', allowUrlInput: true, previewShape: 'rect' },
       { name: 'projectUrl', label: 'Project URL', type: 'url' },
       { name: 'technologies', label: 'Technologies, one per line', type: 'list' },
       { name: 'displayOrder', label: 'Display order', type: 'number' },
@@ -171,18 +176,24 @@ function AdminWebsiteContent() {
     const input = event.target
     const file = input.files?.[0]
     if (!file) return
+    const uploadImage = imageUploaders[section]
+    if (!uploadImage) {
+      setError('Image upload is not supported for this section.')
+      input.value = ''
+      return
+    }
     setUploadingImage(true)
     setError('')
     setNotice('')
 
     try {
-      const result = await uploadTestimonialImage(file)
+      const result = await uploadImage(file)
       const url = result?.image?.url
       if (!url) throw new Error('The upload did not return an image URL.')
       setForm((current) => ({ ...current, imageUrl: url }))
-      setNotice('Photo uploaded. Save the testimonial to keep it.')
+      setNotice(`Photo uploaded. Save the ${contentSections[section].singular} to keep it.`)
     } catch (requestError) {
-      setError(getErrorMessage(requestError, 'Unable to upload testimonial photo.'))
+      setError(getErrorMessage(requestError, 'Unable to upload photo.'))
     } finally {
       setUploadingImage(false)
       input.value = ''
@@ -297,9 +308,9 @@ function AdminWebsiteContent() {
                   <div className="website-content-image-field is-wide" key={field.name}>
                     <span className="website-content-image-label">{field.label}</span>
                     {form[field.name] ? (
-                      <img className="website-content-image-preview" src={form[field.name]} alt="Testimonial photo preview" />
+                      <img className={`website-content-image-preview${field.previewShape === 'rect' ? ' is-rect' : ''}`} src={form[field.name]} alt={`${config.singular} preview`} />
                     ) : (
-                      <p className="website-content-image-empty">No photo uploaded yet.</p>
+                      <p className="website-content-image-empty">No image uploaded yet.</p>
                     )}
                     <div className="website-content-image-actions">
                       <label className="button button-outline website-content-image-upload">
@@ -308,6 +319,18 @@ function AdminWebsiteContent() {
                       </label>
                       {form[field.name] && <button type="button" className="button button-outline" onClick={() => setForm((current) => ({ ...current, [field.name]: '' }))} disabled={uploadingImage || saving}>Remove photo</button>}
                     </div>
+                    {field.allowUrlInput && (
+                      <label className="website-content-image-url">
+                        <span>…or paste an image link</span>
+                        <input
+                          type="text"
+                          value={form[field.name]}
+                          onChange={(event) => setForm((current) => ({ ...current, [field.name]: event.target.value }))}
+                          placeholder="https://… or /images/…"
+                          disabled={uploadingImage || saving}
+                        />
+                      </label>
+                    )}
                   </div>
                 ) : (
                   <label className={field.type === 'textarea' || field.type === 'list' ? 'is-wide' : ''} key={field.name}>
