@@ -9,6 +9,7 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx'
 const Home = lazy(() => import('./pages/Home/Home.jsx'))
 const CategoryDetails = lazy(() => import('./pages/CategoryDetails/CategoryDetails.jsx'))
 const ModelDetails = lazy(() => import('./pages/ModelDetails/ModelDetails.jsx'))
+const Gallery = lazy(() => import('./pages/Gallery/Gallery.jsx'))
 const CourseDetails = lazy(() => import('./pages/CourseDetails/CourseDetails.jsx'))
 const About = lazy(() => import('./pages/About/About.jsx'))
 const CADModels = lazy(() => import('./pages/CADModels/CADModels.jsx'))
@@ -97,6 +98,7 @@ function AppLayout() {
           <Route path="/cad-models" element={<CADModels />} />
           <Route path="/cad-models/:category" element={<CategoryDetails />} />
           <Route path="/model/:slug" element={<ModelDetails />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/services" element={<Services />} />
           <Route path="/services/:slug" element={<ServiceDetails />} />
           <Route path="/cad-services" element={<CADServiceCatalog />} />

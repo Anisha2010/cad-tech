@@ -1,0 +1,25 @@
+.our-work-section {
+  padding: 0 0 var(--section-spacing);
+  background: var(--color-bg);
+}
+
+.our-work-heading-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.our-work-heading-row .section-description {
+  max-width: 620px;
+  margin: 0.75rem 0 0;
+}
+
+@media (max-width: 767px) {
+  .our-work-heading-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

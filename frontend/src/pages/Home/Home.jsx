@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Hero from '../../components/home/Hero/Hero.jsx'
 import Stats from '../../components/home/Stats/Stats.jsx'
 import Categories from '../../components/home/Categories/Categories.jsx'
+import OurWorkGallery from '../../components/home/OurWorkGallery/OurWorkGallery.jsx'
 import FeaturedModels from '../../components/home/FeaturedModels/FeaturedModels.jsx'
 import ServicesPreview from '../../components/home/ServicesPreview/ServicesPreview.jsx'
 import CoursesPreview from '../../components/home/CoursesPreview/CoursesPreview.jsx'
@@ -55,6 +56,7 @@ function Home() {
       <Hero content={homeData} settings={settings} loading={loading} />
       <Stats content={homeData.stats || defaultHomeData.stats} />
       <Categories />
+      <OurWorkGallery />
       <FeaturedModels />
       <ServicesPreview />
       <CoursesPreview />
